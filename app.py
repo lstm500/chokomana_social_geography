@@ -883,7 +883,7 @@ def build_legacy_records(raw, profile, assignment=None, now=None):
             attempt_id=str(attempt), event_id=str(uuid5(attempt, f"event:{sequence}")),
             app_version="1.0.0", content_version=LEGACY_VERSION, event_type=kind,
             occurred_at=iso(when), sequence=sequence, question_id=question,
-            occurrence_id=occurrence, segment_id=segment, payload=payload)
+            occurrence_id=occurrence, segment_id=segment or str(uuid5(attempt, "session-segment")), payload=payload)
         event["event_hash"] = hashlib.sha256(json.dumps(event, sort_keys=True,
             ensure_ascii=False, separators=(",", ":")).encode()).hexdigest()
         events.append(event)
@@ -2054,10 +2054,74 @@ VERIFIED_MAP_DATA = (
     "as9XaEVxWJzDnMfFf/mX/wPAMMp/"
 )
 VERIFIED_MAP = json.loads(decompress(b64decode(VERIFIED_MAP_DATA)))
+# Land boundaries. Pairs are listed once, then indexed in both directions.
+LAND_BOUNDARIES = """
+02:03 05
+03:04 05
+04:05 06 07
+05:06
+06:07 15
+07:08 09 10 15
+08:09 11 12
+09:10 11
+10:11 15 20
+11:12 13 19 20
+12:13
+13:14 19
+14:19 22
+15:16 20
+16:17 20 21
+17:18 21
+18:21 25 26
+19:20 22
+20:21 22 23
+21:23 24 25
+22:23
+23:24
+24:25 26 29 30
+25:26
+26:27 28 29
+27:28 29 30
+28:31 33
+29:30
+31:32 33 34
+32:34 35
+33:34 37
+34:35 38
+36:37 38 39
+37:38
+38:39
+40:41 43 44
+41:42
+43:44 45 46
+44:45
+45:46
+"""
+NEIGHBORS = {pid: [] for pid in PREFECTURES}
+for line in LAND_BOUNDARIES.strip().splitlines():
+    pid, codes = line.split(":")
+    for neighbor in codes.split():
+        NEIGHBORS[pid].append(neighbor)
+        NEIGHBORS[neighbor].append(pid)
+
+# Representative points in the lakes, in latitude/longitude (GSI Maps).
+LAKE_FEATURES = {
+    "01": [("サロマ湖", "44.13,143.80")],
+    "02": [("十和田湖", "40.46,140.88"), ("小川原湖", "40.77,141.34")],
+    "05": [("十和田湖", "40.46,140.88")],
+    "07": [("猪苗代湖", "37.45,140.09")],
+    "08": [("霞ヶ浦", "36.06,140.37")],
+    "20": [("諏訪湖", "36.05,138.08")],
+    "22": [("浜名湖", "34.75,137.58")],
+    "25": [("琵琶湖", "35.32,136.11")],
+    "32": [("宍道湖", "35.45,132.92")],
+}
 DISCOVERY = {
     pid: {**info, "capital_point": project(pid, CAPITAL_POINTS[pid]),
           "land_point": project(pid, info["place"]), "questions": discovery_questions(pid),
           "industry_icon": INDUSTRY_MAP[pid][0], "industry_points": INDUSTRY_MAP[pid][1],
+          "neighbors": NEIGHBORS[pid],
+          "lakes": [{"name": name, "point": project(pid, point)} for name, point in LAKE_FEATURES.get(pid, [])],
           **VERIFIED_MAP[pid]}
     for pid, info in PREFECTURE_INFO.items()
 }
@@ -2195,7 +2259,7 @@ def build_records(raw, profile, assignment=None, now=None):
         event = dict(schema_version=1, source_app=SOURCE, profile_id=profile, attempt_id=str(attempt),
             event_id=str(uuid5(attempt, f"event:{sequence}")), app_version="2.0.0", content_version=VERSION,
             event_type=kind, occurred_at=iso(when), sequence=sequence, question_id=question,
-            occurrence_id=occurrence, segment_id=segment, payload=payload)
+            occurrence_id=occurrence, segment_id=segment or str(uuid5(attempt, "session-segment")), payload=payload)
         event["event_hash"] = hashlib.sha256(json.dumps(event, sort_keys=True, ensure_ascii=False,
             separators=(",", ":")).encode()).hexdigest()
         records.append(event)
@@ -2288,6 +2352,11 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
 .discovery-map{background:linear-gradient(#d0ecea,#e4f4f0);border:1px solid #94bcbb;border-radius:13px;overflow:hidden}
 #fact-map{display:block;width:100%;height:auto;max-height:428px}
 #fact-shape{fill:#e8eed8;stroke:#427266;stroke-width:1.3;vector-effect:non-scaling-stroke}
+.neighbor-shape{fill:#e0e8dd;stroke:#94a89f;stroke-width:1;vector-effect:non-scaling-stroke}
+.neighbor-name{font-size:14px;font-weight:650;fill:#415a51;stroke:#f2f7ee;stroke-width:3;paint-order:stroke;pointer-events:none}
+.voice-volume{display:flex;align-items:center;gap:.4rem}
+#voice-volume{width:clamp(70px,15vw,120px);accent-color:#12624b}
+#voice-volume-value{min-width:3.2em}
 .capital-point circle,.production-pin circle{fill:#fffdf3;stroke:#496358;stroke-width:1.3}
 .capital-point text{fill:#254f43}
 .production-pin circle{fill:#fff1d0;stroke:#98603b}
@@ -2297,7 +2366,12 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
 .map-river.selected{stroke:#024774;stroke-width:3.65}
 .river-hit{fill:none;stroke:transparent;stroke-width:16;pointer-events:stroke;vector-effect:non-scaling-stroke}
 .map-peak circle{fill:#fff9ec;stroke:none;opacity:.82}
-.map-peak path{fill:#6d4875;stroke:#51305d;stroke-width:1}
+.map-peak .mountain-slope{fill:#715077;stroke:#51305d;stroke-width:1;stroke-linejoin:round}
+.map-peak .mountain-ridge{fill:none;stroke:#d6aad5;stroke-width:1.25;stroke-linejoin:round}
+.map-lake{cursor:pointer}
+.map-lake .lake-shape{fill:#b9e8f4;stroke:#246580;stroke-width:1.4}
+.map-lake .lake-wave{fill:none;stroke:#246580;stroke-width:1.2;stroke-linecap:round}
+.map-lake.selected .lake-shape{fill:#72c6e1;stroke-width:2.2}
 .map-peak.selected circle{fill:#f2d4a7;stroke:#6d4875;stroke-width:1.5}
 #fact-map [tabindex]:focus-visible{outline:2px solid #aa6522;outline-offset:2px}
 #relief-controls{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
@@ -2337,6 +2411,8 @@ body:has(#medal-dialog[open]){min-height:435px}
     <button type="button" class="secondary" id="geo-top">しゃかい・ちりトップ</button>
     <button type="button" class="secondary" id="export">UI・通信ログを保存</button>
     <label><input type="checkbox" id="voice-toggle" checked><span id="voice-label">自動読み上げ</span></label>
+    <label class="voice-volume">音量 <input type="range" id="voice-volume" min="0" max="100" step="5" value="100">
+      <output id="voice-volume-value" for="voice-volume">100%</output></label>
   </div>
 </header>
 <main>
@@ -2387,20 +2463,23 @@ body:has(#medal-dialog[open]){min-height:435px}
           <defs>
             <clipPath id="fact-clip"><use href="#fact-shape"/></clipPath>
           </defs>
+          <g id="fact-neighbors" aria-hidden="true"></g>
           <path id="fact-shape" fill-rule="evenodd" clip-rule="evenodd"/>
+          <g id="fact-neighbor-labels" aria-hidden="true"></g>
           <g id="fact-industry-area" clip-path="url(#fact-clip)" aria-hidden="true"></g>
           <g id="fact-rivers" clip-path="url(#fact-clip)"></g>
           <g id="fact-peaks"></g>
+          <g id="fact-lakes"></g>
           <g id="fact-pins"></g>
         </svg>
       </div>
       <div class="map-key">
         <span id="capital-key-group">県庁所在地</span>
-        <span id="terrain-key-group" hidden>川・山と地形</span>
+        <span id="terrain-key-group" hidden>川・山・湖と地形</span>
         <span id="industry-key-group" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><g id="industry-key-symbol" class="industry-icon"></g></svg><span id="industry-name"></span></span>
       </div>
       <p class="map-note" id="map-caption"></p>
-      <div id="relief-controls" hidden aria-label="川と山を選ぶ"></div>
+      <div id="relief-controls" hidden aria-label="川・山・湖を選ぶ"></div>
       <div class="feature-keys">
         <button id="discover-capital" aria-pressed="false" class="secondary">★ 県庁 <span hidden>✓</span></button>
         <button id="discover-land" aria-pressed="false" class="secondary">● 地形 <span hidden>✓</span></button>
@@ -2436,7 +2515,6 @@ body:has(#medal-dialog[open]){min-height:435px}
   <div id="medal-stamp" class="medal-stamp"><small id="medal-tier"></small><b>地</b><small>ち</small></div>
   <p id="medal-score"></p>
   <div class="medal-actions">
-    <button type="button" class="secondary" id="medal-export">UI・通信ログを保存</button>
     <button type="button" id="medal-top">しゃかい・ちりトップ</button>
     <form method="dialog"><button class="secondary" type="submit">とじる</button></form>
   </div>
@@ -2469,6 +2547,8 @@ let cache, medalResult;
 const attemptedSync = new Set();
 const syncRetries = new Map();
 let autoVoice = true;
+let voiceVolume = load("voice-volume");
+if (!Number.isInteger(voiceVolume) || voiceVolume < 0 || voiceVolume > 100) voiceVolume = 100;
 
 function load(key) {
   try { return JSON.parse(localStorage.getItem(PREFIX + key)); }
@@ -2595,6 +2675,8 @@ function init() {
     return choice;
   });
   $("age").replaceChildren(...ages);
+  $("voice-volume").value = String(voiceVolume);
+  $("voice-volume-value").textContent = voiceVolume+"%";
   updateVoiceControl();
   diagnostic("ui_ready",{build:args.build,touch:navigator.maxTouchPoints>0,screen_width:window.innerWidth});
   if (args.catalog_status) diagnostic("request",args.catalog_status);
@@ -2824,15 +2906,50 @@ function featureControl(node, label, action) {
   };
   return node;
 }
+function renderNeighbors(item, transform, toMap) {
+  const shapes = $("fact-neighbors"), labels = $("fact-neighbor-labels");
+  shapes.replaceChildren();
+  labels.replaceChildren();
+  const occupied = [];
+  for (const id of item.neighbors) {
+    const neighbor = prefectures.get(id);
+    shapes.append(svgNode("path",{d:neighbor.path,transform,class:"neighbor-shape","fill-rule":"evenodd"}));
+    const path = paths.get(id);
+    if (!path?.isPointInFill) continue;
+    const [left,top] = toMap(neighbor.bounds);
+    const [right,bottom] = toMap([neighbor.bounds[0]+neighbor.bounds[2],neighbor.bounds[1]+neighbor.bounds[3]]);
+    const padding = neighbor.name.length*7+5;
+    const endX = Math.min(FACT_WIDTH-padding,right), endY = Math.min(FACT_HEIGHT-12,bottom);
+    const startX = Math.max(padding,left), startY = Math.max(12,top);
+    const scale = (right-left)/neighbor.bounds[2];
+    const inside = (x,y) => path.isPointInFill(new DOMPoint((x-left)/scale+neighbor.bounds[0],
+                                                            (y-top)/scale+neighbor.bounds[1]));
+    let best;
+    for (let y=startY; y<=endY; y+=7) for (let x=startX; x<=endX; x+=7) {
+      if (occupied.some(([ox,oy,ow])=>Math.abs(y-oy)<18&&Math.abs(x-ox)<ow+padding)) continue;
+      if (!inside(x,y)) continue;
+      const margin = [0.5,1].filter(f => inside(x-padding*f,y) && inside(x+padding*f,y)
+                                         && inside(x,y-8*f) && inside(x,y+8*f)).length;
+      const score = margin*1000 - Math.hypot(x-(startX+endX)/2,y-(startY+endY)/2);
+      if (!best || score>best.score) best = {x,y,score};
+    }
+    if (!best) continue;
+    occupied.push([best.x,best.y,padding]);
+    const label = svgNode("text",{x:best.x,y:best.y,class:"neighbor-name","text-anchor":"middle","dominant-baseline":"central"});
+    label.textContent = neighbor.name;
+    labels.append(label);
+  }
+}
 function renderFactMap(pref, item, selected) {
   const [x,y,w,h] = pref.bounds;
   const scale = Math.min((FACT_WIDTH-90)/w,(FACT_HEIGHT-62)/h);
   const tx = FACT_WIDTH/2-(x+w/2)*scale, ty = FACT_HEIGHT/2-(y+h/2)*scale;
   const transform = `translate(${tx} ${ty}) scale(${scale})`;
   const toMap = ([px,py]) => [tx+px*scale,ty+py*scale];
+  renderNeighbors(item, transform, toMap);
   $("fact-shape").setAttribute("d",pref.path);
   $("fact-shape").setAttribute("transform",transform);
-  for (const id of ["fact-rivers","fact-peaks","fact-industry-area","fact-pins","relief-controls"]) $(id).replaceChildren();
+  for (const id of ["fact-rivers","fact-peaks","fact-lakes","fact-industry-area","fact-pins","relief-controls"]) $(id).replaceChildren();
   $("fact-industry-area").hidden = selected !== "industry";
   $("relief-controls").hidden = selected !== "land";
   $("terrain-key-group").hidden = selected !== "land";
@@ -2863,8 +2980,9 @@ function renderFactMap(pref, item, selected) {
     $("industry-name").textContent = item.industry;
     return;
   }
-  $("map-caption").textContent = "青い線は川の流路、三角は山頂の位置です。全体を見渡せるよう、流路は簡略化しています。";
-  if (!item.rivers.some(r=>r.name===item.land) && !item.peaks.some(m=>m.name.includes(item.land))) {
+  $("map-caption").textContent = "青い線は川の流路です。流路は簡略化しています。";
+  if (!item.rivers.some(r=>r.name===item.land) && !item.peaks.some(m=>m.name.includes(item.land))
+      && !item.lakes.some(lake=>lake.name===item.land)) {
     const [lx,ly] = toMap(item.land_point);
     const label = svgNode("text",{x:lx,y:ly-7,class:"place-reference","text-anchor":"middle"});
     label.textContent = item.land+" 付近";
@@ -2891,12 +3009,27 @@ function renderFactMap(pref, item, selected) {
   for (const [index, peak] of item.peaks.entries()) {
     const pin = svgNode("g",{class:"map-peak"+(selectedRelief?.kind==="peak" && selectedRelief.index===index?" selected":""),
       transform:`translate(${toMap(peak.point).join(" ")})`});
-    pin.append(svgNode("circle",{r:13}),svgNode("path",{d:"M-8 6 L0 -8 L8 6Z"}));
+    pin.append(svgNode("circle",{r:13}),
+      svgNode("path",{class:"mountain-slope",d:"M-11 7 L-5 -2 L-2 2 L3 -8 L11 7Z"}),
+      svgNode("path",{class:"mountain-ridge",d:"M0 -2 L3 0 L5 -2"}));
     $("fact-peaks").append(featureControl(pin,peak.name+"をみる",()=>openRelief("peak",index)));
+  }
+  for (const [index, lake] of item.lakes.entries()) {
+    const [px,py] = toMap(lake.point);
+    const pin = svgNode("g",{class:"map-lake"+(selectedRelief?.kind==="lake" && selectedRelief.index===index?" selected":""),
+      transform:`translate(${px} ${py})`});
+    pin.append(svgNode("path",{class:"lake-shape",d:"M-12 2 C-13-5 -6-8 0-5 C5-2 12-5 12 1 C12 7 3 9 -3 6 C-7 4 -11 7 -12 2Z"}),
+      svgNode("path",{class:"lake-wave",d:"M-8 1 Q-5 -1 -2 1 T4 1 T9 1"}));
+    $("fact-lakes").append(featureControl(pin,lake.name+"をみる",()=>openRelief("lake",index)));
+    const label = svgNode("text",{x:Math.max(48,Math.min(FACT_WIDTH-48,px)),y:Math.max(15,py-13),
+      class:"place-reference","text-anchor":"middle","pointer-events":"none"});
+    label.textContent = lake.name;
+    $("fact-lakes").append(label);
   }
   const controls = [
     ...item.rivers.map((f,i)=>["river",i,"川",f.name]),
     ...item.peaks.map((f,i)=>["peak",i,"山",f.name]),
+    ...item.lakes.map((f,i)=>["lake",i,"湖",f.name]),
   ];
   for (const [kind,index,icon,name] of controls) {
     const button = document.createElement("button");
@@ -2936,7 +3069,7 @@ function cancelSpeech() {
   if (speechAvailable()) speechSynthesis.cancel();
 }
 function speakText(text, item = null) {
-  if (!autoVoice || !speechAvailable() || !text || document.hidden) return;
+  if (!autoVoice || !voiceVolume || !speechAvailable() || !text || document.hidden) return;
   const voices = speechSynthesis.getVoices();
   if (!voices.length) { waitingSpeech={text,item}; return; }
   const voice = japaneseVoice(voices);
@@ -2953,6 +3086,7 @@ function speakText(text, item = null) {
   const speech = new SpeechSynthesisUtterance(text);
   speech.voice = voice;
   speech.lang = voice.lang.replace("_","-"); speech.rate = .96;
+  speech.volume = voiceVolume / 100;
   speech.onerror = event => {
     if (!["canceled","interrupted"].includes(event.error)) diagnostic("speech",{outcome:"error",code:event.error});
   };
@@ -2971,6 +3105,7 @@ if (speechAvailable()) {
 function updateVoiceControl() {
   const available = speechAvailable(), voices = available ? speechSynthesis.getVoices() : [];
   $("voice-toggle").disabled = !available;
+  $("voice-volume").disabled = !available;
   $("voice-toggle").checked = available && autoVoice;
   $("voice-label").textContent = !available ? "読み上げ未対応" :
     voices.length && !japaneseVoice(voices) ? "日本語音声なし" : "自動読み上げ";
@@ -3030,6 +3165,10 @@ function drawExplore(pref) {
   } else if (selected === "land" && relief?.kind === "peak" && item.peaks[relief.index]) {
     const peak = item.peaks[relief.index];
     facts.land = [peak.name, `標高は${peak.height}メートルです。`];
+  } else if (selected === "land" && relief?.kind === "lake" && item.lakes[relief.index]) {
+    const lake = item.lakes[relief.index];
+    facts.land = [lake.name, lake.name==="琵琶湖" ? "滋賀県の中央にある、日本でいちばん面積が大きい湖です。"
+      : `地図の水色のしるしが、${lake.name}の位置です。`];
   }
   const [title, text] = facts[selected];
   $("fact-title").textContent = title;
@@ -3228,6 +3367,15 @@ $("voice-toggle").onchange = () => {
   autoVoice = $("voice-toggle").checked;
   if (autoVoice) readCurrent(); else cancelSpeech();
 };
+$("voice-volume").oninput = () => {
+  voiceVolume = Number($("voice-volume").value);
+  $("voice-volume-value").textContent = voiceVolume+"%";
+  if (!voiceVolume) cancelSpeech();
+};
+$("voice-volume").onchange = () => {
+  save("voice-volume", voiceVolume);
+  if (voiceVolume) readCurrent();
+};
 function exportDiagnostics() {
   const payload = {version:args?.version,build:args?.build,records:load("ui-diagnostics") || []};
   const url = URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}));
@@ -3240,7 +3388,6 @@ function exportDiagnostics() {
   setTimeout(()=>URL.revokeObjectURL(url),30000);
 }
 $("export").onclick = exportDiagnostics;
-$("medal-export").onclick = exportDiagnostics;
 function pausePage() {
   stopTime();
   persist();
