@@ -2,14 +2,16 @@
 from base64 import b64decode
 from datetime import datetime, timedelta, timezone
 import hashlib
+from html import escape
 import json
 import logging
 import os
 from pathlib import Path
 import re
+from time import perf_counter
 from tempfile import TemporaryDirectory
 from urllib.error import HTTPError
-from urllib.parse import urlsplit
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from urllib.request import Request, urlopen
 from uuid import UUID, uuid5
 from zlib import decompress
@@ -1114,9 +1116,73 @@ def discovery_questions(pid):
     ]
 
 
+INDUSTRY_MAP_DATA = """
+01|cow|別海町:43.39,145.12;中標津町:43.55,144.97
+02|apple|弘前市:40.60,140.46
+03|rice|花巻市周辺:39.40,141.12
+04|rice|仙台平野:38.30,140.99
+05|rice|横手市周辺:39.32,140.48
+06|cherry|東根市:38.43,140.39
+07|fruit|福島市北西部:37.81,140.44
+08|root|土浦市周辺:36.06,140.24
+09|cow|那須町周辺:37.04,140.01
+10|leaf|嬬恋村:36.55,138.48
+11|leaf|深谷市:36.21,139.27
+12|fish|片貝漁港周辺:35.54,140.47
+13|tea|瑞穂町:35.77,139.35
+14|fish|湘南の沿岸:35.30,139.48
+15|rice|新潟市南部:37.77,139.02
+16|rice|砺波市周辺:36.63,136.96
+17|root|金沢市北部:36.64,136.68
+18|crab|越前町の漁港周辺:35.93,135.99
+19|grape|甲州市勝沼周辺:35.66,138.73
+20|leaf|川上村:35.98,138.58
+21|fish|岐阜市の長良川:35.44,136.77
+22|tea|牧之原市周辺:34.81,138.19
+23|melon|田原市:34.65,137.17
+24|pearl|志摩市の英虞湾:34.30,136.82
+25|fish|琵琶湖沿岸の例:35.28,136.19
+26|tea|宇治田原町:34.86,135.86
+27|root|八尾市:34.63,135.60
+28|onion|南あわじ市:34.29,134.77
+29|fruit|五條市西部:34.35,135.65
+30|citrus|有田川町周辺:34.06,135.25
+31|root|鳥取砂丘の周辺:35.54,134.25
+32|shell|宍道湖:35.44,132.94
+33|fruit|岡山市北部:34.72,133.92
+34|shell|広島湾:34.28,132.40
+35|fish|下関市の市場周辺:33.94,130.93
+36|root|鳴門市周辺:34.16,134.57
+37|rice|丸亀市南部:34.23,133.87
+38|pearl|宇和島市の入江:33.20,132.46
+39|greenhouse|南国市周辺:33.56,133.67
+40|greenhouse|八女市周辺:33.21,130.56
+41|seaweed|有明海の佐賀県側:33.14,130.30
+42|shell|九十九島の沿岸:33.18,129.66
+43|cow|阿蘇の草原:32.94,131.04
+44|mushroom|国東半島の山あい:33.57,131.60
+45|greenhouse|宮崎市周辺:31.94,131.42
+46|root|南九州市周辺:31.37,130.45
+47|cane|沖縄本島南部:26.15,127.72
+"""
+INDUSTRY_MAP = {}
+for row in INDUSTRY_MAP_DATA.strip().splitlines():
+    pid, icon, sites = row.split("|")
+    INDUSTRY_MAP[pid] = (icon, [
+        dict(name=name, point=project(pid, coords))
+        for name, coords in (site.split(":") for site in sites.split(";"))
+    ])
+# 教材用の概略範囲。国土地理院の精密な地形境界ではない。
+KONSEN_AREA = [project("01", p) for p in (
+    "43.62,144.75","43.58,145.04","43.42,145.28","43.23,145.26",
+    "43.09,144.98","43.12,144.59","43.26,144.42","43.44,144.54",
+)]
+WATER_INDUSTRY = {"14","24","25","32","34","38","41","42"}
 DISCOVERY = {
     pid: {**info, "capital_point": project(pid, CAPITAL_POINTS[pid]),
-          "land_point": project(pid, info["place"]), "questions": discovery_questions(pid)}
+          "land_point": project(pid, info["place"]), "questions": discovery_questions(pid),
+          "land_area": KONSEN_AREA if pid == "01" else None, "industry_icon": INDUSTRY_MAP[pid][0],
+          "industry_points": INDUSTRY_MAP[pid][1], "industry_water": pid in WATER_INDUSTRY}
     for pid, info in PREFECTURE_INFO.items()
 }
 
@@ -1276,7 +1342,9 @@ FRONTEND_HTML = r'''<!doctype html>
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 body{margin:0;background:var(--paper);padding:clamp(12px,3vw,32px);border-radius:22px}
-header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-bottom:12px;border-bottom:1px solid var(--edge)}
+header{display:grid;justify-items:start;gap:12px;padding-bottom:12px;border-bottom:1px solid var(--edge)}
+header{grid-template-columns:1fr auto}
+@media(max-width:540px){header{grid-template-columns:1fr}}
 .subject{font-size:.85rem;color:var(--dark);font-weight:750;letter-spacing:.08em}
 h1{font-size:clamp(1.65rem,5vw,2.6rem);letter-spacing:.035em;line-height:1.2;margin:5px 0 0}
 h2{margin:0 0 12px;font-size:1.25rem}
@@ -1293,7 +1361,6 @@ button:disabled{cursor:default}
 #assigned-course small{display:block;color:var(--muted);font-weight:500}
 #courses small{display:block;color:var(--muted);font-weight:500}
 .progress,.actions{display:flex;justify-content:space-between;gap:12px;align-items:center}
-progress{display:block;width:100%;height:8px;accent-color:#3e956d;margin-top:5px}
 .instruction{font-weight:750;margin:10px 0 6px}
 .play{display:grid;grid-template-columns:145px minmax(0,1fr);gap:12px}
 .tray{display:flex;flex-direction:column;gap:7px}
@@ -1340,14 +1407,48 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
 #phase-explore,#phase-quiz{margin-top:12px}
 #pref-name,#quiz-prompt{margin:0 0 5px;font-size:clamp(1.2rem,3vw,1.7rem)}
 #pref-capital,#quiz-name{margin:0 0 6px;color:var(--muted);font-weight:700}
-.discovery-map{position:relative;background:var(--sea);border:1px solid #98c3c5;border-radius:13px;overflow:hidden}
-#fact-map{display:block;width:100%;height:clamp(205px,42vw,330px)}
-#fact-shape{fill:#a4dabe;stroke:#267358;stroke-width:1.4;vector-effect:non-scaling-stroke}
-.fact-pin{cursor:pointer}
-.fact-pin circle{fill:#fff7df;stroke:#335554;stroke-width:1.5;vector-effect:non-scaling-stroke}
-.fact-pin text{fill:#204a44;pointer-events:none}
-.fact-pin.selected circle,.fact-pin:focus circle{fill:#ffd17d;stroke:#ad4d0a;stroke-width:3}
-.industry-map{position:absolute;bottom:9px;right:9px}
+.voice-tools{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+.voice-tools button{font-size:.82rem;min-height:39px}
+.voice-tools button[aria-pressed=true]{background:#e5f2e9;border-color:#55977e}
+.discovery-map{background:linear-gradient(#d0ecea,#e4f4f0);border:1px solid #94bcbb;border-radius:13px;overflow:hidden}
+#fact-map{display:block;width:100%;height:auto;max-height:428px}
+#fact-shape{fill:#d4e5c6;stroke:#3b7564;stroke-width:1.35;vector-effect:non-scaling-stroke}
+.terrain-region{stroke-width:1.6;vector-effect:non-scaling-stroke;opacity:.82}
+.terrain-region.high{fill:#e4a04d;stroke:#a25a15}
+.terrain-region.hill{fill:#b292bd;stroke:#80538d}
+.terrain-region.plain{fill:#8abc79;stroke:#417b4b}
+.terrain-region.water{fill:#75b6e4;stroke:#296590}
+.terrain-region.sand{fill:#eac78c;stroke:#ad8240}
+.terrain-region.coast{fill:#87c6b3;stroke:#327c72}
+.fact-pin{cursor:pointer;outline:none}
+.fact-pin>circle{fill:#fffaf0;stroke:#506452;stroke-width:1.6;vector-effect:non-scaling-stroke}
+.fact-pin.industry>circle{fill:#fff0d3;stroke:#996128}
+.fact-pin.land>circle{fill:#f9fcf1;stroke:#557361}
+.fact-pin text{fill:#264c45;pointer-events:none}
+.fact-pin.selected>circle,.fact-pin:focus>circle{stroke:#983f16;stroke-width:3.2}
+.fact-leader{stroke:#58786b;stroke-width:1.25;vector-effect:non-scaling-stroke;pointer-events:none}
+.fact-site{fill:#446758;stroke:#fff;stroke-width:.7}
+.fact-site.industry{fill:#a65b28}
+.industry-icon{fill:none;stroke:#504333;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.map-key{display:flex;flex-wrap:wrap;gap:6px 15px;margin:8px 0 2px;color:#2b5147;font-size:.83rem}
+.map-key span{display:inline-flex;gap:6px;align-items:center}
+.map-key svg{width:21px;height:21px}
+.terrain-key{display:inline-block;width:13px;height:13px;border:1px solid #557361;border-radius:3px}
+.terrain-key.high{background:#e4a04d}.terrain-key.hill{background:#b292bd}
+.terrain-key.plain{background:#8abc79}.terrain-key.water{background:#75b6e4}
+.terrain-key.sand{background:#eac78c}.terrain-key.coast{background:#87c6b3}
+.map-note{margin:0;color:var(--muted);font-size:.73rem}
+@media(max-width:540px){.voice-tools{justify-content:flex-start}}
+#fact-industry-area ellipse{fill:url(#industry-hatch);stroke:#a25535;stroke-width:1.4;stroke-dasharray:4 3;opacity:.54;vector-effect:non-scaling-stroke}
+#fact-industry-area.selected ellipse{opacity:.93}
+#medal-dialog{width:min(360px,calc(100% - 30px));padding:18px;border:1px solid var(--edge);border-radius:19px;background:#fffef6;color:var(--ink);text-align:center;box-shadow:0 12px 40px #18362e45}
+#medal-dialog::backdrop{background:#18362e78}
+body:has(#medal-dialog[open]){min-height:365px}
+.medal-stamp{box-sizing:border-box;display:grid;place-content:center;gap:0;width:106px;height:106px;margin:8px auto;border:5px double;border-radius:50%;line-height:1.12;box-shadow:inset 0 6px 13px #ffffffa1,0 6px 14px #10283022}
+.medal-stamp.gold{background:radial-gradient(circle at 28% 18%,#fff9cf,#f5d361 49%,#c38d1d);border-color:#bd8c26;color:#69470a}
+.medal-stamp.silver{background:radial-gradient(circle at 28% 18%,#fff,#d8e0e8 53%,#9aa8b8);border-color:#9aa9b8;color:#3d5266}
+.medal-stamp b{font-size:37px}
+#medal-status,#result-sync{color:var(--muted);font-size:.85rem}
 .feature-keys{display:flex;flex-wrap:wrap;gap:6px;padding:8px 0}
 .feature-keys button[aria-pressed=true]{background:#e5f2e9;border-color:var(--dark)}
 .fact,#quiz-feedback{background:#fffef5;border:1px solid var(--edge);padding:9px 13px;margin:4px 0 12px;border-radius:11px}
@@ -1362,7 +1463,10 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
 <body>
 <header>
   <div><div class="subject">ちょこまな　しゃかい・ちり</div><h1>日本地図パズル</h1></div>
-  <a id="hub" hidden target="_top">ホームへ ↗</a>
+  <div class="voice-tools">
+    <button id="read-screen" class="secondary">今の画面を聞く</button>
+    <button id="voice-toggle" class="secondary" aria-pressed="true">自動読み上げ オン</button>
+  </div>
 </header>
 <div class="sync"><output id="connection">学習記録を準備中…</output><button id="retry" hidden>再接続・同期</button></div>
 <main>
@@ -1376,12 +1480,11 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
     <div id="courses"></div>
     <div class="menu-extra">
       <button id="national-course" class="secondary">全国から 出題</button>
-      <button id="export" class="secondary">この端末の学習ログを保存</button>
+      <button id="export" class="secondary">UI・通信ログを保存</button>
     </div>
   </section>
   <section id="game" hidden>
-    <div class="progress"><strong id="course"></strong><span id="count"></span></div>
-    <progress id="meter" value="0" max="1" hidden></progress>
+    <div class="progress"><strong id="course"></strong><span id="count" aria-live="polite"></span></div>
     <div id="phase-map">
     <p class="instruction" id="prompt">ピースを 地図の ぴったりの場所へ <span id="board-label"></span></p>
     <div class="play">
@@ -1411,12 +1514,26 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
       <p id="pref-capital"></p>
       <p class="instruction">地図のしるしを タップして 発見しよう。</p>
       <div class="discovery-map">
-        <svg id="fact-map" role="group" aria-label="都道府県の拡大地図。県庁と地形のしるし。">
-          <path id="fact-shape" fill-rule="evenodd"/>
+        <svg id="fact-map" viewBox="0 0 560 330" role="group" aria-label="都道府県の拡大地図。県庁、地形、産業・特産品のしるし。">
+          <defs>
+            <clipPath id="fact-clip"><use href="#fact-shape"/></clipPath>
+            <pattern id="industry-hatch" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(35)">
+              <rect width="8" height="8" fill="#ffdfbb"/><path d="M0 0V8" stroke="#c47a4f" stroke-width="2"/>
+            </pattern>
+          </defs>
+          <path id="fact-shape" fill-rule="evenodd" clip-rule="evenodd"/>
+          <g id="fact-terrain" aria-hidden="true"></g>
+          <g id="fact-industry-area" aria-hidden="true"></g>
+          <g id="fact-leaders" aria-hidden="true"></g>
           <g id="fact-pins"></g>
         </svg>
-        <button class="secondary industry-map" id="industry-map">産業・特産品</button>
       </div>
+      <div class="map-key">
+        <span>★ 県庁</span>
+        <span><i id="terrain-key" class="terrain-key" aria-hidden="true"></i><span id="terrain-name"></span></span>
+        <span><svg viewBox="0 0 24 24" aria-hidden="true"><g id="industry-key-symbol" class="industry-icon"></g></svg><span id="industry-name"></span></span>
+      </div>
+      <p class="map-note">地形の色と、産地の斜線はおおよその位置です。</p>
       <div class="feature-keys">
         <button id="discover-capital" aria-pressed="false" class="secondary">★ 県庁 <span hidden>✓</span></button>
         <button id="discover-land" aria-pressed="false" class="secondary">● 地形 <span hidden>✓</span></button>
@@ -1424,7 +1541,7 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
       </div>
       <article class="fact" aria-live="polite">
         <h3 id="fact-title"></h3>
-        <p id="fact-text"></p><p id="fact-use" hidden></p>
+        <p id="fact-text"></p><p id="fact-area" hidden></p><p id="fact-use" hidden></p>
         <button id="fact-speaker" class="secondary">🔊 よみあげ</button>
       </article>
       <button id="start-quiz" disabled>特徴クイズに すすむ</button>
@@ -1445,10 +1562,18 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
   <section id="result" hidden>
     <h2>都道府県 たんけん クリア！</h2>
     <p id="result-reason"></p>
-    <p id="summary"></p>
+    <p id="summary"></p><p id="result-sync" role="status"></p>
     <button id="again">コースをえらぶ</button>
   </section>
 </main>
+<dialog id="medal-dialog" aria-labelledby="medal-title" aria-describedby="medal-status">
+  <h2 id="medal-title">メダル</h2>
+  <div id="medal-stamp" class="medal-stamp"><small id="medal-tier"></small><b>地</b><small>ち</small></div>
+  <p id="medal-score"></p>
+  <p id="medal-status" role="status"></p>
+  <button id="medal-retry" class="secondary" hidden>もう一度 同期</button>
+  <form method="dialog"><button type="submit">とじる</button></form>
+</dialog>
 <footer>出典 <a href="https://github.com/dataofjapan/land" target="_blank" rel="noopener">国土地理院「地球地図日本」（Data of Japan経由）</a>を加工。学習用に輪郭を簡略化し、一部の島は省略しています。</footer>
 <script>
 "use strict";
@@ -1465,7 +1590,8 @@ const device = load("device") || [...crypto.getRandomValues(new Uint8Array(32))]
 let storageWorks = save("device", device), args, profile, owner = "local";
 let pending, hello = "waiting", attempt, stage = "menu", armed, drag, options;
 let zoomed = false, keyboard = -1, activeSince, lastActivity, idleTimer, paths = new Map(), prefectures, menus;
-let cache;
+let cache, medalResult;
+let autoVoice = load("voice-auto") !== false;
 
 function load(key) {
   try { return JSON.parse(localStorage.getItem(PREFIX + key)); }
@@ -1487,9 +1613,11 @@ function post(type, values = {}) {
 function send(action, extra = {}) {
   if (pending) return;
   const id = uuid();
-  pending = {id, action, timer: setTimeout(() => {
+  pending = {id, action, started:performance.now(), timer: setTimeout(() => {
     pending = null;
     hello = "retry";
+    diagnostic("request",{operation:action,outcome:"timeout",ms:26000});
+    if (action === "sync" && medalResult?.mode==="saving") setMedalMode("retry");
     if (action === "hello" && !cache) selectOwner("local");
     updateConnection();
   }, 26000)};
@@ -1499,11 +1627,11 @@ function updateConnection() {
   const waiting = cache?.queue.length || 0;
   const label = profile ? (hello === "relink" ? "ホームから開き直して学習記録を同期してください。"
     : hello === "invalid" ? "保存できない記録があります。ログを端末に保存できます。"
-    : waiting ? `同期待ち ${waiting}件` : "ちょこまなと連携中")
+    : waiting ? (hello === "retry" ? `同期できませんでした。再同期できます（${waiting}件）。` : `同期待ち ${waiting}件`) : "ちょこまなと連携中")
     : ({waiting:"学習記録を準備中…", invalid_ticket:"起動リンクを確認できません。ホームから開き直してください。",
         retry:"通信を確認できません。端末内で学習できます。", local:"この端末に学習記録を保存します。"}[hello] || "");
   $("connection").textContent = label + (cache?.rejected && hello !== "invalid" ? " 未同期の記録あり。" : "") + (storageWorks ? "" : " ブラウザを閉じると未同期の記録は消えます。");
-  $("retry").hidden = !["retry", "invalid_ticket"].includes(hello) && (!waiting || ["relink", "invalid"].includes(hello));
+  $("retry").hidden = !["retry", "invalid_ticket"].includes(hello) && !waiting;
   $("retry").disabled = !!pending;
 }
 function sync() {
@@ -1534,6 +1662,8 @@ function receive(event) {
   const ack = args.ack;
   if (ack && ack.id === pending?.id) {
     const action = pending.action;
+    diagnostic("request",{operation:action,outcome:ack.status,stage:ack.stage || action,code:ack.http_status || null,
+      ms:Math.round(performance.now()-pending.started)});
     clearTimeout(pending.timer);
     pending = null;
     hello = ack.status;
@@ -1542,15 +1672,13 @@ function receive(event) {
       selectOwner(profile || "local");
       if (stage === "menu") showMenu();
       if (profile) sync();
-    } else if (ack.status === "invalid") {
-      cache.rejected = (cache.rejected || 0) + 1;
-      cache.queue.shift();
-      persist();
-      sync();
     } else if (ack.status === "saved") {
       cache.queue = cache.queue.filter(item => item.id !== ack.attempt_id);
+      if (medalResult?.id===ack.attempt_id && ack.medal_saved) setMedalMode("saved");
       persist();
       sync();
+    } else if (medalResult?.mode==="saving") {
+      setMedalMode(ack.status==="relink" ? "relink" : ack.status==="invalid" ? "invalid" : "retry");
     }
   }
   updateConnection();
@@ -1581,12 +1709,9 @@ function init() {
     return choice;
   });
   $("age").replaceChildren(...ages);
-  if (args.hub) {
-    const url = new URL(args.hub);
-    url.searchParams.set("cm_plan_return", "1");
-    $("hub").href = url;
-    $("hub").hidden = false;
-  }
+  updateVoiceControl();
+  diagnostic("ui_ready",{touch:navigator.maxTouchPoints>0,screen_width:window.innerWidth});
+  if (args.catalog_status) diagnostic("request",args.catalog_status);
   if (args.configured) send("hello");
   else {
     hello = "local";
@@ -1594,6 +1719,7 @@ function init() {
   }
 }
 function display(next) {
+  if (stage !== next) diagnostic("screen",{view:next});
   stage = next;
   for (const name of ["menu", "game", "result"]) $(name).hidden = name !== next;
 }
@@ -1621,7 +1747,9 @@ function beginCourse(menu, area, assignment = null) {
   attempt = {id:uuid(), menu:menu.menu_id, pref:shuffled(fresh.length ? fresh : ids)[0], started:time(),
     area:area?.key || null, mapZoomed:menu.region !== "all", phase:"map",
     actions:[], intervals:[], questions:[], assignment};
+  medalResult = null;
   showQuestion();
+  readCurrent();
 }
 function courseButton(label, sublabel, run) {
   const button = document.createElement("button");
@@ -1696,9 +1824,6 @@ function showQuestion() {
   })[attempt.phase];
   const total = menus.get(attempt.menu).planned_question_count;
   $("count").textContent = attempt.phase === "quiz" ? `${attempt.questions.length} / ${total}` : "";
-  $("meter").max = total;
-  $("meter").value = attempt.questions.filter(q=>q.choice !== undefined).length;
-  $("meter").hidden = attempt.phase !== "quiz";
   if (attempt.phase === "map") {
     armed = false;
     drag = null;
@@ -1758,55 +1883,213 @@ function put(target) {
   }
   actions.push({type:"placement", target, at:time()});
   armed = false;
+  diagnostic("piece_placement",{onMapLand:target!==null});
   if (target === attempt.pref) {
     attempt.phase = "explore";
     attempt.view = "capital";
     attempt.actions.push({type:"explore",feature:"capital",at:time()});
     showQuestion();
     $("pref-name").focus({preventScroll:true});
+    readCurrent();
   } else {
     drawQuestion();
     $("feedback").textContent = "まだ はまらないね。形や となりを 見くらべよう。";
   }
   persist();
 }
-function speakText(text) {
-  if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
+const INDUSTRY_ICONS = {
+  cow:'<path fill="#fffaf0" d="M5 9 2 5l6 1 2-3h4l2 3 6-1-3 5v6a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4Z"/><path fill="#bf7651" d="M5 9l3-2 2 4-3 3H5Zm10-2 3 1 1 3-4 2-2-3Z"/><rect x="7" y="13" width="10" height="6" rx="3" fill="#f4b6ae"/><path d="M10 16h.1m3.9 0h.1"/>',
+  apple:'<path fill="#e46649" d="M12 8c4-4 10-1 9 5s-4 9-9 7c-5 2-8-1-9-7S8 4 12 8Z"/><path d="M12 8c0-3-1-4-2-5m2 4c1-3 4-4 7-3-1 2-4 3-7 3" fill="#82aa60"/>',
+  citrus:'<path fill="#eea453" d="M3 13c0-5 4-7 9-7s9 2 9 7-4 8-9 8-9-3-9-8Z"/><path fill="#83a661" d="M12 6c0-2 3-4 7-4-1 3-3 4-7 4Z"/>',
+  fruit:'<path fill="#f4a770" d="M12 7c4-4 9 0 9 4 0 5-4 9-9 11-5-2-9-6-9-11 0-4 5-8 9-4Z"/><path d="M12 7c-1-3 3-5 6-4-1 2-3 4-6 4m0 0c-3 4-3 8 0 12"/>',
+  cherry:'<circle cx="7" cy="16" r="4" fill="#e65c5b"/><circle cx="17" cy="17" r="4" fill="#e65c5b"/><path d="M7 12c5-3 5-6 5-10 2 5 5 6 5 11m-5-9c3-2 6-2 9-1"/>',
+  grape:'<path d="M12 7c0-2 1-4 4-5"/><g fill="#a785c1"><circle cx="8" cy="10" r="4"/><circle cx="16" cy="10" r="4"/><circle cx="12" cy="14" r="4"/><circle cx="12" cy="18" r="3"/></g>',
+  rice:'<path d="M6 22c4-2 8-6 9-17"/><g fill="#e5b955"><path d="M14 10c-5 0-6-3-6-6 4 1 6 2 6 6Zm-2 5c-5 0-7-2-7-5 5 0 7 2 7 5Zm4-7c1-4 3-5 6-6-1 4-3 6-6 6Zm-2 6c2-4 4-5 8-5-1 4-4 5-8 5Zm-3 5c2-4 5-5 9-5-2 4-5 5-9 5Z"/></g>',
+  leaf:'<path fill="#83b375" d="M3 19C2 7 13 4 21 4c-1 10-5 16-15 15Z"/><path d="M3 21 17 9m-7 6v-4m3 2h4"/>',
+  root:'<path fill="#c98a64" d="M16 7c4 4 3 6-1 10-3 3-6 4-12 5 1-6 2-9 5-12 4-4 6-5 8-3Z"/><path d="m16 7 3-5m-1 6 4-2m-13 7 2 2m-5 2 2 2"/>',
+  tea:'<path fill="#c9e1ab" d="M4 11h14l-1 7a4 4 0 0 1-4 3H9a4 4 0 0 1-4-3Z"/><path d="M18 12h2a2 2 0 0 1 0 4h-2M8 8c2-3-1-4 1-6m4 6c2-3-1-4 1-6"/>',
+  fish:'<path fill="#72b6d7" d="M2 12c4-6 10-7 15-2l5-4v12l-5-4c-5 5-11 4-15-2Z"/><path d="M7 11h.1m4-3c2 2 2 6 0 8"/>',
+  shell:'<path fill="#ebbb99" d="M3 11a9 9 0 0 1 18 0l-7 9h-4Z"/><path d="m7 8 4 11m2-14-1 14m6-11-5 11"/>',
+  pearl:'<path fill="#d7b3d6" d="M2 12c2-7 18-7 20 0l-5 7H7Z"/><circle cx="12" cy="11" r="4" fill="#fffaf4"/>',
+  crab:'<path fill="#ec8870" d="M5 13c0-4 4-6 7-6s7 2 7 6-4 5-7 5-7-1-7-5Z"/><path d="m5 12-3-2V6m17 6 3-2V6M7 17l-4 4m14-4 4 4m-11-10h.1m3.9 0h.1"/>',
+  melon:'<circle cx="12" cy="13" r="8" fill="#b7ca76"/><path d="M12 5V2m-4 0h8M5 11l10 9M8 6l11 10M6 17 16 6m-6 14 10-10"/>',
+  onion:'<path fill="#edba7b" d="M12 5c2 4 8 5 8 10 0 4-3 6-8 6s-8-2-8-6c0-5 6-6 8-10Z"/><path d="M12 6V2m0 6c-5 4-6 8-2 11m2-11c5 4 6 8 2 11"/>',
+  greenhouse:'<path fill="#daead6" d="M2 21v-9l10-8 10 8v9Z"/><path d="M12 4v17M2 12h20m-15 9v-7m10 7v-7"/>',
+  seaweed:'<path fill="#91aa76" d="M5 21c4-6-4-10 0-16 5 3 5 7 4 11 4-3 0-9 3-14 5 2 5 7 3 11 3-2 3-5 6-7 2 7-4 12-7 15Z"/>',
+  mushroom:'<path fill="#c8895e" d="M2 12c0-6 4-9 10-9s10 3 10 9Z"/><path fill="#fdf2cc" d="M9 12h6l2 7c-3 3-7 3-10 0Z"/>',
+  cane:'<path d="M9 22c3-6 4-13 4-21m-1 8c-1-3-5-5-9-4m9 5c3-4 6-5 9-4m-11 9c-2-3-5-4-8-3m8 4c4-4 7-4 11-3" stroke="#5c8737" stroke-width="2.3"/>',
+};
+const FACT_WIDTH = 560, FACT_HEIGHT = 330;
+const TERRAIN_STYLE = {
+  "山":["hill","山","▲"],"丘陵":["hill","丘陵","▲"],"高原":["high","高原","▲"],
+  "台地":["high","台地","▰"],"平野":["plain","平野","▰"],"盆地":["plain","盆地","▰"],
+  "砂丘":["sand","砂丘","▰"],"川":["water","川","≈"],"湖":["water","湖","≈"],
+  "湾":["water","湾","≈"],"海":["water","海","≈"],"海峡":["water","海峡","≈"],
+  "海岸":["water","海岸","≈"],"島":["coast","島","◇"],"半島":["coast","半島","◇"],
+};
+function svgNode(tag, attrs = {}) {
+  const node = document.createElementNS(SVG,tag);
+  for (const [name,value] of Object.entries(attrs)) node.setAttribute(name,value);
+  return node;
+}
+function pinPlacement(point, previous) {
+  const [x,y] = point;
+  const offsets = [[0,0],[0,-46],[46,0],[-46,0],[0,46],[42,-39],[-42,-39],[42,39],[-42,39],[0,-86],[86,0],[-86,0],[0,86]];
+  return offsets.map(([dx,dy])=>[x+dx,y+dy]).find(([cx,cy]) =>
+    cx >= 25 && cx <= FACT_WIDTH-25 && cy >= 25 && cy <= FACT_HEIGHT-25
+    && previous.every(([px,py])=>Math.hypot(cx-px,cy-py)>=44)) || point;
+}
+function renderFactMap(pref, item, selected) {
+  const [x,y,w,h] = pref.bounds;
+  const points = [item.capital_point,item.land_point,...item.industry_points.map(site=>site.point)];
+  const left = Math.min(x,...points.map(p=>p[0])), top = Math.min(y,...points.map(p=>p[1]));
+  const right = Math.max(x+w,...points.map(p=>p[0])), bottom = Math.max(y+h,...points.map(p=>p[1]));
+  const scale = Math.min((FACT_WIDTH-114)/(right-left),(FACT_HEIGHT-88)/(bottom-top));
+  const tx = FACT_WIDTH/2-(left+right)*scale/2, ty = FACT_HEIGHT/2-(top+bottom)*scale/2;
+  const toMap = ([px,py]) => [tx+px*scale,ty+py*scale];
+  $("fact-shape").setAttribute("d",pref.path);
+  $("fact-shape").setAttribute("transform",`translate(${tx} ${ty}) scale(${scale})`);
+  const [style,kind,glyph] = TERRAIN_STYLE[item.kind];
+  const [cx,cy] = toMap(item.land_point);
+  const span = Math.min(45,Math.max(22, Math.min(w*scale,h*scale)*.17));
+  const terrain = item.land_area
+    ? svgNode("polygon",{points:item.land_area.map(p=>toMap(p).join(",")).join(" ")})
+    : svgNode("ellipse",{cx,cy,rx:span,ry:Math.max(14,span*(style==="water"?.60:.74))});
+  terrain.setAttribute("class",`terrain-region ${style}`);
+  if (style!=="water") terrain.setAttribute("clip-path","url(#fact-clip)");
+  $("fact-terrain").replaceChildren(terrain);
+  const industryAreas = item.industry_points.map(site=>{
+    const [ix,iy] = toMap(site.point);
+    const patch = svgNode("ellipse",{cx:ix,cy:iy,rx:Math.max(16,span*.67),ry:Math.max(11,span*.42)});
+    if (!item.industry_water) patch.setAttribute("clip-path","url(#fact-clip)");
+    return patch;
+  });
+  $("fact-industry-area").setAttribute("class", selected==="industry" ? "selected" : "");
+  $("fact-industry-area").replaceChildren(...industryAreas);
+  $("terrain-key").className = "terrain-key "+style;
+  $("terrain-name").textContent = item.land+"（"+kind+"）";
+  $("industry-key-symbol").innerHTML = INDUSTRY_ICONS[item.industry_icon];
+  $("industry-name").textContent = item.industry;
+  const marks = [
+    {type:"capital",point:item.capital_point,glyph:"★",label:item.capital},
+    {type:"land",point:item.land_point,glyph,label:item.land},
+    ...item.industry_points.map(site=>({type:"industry",point:site.point,label:site.name+"の"+item.industry,icon:item.industry_icon})),
+  ];
+  const used = [];
+  const connectors = [];
+  const pins = marks.map((mark,i) => {
+    const point = toMap(mark.point), loc = pinPlacement(point,used);
+    used.push(loc);
+    if (loc !== point) connectors.push(
+      svgNode("line",{x1:point[0],y1:point[1],x2:loc[0],y2:loc[1],class:"fact-leader"}),
+      svgNode("circle",{cx:point[0],cy:point[1],r:3,class:"fact-site "+mark.type}));
+    const pin = svgNode("g",{
+      class:`fact-pin ${mark.type} ${selected === mark.type ? "selected" : ""}`,
+      role:"button",tabindex:0,"aria-label":mark.label+"をみる","aria-pressed":String(selected === mark.type),
+      transform:`translate(${loc.join(" ")})`,
+    });
+    if (i===2) pin.id = "industry-map";
+    const title = svgNode("title");
+    title.textContent = mark.label;
+    pin.append(title,svgNode("circle",{r:20}));
+    if (mark.icon) {
+      const symbol = svgNode("g",{class:"industry-icon",transform:"translate(-13 -13) scale(1.08)"});
+      symbol.innerHTML = INDUSTRY_ICONS[mark.icon];
+      pin.append(symbol);
+    } else {
+      const symbol = svgNode("text",{"font-size":24,"dominant-baseline":"central","text-anchor":"middle"});
+      symbol.textContent = mark.glyph;
+      pin.append(symbol);
+    }
+    pin.onclick = () => openFeature(mark.type);
+    pin.onkeydown = event => {
+      if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openFeature(mark.type); }
+    };
+    return pin;
+  });
+  $("fact-leaders").replaceChildren(...connectors);
+  $("fact-pins").replaceChildren(...pins);
+}
+function speechAvailable() {
+  return "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
+}
+function speakText(text, manual = false, item = null) {
+  if ((!autoVoice && !manual) || !speechAvailable() || !text) return;
+  if (item) for (const [label,reading] of [[item.name,item.reading],[item.capital,item.capital_reading],
+      [item.land,item.land_reading],[item.industry,item.industry_reading]]) {
+    text = text.replaceAll(label+"（"+reading+"）",reading);
+    if (label.length > 1) text = text.replaceAll(label,reading);
+  }
+  const speech = new SpeechSynthesisUtterance(text);
+  speech.lang = "ja-JP"; speech.rate = .87;
   speechSynthesis.cancel();
-  const voice = new SpeechSynthesisUtterance(text);
-  voice.lang = "ja-JP"; voice.rate = .86;
-  speechSynthesis.speak(voice);
+  speechSynthesis.speak(speech);
+}
+function updateVoiceControl() {
+  $("voice-toggle").disabled = !speechAvailable();
+  $("read-screen").disabled = !speechAvailable();
+  $("voice-toggle").setAttribute("aria-pressed",String(autoVoice && speechAvailable()));
+  $("voice-toggle").textContent = speechAvailable() ? `自動読み上げ ${autoVoice ? "オン" : "オフ"}` : "読み上げ未対応";
+}
+function readCurrent(manual = false) {
+  if (stage === "menu") {
+    speakText("どの地方からはじめる？ "+Object.values(AREA_LABELS).join("、")+"。全国からも選べるよ。",manual);
+  } else if (stage === "game" && attempt?.phase === "map") {
+    speakText($("board-label").textContent+"。ピースを、地図のぴったりの場所へ。ドラッグするか、ピースと置く場所を順にタップ。",manual);
+  } else if (stage === "game" && attempt?.phase === "explore") {
+    const item = info();
+    const prefix = attempt.view === "capital"
+      ? `${item.reading}。都道府県庁所在地は、${item.capital_reading}。地図のしるしをタップして発見しよう。` : "";
+    speakText(prefix+[$("fact-title"),$("fact-text"),$("fact-use"),$("fact-area")]
+      .filter(node=>!node.hidden).map(node=>node.textContent).join("。"),manual,item);
+  } else if (stage === "game" && attempt?.phase === "quiz") {
+    const entry = attempt.questions.at(-1), q = info().questions[attempt.questions.length-1];
+    const text = entry.choice !== undefined ? $("quiz-feedback").textContent :
+      [$("quiz-prompt").textContent,!$("think").hidden ? $("think").textContent : "",
+       ...entry.options.map((key,i)=>`${i+1}ばん、${q.options[Number(key)]}`)].filter(Boolean).join("。");
+    speakText(text,manual,info());
+  } else if (stage === "result" && medalResult) {
+    speakText($("summary").textContent+"。"+$("result-reason").textContent,manual,medalResult.info);
+  }
+}
+function updateMedal() {
+  if (!medalResult) return;
+  const {grade,mode} = medalResult, label = grade === "gold" ? "金" : "銀";
+  const pendingSave = mode==="saving";
+  $("medal-stamp").className = "medal-stamp "+grade;
+  $("medal-tier").textContent = label;
+  $("medal-title").textContent = mode==="saved" ? `${label}メダルを ゲット！` :
+    mode==="local" ? `${label}メダル！` : "都道府県たんけん クリア！";
+  const status = ({saved:"ちょこまなの「今日の成果」に保存しました。",saving:"メダルを ちょこまなに保存しています。",
+    retry:"同期できませんでした。記録は端末に残っています。再同期できます。",
+    relink:"ちょこまなから開き直すと、この記録を送れます。",
+    invalid:"記録形式を確認できません。記録は端末に残っています。",
+    local:"この端末の記録です。" })[mode];
+  $("medal-status").textContent = status;
+  $("result-sync").textContent = status;
+  $("medal-retry").hidden = mode !== "retry";
+  $("medal-stamp").setAttribute("aria-label",label+"メダル");
+  $("medal-dialog").setAttribute("aria-busy",String(pendingSave));
+}
+function setMedalMode(mode) {
+  if (!medalResult || medalResult.mode==="saved") return;
+  medalResult.mode = mode;
+  updateMedal();
+  if (mode === "saved" && stage==="result") speakText(
+    (medalResult.grade === "gold" ? "金" : "銀")+"メダルをゲット！ ちょこまなの今日の成果に保存しました。");
+}
+function diagnostic(event, data = {}) {
+  try {
+    const rows = load("ui-diagnostics") || [];
+    rows.push({at:time(), event, ...data});
+    save("ui-diagnostics", rows.slice(-250));
+  } catch {}
 }
 function drawExplore(pref) {
   const item = info(), selected = attempt.view;
   $("pref-name").textContent = `${item.name}（${item.reading}）`;
   $("pref-capital").textContent = `都道府県庁所在地　${item.capital}（${item.capital_reading}）`;
-  $("fact-shape").setAttribute("d", pref.path);
-  const [x,y,w,h] = pref.bounds;
-  const margin = Math.max(w,h)*.19+2;
-  $("fact-map").setAttribute("viewBox", [x-margin,y-margin,w+2*margin,h+2*margin].join(" "));
-  const marks = [{id:"capital",xy:item.capital_point,symbol:"★",label:item.capital},
-    {id:"land",xy:item.land_point,symbol:"●",label:item.land}].map(mark => {
-    const node = document.createElementNS(SVG,"g");
-    const size = Math.max(w,h)*.055+1;
-    node.setAttribute("class", `fact-pin ${selected === mark.id ? "selected" : ""}`);
-    node.setAttribute("role","button"); node.setAttribute("tabindex","0");
-    node.setAttribute("aria-label", mark.label+"をみる");
-    node.setAttribute("transform",`translate(${mark.xy[0]} ${mark.xy[1]})`);
-    const ball = document.createElementNS(SVG,"circle"); ball.setAttribute("r",size);
-    const glyph = document.createElementNS(SVG,"text");
-    glyph.textContent = mark.symbol;
-    glyph.setAttribute("font-size",size*1.25);
-    glyph.setAttribute("dominant-baseline","central");
-    glyph.setAttribute("text-anchor","middle");
-    node.append(ball,glyph);
-    node.onclick = () => openFeature(mark.id);
-    node.onkeydown = event => {
-      if (["Enter"," "].includes(event.key)) { event.preventDefault(); openFeature(mark.id); }
-    };
-    return node;
-  });
-  $("fact-pins").replaceChildren(...marks);
+  renderFactMap(pref,item,selected);
   const facts = {
     capital: [item.capital+"（"+item.capital_reading+"）", "ここに都道府県庁があります。"],
     land: [item.land+"（"+item.land_reading+"）", `${item.kind}を地図で見つけよう。 ${item.climate}。`],
@@ -1815,9 +2098,11 @@ function drawExplore(pref) {
   const [title, text] = facts[selected];
   $("fact-title").textContent = title;
   $("fact-text").textContent = text;
+  $("fact-area").hidden = selected !== "industry";
+  $("fact-area").textContent = "産地の例　"+item.industry_points.map(site=>site.name).join("・");
   $("fact-use").hidden = selected !== "industry";
   $("fact-use").textContent = "土地や水の使い方　"+item.use;
-  $("fact-speaker").onclick = () => speakText(title+"。"+text+(selected === "industry" ? item.use : ""));
+  $("fact-speaker").onclick = () => readCurrent(true);
   for (const key of ["capital","land","industry"]) {
     const control = $("discover-"+key);
     control.setAttribute("aria-pressed", String(selected === key));
@@ -1831,6 +2116,8 @@ function openFeature(key) {
   if (!didOpen(key)) attempt.actions.push({type:"explore",feature:key,at:time()});
   attempt.view = key;
   drawExplore(prefectures.get(attempt.pref));
+  diagnostic("feature_opened",{feature:key});
+  readCurrent();
   persist();
 }
 function startQuiz() {
@@ -1846,6 +2133,7 @@ function nextQuestion() {
   attempt.questions.push({id:q.id, shown:time(), options:shuffled(["0","1","2"])});
   showQuestion();
   $("quiz-prompt").focus({preventScroll:true});
+  readCurrent();
 }
 function drawQuiz() {
   const question = info().questions[attempt.questions.length-1], recorded = attempt.questions.at(-1);
@@ -1853,7 +2141,7 @@ function drawQuiz() {
   $("quiz-name").textContent = info().name;
   $("quiz-prompt").textContent = question.prompt;
   $("think").hidden = !question.reasoning || answered;
-  $("quiz-speaker").onclick = () => speakText(question.prompt+"。"+recorded.options.map(key=>question.options[Number(key)]).join("。"));
+  $("quiz-speaker").onclick = () => readCurrent(true);
   $("choices").replaceChildren(...recorded.options.map(key => {
     const button = document.createElement("button");
     button.textContent = question.options[Number(key)];
@@ -1874,9 +2162,9 @@ function answer(id) {
   wake();
   recorded.choice = id;
   recorded.answered = time();
-  $("meter").value = attempt.questions.length;
   drawQuiz();
   $("next").focus();
+  readCurrent();
   persist();
 }
 function mapPoint(event) {
@@ -1906,13 +2194,21 @@ function finish(status) {
     const item = info();
     $("summary").textContent = `${right === total ? "金" : "銀"}メダル　${item.name}　${right} / ${total}問 正解`;
     $("result-reason").textContent = item.link;
+    medalResult = {id:attempt.id,grade:right===total?"gold":"silver",mode:profile?"saving":"local",info:item};
+    $("medal-score").textContent = `${item.name}　${right} / ${total}問 正解`;
+    diagnostic("round_finished",{state:"completed"});
   }
   cache.history.push(attempt);
   if (profile) cache.queue.push(attempt);
   attempt = null;
   persist();
   sync();
-  if (status === "completed") display("result"); else showMenu();
+  if (status === "completed") {
+    display("result");
+    updateMedal();
+    $("medal-dialog").showModal();
+    readCurrent();
+  } else showMenu();
 }
 
 const piece = $("piece");
@@ -1981,7 +2277,6 @@ $("zoom").onclick = () => {
 };
 $("age").onchange = () => { cache.age = Number($("age").value); persist(); showMenu(); };
 for (const key of ["capital","land","industry"]) $("discover-"+key).onclick = () => openFeature(key);
-$("industry-map").onclick = () => openFeature("industry");
 $("start-quiz").onclick = startQuiz;
 $("next").onclick = nextQuestion;
 $("quit").onclick = () => {
@@ -1990,12 +2285,24 @@ $("quit").onclick = () => {
   showMenu();
   $("region-heading").focus({preventScroll:true});
 };
-$("resume").onclick = () => showQuestion();
+$("resume").onclick = () => { showQuestion(); readCurrent(); };
+$("voice-toggle").onclick = () => {
+  autoVoice = !autoVoice;
+  save("voice-auto",autoVoice);
+  updateVoiceControl();
+  if (autoVoice) readCurrent(); else speechSynthesis.cancel();
+};
+$("read-screen").onclick = () => readCurrent(true);
+$("medal-retry").onclick = () => { setMedalMode("saving"); sync(); };
 $("again").onclick = showMenu;
-$("retry").onclick = () => { if (profile) sync(); else send("hello"); updateConnection(); };
+$("retry").onclick = () => {
+  if (profile && hello!=="relink") { if (medalResult) setMedalMode("saving"); sync(); }
+  else send("hello");
+  updateConnection();
+};
 $("export").onclick = () => {
-  const url = URL.createObjectURL(new Blob([JSON.stringify(cache.previous_active ? [...cache.history,cache.previous_active] : cache.history,null,2)],{type:"application/json"}));
-  const a = document.createElement("a"); a.href = url; a.download = "geography-learning-log.json"; a.click();
+  const url = URL.createObjectURL(new Blob([JSON.stringify({version:args.version,records:load("ui-diagnostics") || []},null,2)],{type:"application/json"}));
+  const a = document.createElement("a"); a.href = url; a.download = "geography-ui-network-log.json"; a.click();
   setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
 document.addEventListener("visibilitychange", () => { if (document.hidden) { stopTime(); persist(); } else wake(); });
@@ -2050,6 +2357,7 @@ def process(message, state, configured):
     if state.get("ack", {}).get("id") == ident:
         return False
     result = {"id": ident, "status": "retry"}
+    stage = "connection"
     try:
         if message["action"] == "hello":
             device = message["device"]
@@ -2088,30 +2396,38 @@ def process(message, state, configured):
             raw = message["attempt"]
             assignment = None
             if raw.get("assignment"):
+                stage = "assignment"
                 binding = request("rpc/cm_geography_assignment_v1", {
                     "p_device_hash": state["proof"], "p_profile": profile,
                     "p_plan_item_id": str(UUID(raw["assignment"])),
                 })
                 assignment = binding or None
+            stage = "record_validation"
             events, medal = build_records(raw, profile, assignment)
-            publish_catalog(setting("SUPABASE_URL"))
+            stage = "record_save"
             saved = request("rpc/cm_geography_save_v1", {
                 "p_device_hash": state["proof"], "p_profile": profile,
                 "p_events": events, "p_medal": medal,
             })
             if not saved or saved.get("attempt_id") != raw["id"]:
                 raise RuntimeError("missing save confirmation")
-            result.update(status="saved", attempt_id=saved["attempt_id"])
+            result.update(status="saved", attempt_id=saved["attempt_id"], medal_saved=medal is not None)
         else:
             raise ValueError("invalid action")
     except (ValueError, TypeError, KeyError, PermissionError, IndexError):
         result["status"] = "invalid"
     except HTTPError as error:
-        logging.getLogger(__name__).warning("Geography persistence failed (HTTP %s)", error.code)
-        if error.code in (401, 403):
+        result["http_status"] = error.code
+        try:
+            problem = json.loads(error.read(8192))
+        except (ValueError, OSError):
+            problem = {}
+        logging.getLogger(__name__).warning("Geography %s failed (HTTP %s)", stage, error.code)
+        if isinstance(problem,dict) and problem.get("code") == "42501" and problem.get("message") == "unverified profile":
             result["status"] = "relink"
     except (OSError, RuntimeError):
         logging.getLogger(__name__).warning("Geography persistence unavailable")
+    result["stage"] = stage
     state["ack"] = result
     return True
 
@@ -2139,15 +2455,33 @@ def main():
     configured = https(base) and bool(setting("SUPABASE_SERVICE_ROLE_KEY") or setting("SUPABASE_SECRET_KEY"))
     if configured and not state.get("catalog_checked"):
         state["catalog_checked"] = True
+        start = perf_counter()
+        outcome, code = "saved", None
         try:
             publish_catalog(base)
+        except HTTPError as error:
+            outcome, code = "retry", error.code
         except (ValueError, OSError):
-            pass
+            outcome = "retry"
+        state["catalog_status"] = dict(operation="catalog",stage="catalog",outcome=outcome,
+                                       code=code,ms=round((perf_counter()-start)*1000))
     hub = setting("CHOKOMANA_HOME_URL", HUB_URL)
+    parts = urlsplit(hub if https(hub) else HUB_URL)
+    query = dict(parse_qsl(parts.query))
+    query["cm_plan_return"] = "1"
+    href = escape(urlunsplit(parts._replace(query=urlencode(query))), quote=True)
+    st.markdown(
+        '<style>.cm-native-home{display:inline-flex;align-items:center;padding:.5rem .8rem;'
+        'min-height:42px;border:1px solid #bfd3c6;border-radius:11px;color:#12624b!important;'
+        'background:#fffef5;font-weight:700;text-decoration:none!important}'
+        '.cm-native-home:focus-visible{outline:3px solid #a76400}</style>'
+        f'<a class="cm-native-home" href="{href}" target="_self">← ちょこまなへ</a>',
+        unsafe_allow_html=True,
+    )
     component = declare_component("chokomana_geography", path=frontend_folder().name)
     message = component(map=MAP, discovery=DISCOVERY, menus=list(MENUS.values()), version=VERSION, age=state.get("age"),
-        hub=hub if https(hub) else "", configured=configured, profile=state.get("profile"),
-        assignment=state.get("assignment"), ack=state.get("ack"),
+        configured=configured, profile=state.get("profile"),
+        assignment=state.get("assignment"), ack=state.get("ack"), catalog_status=state.get("catalog_status"),
         key="geography_" + state.get("launch", "standalone")[:16], default=None)
     if isinstance(message, dict):
         try:
