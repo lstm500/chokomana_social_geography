@@ -716,7 +716,7 @@ MAP_DATA = (
 )
 
 SOURCE = "geography"
-VERSION = "geography-prefectures-1"
+LEGACY_VERSION = "geography-prefectures-1"
 MAP = json.loads(decompress(b64decode(MAP_DATA)))
 PREFECTURES = {p["id"]: p for p in MAP}
 REGIONS = [
@@ -729,7 +729,7 @@ REGIONS = [
     ("kyushu", "きゅうしゅう・おきなわ", 40, 47),
     ("all", "ぜんこく47とどうふけん", 1, 47),
 ]
-MENUS = {
+LEGACY_MENUS = {
     f"geography.prefecture.{code}": {
         "menu_id": f"geography.prefecture.{code}", "category_id": code,
         "label": name, "category_label": name, "difficulty_id": "puzzle",
@@ -744,23 +744,6 @@ MENUS = {
     }
     for code, name, lo, hi in REGIONS
 }
-
-
-def catalog():
-    def entry(kind, ident, payload):
-        return dict(schema_version=1, source_app=SOURCE, content_version=VERSION,
-                    entry_type=kind, entry_id=ident, payload=payload)
-    skill = "geography.prefecture.location_name"
-    yield entry("skill", skill, {"skill_id": skill, "label": "都道府県の位置と名前"})
-    for ident, menu in MENUS.items():
-        yield entry("menu", ident, menu)
-    for ident, pref in PREFECTURES.items():
-        qid = f"geography.prefecture.{ident}"
-        yield entry("question", qid, dict(
-            question_id=qid, label=pref["name"], skill_ids=[skill],
-            menu_ids=[key for key, menu in MENUS.items() if ident in menu["prefectures"]],
-            question_family_id="geography.prefecture", assessment_method="automatic",
-            correct_option_id=ident, prompt="地図にはめ、名前を答える"))
 
 
 def iso(value):
@@ -783,11 +766,11 @@ def medal_grade(correct, total):
                  if correct * 100 >= total * pct), "white")
 
 
-def build_records(raw, profile, assignment=None, now=None):
+def build_legacy_records(raw, profile, assignment=None, now=None):
     attempt = UUID(raw["id"])
     if attempt.version != 4:
         raise ValueError("invalid attempt")
-    menu = MENUS[raw["menu"]]
+    menu = LEGACY_MENUS[raw["menu"]]
     started, ended = parse(raw["started"]), parse(raw["ended"])
     now = now or datetime.now(timezone.utc)
     if ended < started or ended > now + timedelta(minutes=5):
@@ -805,7 +788,7 @@ def build_records(raw, profile, assignment=None, now=None):
 
     plan_id = None
     if raw.get("assignment") and assignment and assignment["plan_item_id"] == raw["assignment"]:
-        if assignment["menu_id"] == menu["menu_id"] and assignment["content_version"] == VERSION:
+        if assignment["menu_id"] == menu["menu_id"] and assignment["content_version"] == LEGACY_VERSION:
             plan_id = assignment["plan_item_id"]
     start = dict(menu_id=menu["menu_id"], category_id=menu["category_id"],
                  difficulty_id=menu["difficulty_id"], mode="challenge",
@@ -897,7 +880,7 @@ def build_records(raw, profile, assignment=None, now=None):
             sorted(records, key=lambda row: row[0]), start=1):
         event = dict(schema_version=1, source_app=SOURCE, profile_id=profile,
             attempt_id=str(attempt), event_id=str(uuid5(attempt, f"event:{sequence}")),
-            app_version="1.0.0", content_version=VERSION, event_type=kind,
+            app_version="1.0.0", content_version=LEGACY_VERSION, event_type=kind,
             occurred_at=iso(when), sequence=sequence, question_id=question,
             occurrence_id=occurrence, segment_id=segment, payload=payload)
         event["event_hash"] = hashlib.sha256(json.dumps(event, sort_keys=True,
@@ -910,6 +893,376 @@ def build_records(raw, profile, assignment=None, now=None):
             reading="ち", difficulty="puzzle", correct_count=correct, total_count=total,
             grade=medal_grade(correct, total), finished_at=iso(ended))
     return events, medal
+
+PREFECTURE_DATA = """
+01|札幌市|さっぽろし|根釧台地|こんせんだいち|台地|43.39,144.79|酪農|らくのう|夏でもすずしい道東の気候|広い土地を牧草地にして、牛のえさを育てる|日本の北にある北海道。その東の根釧台地は夏もすずしく、広い土地が牧草地に使われています。牧草を牛のえさにして、乳牛を飼う酪農が行われています。
+02|青森市|あおもりし|津軽平野|つがるへいや|平野|40.73,140.42|りんご栽培|りんごさいばい|津軽のすずしい気候|平野のまわりにも果樹園をつくる|津軽地方では、すずしい気候のもと、平野のまわりなどに果樹園が広がり、りんごが作られています。
+03|盛岡市|もりおかし|北上川|きたかみがわ|川|39.38,141.13|米づくり|こめづくり|川にそって平らな土地がある|用水路で田に水を引く|北上川にそった平らな土地に田が広がり、川などから用水路で水を引いて米を作ります。
+04|仙台市|せんだいし|仙台平野|せんだいへいや|平野|38.25,140.98|米づくり|こめづくり|海の近くまで平らな土地が広がる|水をためられる田を広くつくる|太平洋に面する仙台平野には平らな土地が広がり、水を引いて田を作ることができます。
+05|秋田市|あきたし|横手盆地|よこてぼんち|盆地|39.32,140.47|米づくり|こめづくり|山に囲まれた盆地の底に平らな土地がある|盆地の平地に田をつくり、水を引く|横手盆地では、まわりを山に囲まれた平らな土地に田が広がり、水を引いて米を育てます。
+06|山形市|やまがたし|山形盆地|やまがたぼんち|盆地|38.36,140.32|さくらんぼ栽培|さくらんぼさいばい|盆地のふちに水はけのよい土地がある|ふちの斜面などを果樹園にする|山形盆地のふちには水はけのよい土地があり、さくらんぼを育てる果樹園があります。
+07|福島市|ふくしまし|福島盆地|ふくしまぼんち|盆地|37.80,140.44|もも栽培|ももさいばい|盆地のふちに日当たりのよい斜面がある|斜面などを果樹園にする|福島盆地のふちの日当たりのよい斜面などに果樹園が広がり、ももを育てています。
+08|水戸市|みとし|霞ヶ浦|かすみがうら|湖|36.04,140.37|れんこん栽培|れんこんさいばい|湖のまわりに水を使いやすい平地がある|水を張った畑でれんこんを育てる|霞ヶ浦のまわりでは、水を張った畑で、れんこんになるハスを育てています。
+09|宇都宮市|うつのみやし|那須高原|なすこうげん|高原|37.06,140.01|酪農|らくのう|高原は夏も比較的すずしい|牧草を育てて乳牛を飼う|那須の高原などでは、すずしい環境を生かして牧草を育て、乳牛を飼うところがあります。
+10|前橋市|まえばしし|嬬恋高原|つまごいこうげん|高原|36.53,138.49|キャベツ栽培|きゃべつさいばい|標高が高く、夏も比較的すずしい|高原の畑で夏にキャベツを育てる|嬬恋村では、標高が高く夏もすずしい気候を生かし、夏に収穫するキャベツを育てます。
+11|さいたま市|さいたまし|利根川|とねがわ|川|36.23,139.26|ねぎ栽培|ねぎさいばい|深谷付近の川沿いに畑をつくれる平地がある|水はけのよい畑で育てる|利根川に近い深谷には、ねぎを育てる畑があります。水はけのよい土は、ねぎの栽培に向いています。
+12|千葉市|ちばし|九十九里浜|くじゅうくりはま|海岸|35.59,140.48|いわし漁|いわしりょう|太平洋に面した長い海岸がある|港を拠点に、沖へ船を出して魚をとる|九十九里浜は太平洋に面しています。近くの港を拠点に、沖でいわしなどをとる漁業が行われてきました。
+13|新宿区|しんじゅくく|狭山丘陵|さやまきゅうりょう|丘陵|35.77,139.39|東京狭山茶|とうきょうさやまちゃ|丘陵のまわりに畑がある|木の葉を摘み、加工してお茶にする|瑞穂町など、狭山丘陵に近い地域の畑では茶の木を育て、摘み取った葉をお茶に加工します。
+14|横浜市|よこはまし|相模湾|さがみわん|湾|35.26,139.43|しらす漁|しらすりょう|相模湾に面した沿岸がある|海岸近くの海で船を使い、しらすをとる|相模湾の沿岸では、海岸近くを泳ぐしらすを、船から網を使ってとります。
+15|新潟市|にいがたし|越後平野|えちごへいや|平野|37.67,139.01|米づくり|こめづくり|信濃川などが流れる広い平野がある|水路や排水の仕組みを整えて田をつくる|越後平野では、広く平らな土地に水路や排水の仕組みを整え、田をつくって米を育てています。
+16|富山市|とやまし|砺波平野|となみへいや|平野|36.63,136.97|米づくり|こめづくり|庄川が山から平野へ流れ出る|用水路を使って田に水を届ける|砺波平野では、庄川から取り入れた水などを用水路で田に運び、米を育てています。
+17|金沢市|かなざわし|河北潟|かほくがた|湖|36.66,136.67|れんこん栽培|れんこんさいばい|潟の近くに水が使える低い土地がある|水田を利用した畑でハスを育てる|河北潟周辺を含む金沢の一部では、水を使う畑でハスを育て、加賀れんこんを収穫します。
+18|福井市|ふくいし|越前海岸|えちぜんかいがん|海岸|35.91,135.95|越前がに漁|えちぜんがにりょう|日本海に面し、沖に深い海がある|港から沖へ出て、海底近くのかにをとる|越前海岸などの漁港から日本海へ出て、海底近くにすむズワイガニをとります。
+19|甲府市|こうふし|甲府盆地|こうふぼんち|盆地|35.64,138.65|ぶどう栽培|ぶどうさいばい|盆地に日当たりや水はけのよい場所がある|盆地のふちなどに果樹園をつくる|甲府盆地のふちなどでは、日当たりと水はけのよい場所を使い、ぶどうを育てます。
+20|長野市|ながのし|千曲川|ちくまがわ|川|35.98,138.56|レタス栽培|れたすさいばい|千曲川上流の高い土地は夏も比較的すずしい|高原の畑で夏にレタスを育てる|千曲川上流の川上村では、高い土地のすずしさを生かして、夏に出荷するレタスを育てます。
+21|岐阜市|ぎふし|長良川|ながらがわ|川|35.44,136.78|あゆ漁・鵜飼|あゆりょう・うかい|あゆがすむ川が流れる|川であゆをとり、鵜飼の伝統を残す|長良川にはあゆがすみます。岐阜市では鵜という鳥で魚をとる鵜飼が伝統として続いています。
+22|静岡市|しずおかし|牧之原台地|まきのはらだいち|台地|34.82,138.14|茶の栽培|ちゃのさいばい|広く、水はけがよい台地がある|台地に茶畑を広げる|牧之原台地の水はけのよい土地には茶畑が広がり、茶の葉を摘んで加工します。
+23|名古屋市|なごやし|渥美半島|あつみはんとう|半島|34.65,137.19|メロン栽培|めろんさいばい|海に囲まれた、比較的あたたかい半島がある|温室で温度などを調整して作物を育てる|渥美半島では比較的あたたかい気候を生かし、温室で温度などを調整してメロンを育てます。
+24|津市|つし|英虞湾|あごわん|湾|34.31,136.81|真珠の養殖|しんじゅのようしょく|海岸が入り組み、湾の内側では波が比較的おだやか|いかだなどから貝をつるして育てる|英虞湾では、おだやかな海を利用し、貝を育てて真珠を作ります。
+25|大津市|おおつし|琵琶湖|びわこ|湖|35.23,136.08|湖の漁・ふなずし|みずうみのりょう・ふなずし|淡水の湖にフナなどの魚がすむ|湖で魚をとり、加工して保存する|琵琶湖の魚を塩と米で発酵させて保存する工夫から、ふなずしが伝わっています。
+26|京都市|きょうとし|宇治川|うじがわ|川|34.89,135.82|宇治茶|うじちゃ|宇治川近くの山あいに傾いた畑がある|茶の木を畑で育て、葉を加工する|宇治やその周辺の山あいの畑では茶の木を育て、葉を摘んで加工します。
+27|大阪市|おおさかし|大阪平野|おおさかへいや|平野|34.62,135.59|八尾若ごぼう|やおわかごぼう|平野に野菜を育てる畑がある|市街地に近い畑でも野菜を育てる|大阪平野の八尾では、市街地に近い畑でも野菜が作られ、八尾若ごぼうが知られています。
+28|神戸市|こうべし|淡路島|あわじしま|島|34.32,134.83|たまねぎ栽培|たまねぎさいばい|瀬戸内海にある比較的あたたかい島|平地の田畑を季節ごとに使う|淡路島の南部では、比較的あたたかい気候のもと、米を作った田などで、たまねぎを育てることがあります。
+29|奈良市|ならし|吉野川|よしのがわ|川|34.35,135.68|かき栽培|かきさいばい|吉野川近くの山の斜面に日当たりのよい所がある|斜面などを果樹園にする|吉野川沿いの五條では、山の斜面などにある果樹園で、かきを育てています。
+30|和歌山市|わかやまし|有田川|ありだがわ|川|34.08,135.22|みかん栽培|みかんさいばい|川のまわりの山に日当たりのよい斜面がある|斜面に段々畑をつくる|有田川の周辺では、日当たりのよい斜面などに段々畑をつくり、みかんを育てます。
+31|鳥取市|とっとりし|鳥取砂丘|とっとりさきゅう|砂丘|35.54,134.24|らっきょう栽培|らっきょうさいばい|海岸近くに水はけのよい砂地がある|砂地を畑にし、水を補いながら育てる|鳥取砂丘の近くでは、水はけのよい砂地を畑にして、必要な水を補いながららっきょうを育てます。
+32|松江市|まつえし|宍道湖|しんじこ|湖|35.45,132.93|しじみ漁|しじみりょう|湖で川の水と海の水が混じる|湖底にすむしじみをとる|宍道湖は川の水と海の水が混じる湖で、その環境にすむヤマトシジミをとります。
+33|岡山市|おかやまし|岡山平野|おかやまへいや|平野|34.65,133.92|白桃の栽培|はくとうのさいばい|平野の周辺に日当たりのよい土地がある|果樹園で桃を育てる|岡山平野の周辺など、日当たりのよい果樹園で白桃を育てています。
+34|広島市|ひろしまし|広島湾|ひろしまわん|湾|34.30,132.40|かきの養殖|かきのようしょく|島が多く湾の波が比較的おだやか|いかだからかきをつるして育てる|広島湾では、おだやかな海を生かし、いかだからかきをつるして育てます。
+35|山口市|やまぐちし|関門海峡|かんもんかいきょう|海峡|33.96,130.96|ふぐの加工・流通|ふぐのかこう・りゅうつう|本州と九州の間の海峡に港町がある|港町の市場で集め、加工して各地へ運ぶ|関門海峡に面した下関では、各地のふぐを市場に集め、加工して出荷します。
+36|徳島市|とくしまし|吉野川|よしのがわ|川|34.10,134.54|なると金時の栽培|なるときんときのさいばい|吉野川の河口に近い海岸に砂地がある|水はけのよい砂の畑でいもを育てる|鳴門などでは、海岸に近い水はけのよい砂地の畑で、さつまいものなると金時を育てます。
+37|高松市|たかまつし|讃岐平野|さぬきへいや|平野|34.22,133.94|米づくりとため池|こめづくりとためいけ|瀬戸内側で雨が比較的少ない|ため池などに水をため、田に送る|雨が比較的少ない讃岐平野では、ため池などで水を確保して、米を育てる田に送ります。
+38|松山市|まつやまし|宇和海|うわかい|海|33.25,132.47|真珠の養殖|しんじゅのようしょく|海岸が入り組み、波のおだやかな入江がある|入江で貝をつるして育てる|宇和海では、波が比較的おだやかな入江を使って貝を育て、真珠を作ります。
+39|高知市|こうちし|高知平野|こうちへいや|平野|33.55,133.66|なすの施設栽培|なすのしせつさいばい|太平洋沿いで冬も比較的あたたかい|ビニールハウスで作物を育てる|高知平野などでは、冬も比較的あたたかい気候とハウスを利用し、なすなどを育てます。
+40|福岡市|ふくおかし|筑後平野|ちくごへいや|平野|33.24,130.55|いちご栽培|いちごさいばい|筑後川のまわりに農地が広がる|ビニールハウスでいちごを育てる|筑後平野では、平地の農地にハウスを設け、温度などを調整していちごを育てます。
+41|佐賀市|さがし|有明海|ありあけかい|海|33.14,130.33|のりの養殖|のりのようしょく|潮が満ちた時と引いた時の水位差が大きい|浅い海の支柱に網を張ってのりを育てる|有明海では潮の満ち引きの差を利用し、支柱に張った網が水についたり空気に出たりするようにしてのりを育てます。
+42|長崎市|ながさきし|九十九島|くじゅうくしま|島|33.17,129.65|かきの養殖|かきのようしょく|島や入り組んだ海岸に囲まれた海がある|おだやかな海でかきを育てる|九十九島には島や入り組んだ海岸に囲まれた場所があり、その海を生かしてかきを育てます。
+43|熊本市|くまもとし|阿蘇山|あそさん|山|32.89,131.08|あか牛の放牧|あかうしのほうぼく|阿蘇の山のまわりに草原が広がる|草原に牛を放し、草を食べさせる|阿蘇では草原を利用して牛を放牧します。人は草刈りなどを行い、草原を保ってきました。
+44|大分市|おおいたし|国東半島|くにさきはんとう|半島|33.57,131.59|原木しいたけ|げんぼくしいたけ|半島にクヌギなどの林がある|クヌギの木を原木にしてしいたけを育てる|国東半島の周辺では、林のクヌギを原木として使い、しいたけを育てます。
+45|宮崎市|みやざきし|宮崎平野|みやざきへいや|平野|32.01,131.41|きゅうりの施設栽培|きゅうりのしせつさいばい|太平洋沿いで冬も比較的あたたかい|ハウスで温度などを管理して育てる|宮崎平野などでは冬も比較的あたたかい気候を生かし、ハウスできゅうりを育てます。
+46|鹿児島市|かごしまし|薩摩半島|さつまはんとう|半島|31.33,130.43|さつまいも栽培|さつまいもさいばい|火山の噴出物が積もった、水はけのよい土地がある|水はけのよい畑でいもを育てる|薩摩半島などでは、水はけのよい土地を畑として使い、さつまいもを育てています。
+47|那覇市|なはし|沖縄本島|おきなわほんとう|島|26.47,127.90|さとうきび栽培|さとうきびさいばい|一年を通してあたたかい|畑で茎を育て、しぼった汁から砂糖を作る|沖縄本島などでは、あたたかい気候を生かしてさとうきびを育て、茎の汁から砂糖を作ります。
+"""
+
+CAPITAL_DATA = """
+01|43.064359,141.347449
+02|40.824294,140.740054
+03|39.70353,141.152667
+04|38.268737,140.872183
+05|39.718175,140.103356
+06|38.240127,140.362533
+07|37.750146,140.466754
+08|36.341817,140.446796
+09|36.56575,139.883526
+10|36.391205,139.060917
+11|35.857771,139.647804
+12|35.604563,140.123179
+13|35.689185,139.691648
+14|35.447505,139.642347
+15|37.901699,139.022728
+16|36.695274,137.211302
+17|36.594729,136.62555
+18|36.06522,136.221641
+19|35.665102,138.568985
+20|36.651282,138.180972
+21|35.39116,136.722204
+22|34.976987,138.383057
+23|35.180247,136.906698
+24|34.730547,136.50861
+25|35.004532,135.868588
+26|35.0209962,135.7531135
+27|34.686492,135.518992
+28|34.69128,135.183087
+29|34.685296,135.832745
+30|34.224806,135.16795
+31|35.503463,134.238258
+32|35.472248,133.05083
+33|34.66132,133.934414
+34|34.396033,132.459595
+35|34.185648,131.470755
+36|34.065732,134.559293
+37|34.34014,134.04297
+38|33.841649,132.76585
+39|33.55969,133.530887
+40|33.606767,130.418228
+41|33.249367,130.298822
+42|32.744542,129.873037
+43|32.790385,130.742345
+44|33.2382,131.612674
+45|31.91109,131.423855
+46|31.560219,130.557906
+47|26.211538,127.681115
+"""
+
+VERSION = "geography-prefecture-discovery-2"
+# 年齢の帯は、ホームの年齢設定と単独利用の年齢選択で共通。
+AGE_BANDS = [(1, 6, 2), (7, 7, 4), (8, 9, 6), (10, 10, 8), (11, 100, 10)]
+SKILLS = {
+    "map": "位置と地形",
+    "capital": "都道府県名と都道府県庁所在地",
+    "industry": "特産品と産業",
+    "reasoning": "位置・気候・土地利用と産業のつながり",
+}
+PREFECTURE_INFO = {}
+for row in PREFECTURE_DATA.strip().splitlines():
+    pid, capital, capital_reading, land, land_reading, kind, location, industry, reading, climate, use, link = row.split("|")
+    PREFECTURE_INFO[pid] = dict(
+        capital=capital, capital_reading=capital_reading, land=land, land_reading=land_reading,
+        kind=kind, place=location, industry=industry, industry_reading=reading, climate=climate,
+        use=use, link=link, name=PREFECTURES[pid]["name"], reading=PREFECTURES[pid]["reading"],
+    )
+CAPITAL_POINTS = dict(line.split("|", 1) for line in CAPITAL_DATA.strip().splitlines())
+
+
+def project(pid, location):
+    lat, lon = map(float, location.split(","))
+    if pid == "47":
+        return [round(523+(lon-122.75)*22, 2), round(444+(27.98-lat)*26, 2)]
+    return [round(44+(lon-128.05)*28, 2), round(29+(45.68-lat)*32.5, 2)]
+
+
+def region_of(pid):
+    return next((code, name) for code, name, lo, hi in REGIONS
+                if code != "all" and lo <= int(pid) <= hi)
+
+
+REGION_READINGS = {code: name for code, name, _, _ in REGIONS if code != "all"}
+MENUS = {
+    f"geography.discovery.{code}.{count}": {
+        "menu_id": f"geography.discovery.{code}.{count}", "category_id": f"{code}_{count}",
+        "label": f"{'全国' if code == 'all' else name}の都道府県を1つ発見",
+        "category_label": "都道府県の発見", "region": code, "region_label": "ぜんこくから" if code == "all" else name,
+        "difficulty_id": f"discovery_{count}", "difficulty_order": 1,
+        "progression_group_id": f"geography.discovery.{code}", "skill_ids": [f"geography.discovery.{key}" for key in SKILLS],
+        "prefectures": [f"{i:02}" for i in range(lo, hi+1)],
+        "mode_options": ["challenge"], "assessment_method": "automatic",
+        "estimated_duration_ms": 100_000+count*30_000, "duration_basis": "provisional",
+        "question_count_default": count, "planned_question_count": count, "age_min": min_age, "age_max": max_age,
+        "supports_direct_launch": True, "is_active": True, "next_menu_ids": [],
+        "selection_instructions": ["都道府県のピースを地図にはめる", "拡大地図で地形と産業を発見する", "特徴について答える"],
+    }
+    for code, name, lo, hi in REGIONS
+    for min_age, max_age, count in AGE_BANDS
+}
+
+
+def discovery_questions(pid):
+    info = PREFECTURE_INFO[pid]
+    region, region_label = region_of(pid)
+    same_region = [p for p in PREFECTURE_INFO if p != pid and region_of(p)[0] == region]
+    others = same_region + [p for p in PREFECTURE_INFO if p != pid and p not in same_region]
+
+    def alternative(field):
+        correct = info[field]
+        return list(dict.fromkeys(PREFECTURE_INFO[p][field] for p in others
+                                  if PREFECTURE_INFO[p][field] != correct))[:2]
+
+    def q(code, prompt, answer, distractors, explanation, skill, *, reasoning=False):
+        return dict(id=f"geography.discovery.{pid}.{code}", prompt=prompt, explanation=explanation,
+                    options=[answer, *distractors], correct="0", skill=skill, reasoning=reasoning)
+
+    def choices(field):
+        return [x for x in alternative(field) if x != info[field]]
+
+    kinds = [kind for kind in ("山", "川", "平野", "湖", "台地", "湾") if kind != info["kind"]][:2]
+    if pid == "01":
+        why = q("why", "なぜ北海道の東では酪農がさかんなの？",
+                "夏もすずしく、広い牧草地で牛のえさを育てられるから",
+                ["夏の暑さをいかして、暖かい温室で牛を育てるから",
+                 "海に囲まれていて、海の水を牧草にまけるから"],
+                info["link"], "reasoning", reasoning=True)
+    else:
+        why = q("why", f"{info['land']}の近くで見つけた「{info['industry']}」。土地とのつながりは？",
+                info["link"],
+                ["土地や水のようすに関係なく、どの場所でも同じ方法で行う。",
+                 "土地の使い方より、県庁がある場所だけで決まる。"],
+                info["link"], "reasoning", reasoning=True)
+    if info["kind"] in {"湾", "海", "海峡", "湖", "海岸"}:
+        wrong_site, wrong_use = "雪の多い山の上", "山の林で木を切り出す"
+    else:
+        wrong_site, wrong_use = "陸地から遠く離れた深い海", "船で沖へ出て魚をとる"
+    return [
+        q("land", "地図で発見した地形の名前は？", f"{info['land']}（{info['land_reading']}）",
+          [f"{name}（{next(x['land_reading'] for x in PREFECTURE_INFO.values() if x['land']==name)}）" for name in choices("land")],
+          f"地図で見つけたのは{info['land']}です。", "map"),
+        why,
+        q("capital", "都道府県庁があるのはどこ？", f"{info['capital']}（{info['capital_reading']}）",
+          [f"{name}（{next(x['capital_reading'] for x in PREFECTURE_INFO.values() if x['capital']==name)}）" for name in choices("capital")],
+          f"{info['name']}の都道府県庁は{info['capital']}にあります。", "capital"),
+        q("industry", "地図で発見した産業や特産品は？", f"{info['industry']}（{info['industry_reading']}）",
+          [f"{name}（{next(x['industry_reading'] for x in PREFECTURE_INFO.values() if x['industry']==name)}）" for name in choices("industry")],
+          info["link"], "industry"),
+        q("kind", f"{info['land']}は、どんな地形？", info["kind"], kinds,
+          f"{info['land']}は{info['kind']}です。", "map"),
+        q("chain", f"「{info['industry']}」につながる順番は？ 気候・土地のようすから考えよう。",
+          f"{info['climate']} → {info['use']} → {info['industry']}",
+          [f"{info['climate']} → {wrong_use} → {info['industry']}",
+           f"{wrong_site} → {info['use']} → {info['industry']}"],
+          info["link"], "reasoning", reasoning=True),
+        q("region", "このピースをはめたのは日本のどの地方？", region_label,
+          [label for code, label in REGION_READINGS.items() if code != region][:2],
+          f"{info['name']}は「{region_label}」のコースで出会えます。", "map"),
+        q("use", "この地域では、土地や水をどう使っている？", info["use"], choices("use"),
+          info["link"], "reasoning"),
+        q("name", "探検した都道府県の名前は？", f"{info['name']}（{info['reading']}）",
+          [f"{name}（{next(x['reading'] for x in PREFECTURE_INFO.values() if x['name']==name)}）" for name in choices("name")],
+          f"探検したのは{info['name']}です。", "capital"),
+        q("evidence", "別の場所でも、この産業が広がる理由を調べるなら？",
+          "場所を地図で見て、気候や土地・水の使い方を比べる",
+          ["地名の字数だけを数える", "県庁までの道の本数だけを調べる"],
+          "産業と地形・気候・土地の使い方を比べると、場所によって成り立つ理由を考えられます。", "reasoning", reasoning=True),
+    ]
+
+
+DISCOVERY = {
+    pid: {**info, "capital_point": project(pid, CAPITAL_POINTS[pid]),
+          "land_point": project(pid, info["place"]), "questions": discovery_questions(pid)}
+    for pid, info in PREFECTURE_INFO.items()
+}
+
+
+def catalog():
+    def entry(kind, ident, payload):
+        return dict(schema_version=1, source_app=SOURCE, content_version=VERSION,
+                    entry_type=kind, entry_id=ident, payload=payload)
+    for key, name in SKILLS.items():
+        ident = f"geography.discovery.{key}"
+        yield entry("skill", ident, dict(skill_id=ident, label=name))
+    for ident, menu in MENUS.items():
+        yield entry("menu", ident, menu)
+    for pid, info in DISCOVERY.items():
+        for index, q in enumerate(info["questions"]):
+            yield entry("question", q["id"], dict(
+                question_id=q["id"], prompt=q["prompt"], label=q["prompt"], skill_ids=[f"geography.discovery.{q['skill']}"],
+                question_family_id=f"geography.discovery.{q['skill']}", prefecture_id=pid,
+                menu_ids=[key for key, menu in MENUS.items() if pid in menu["prefectures"] and index < menu["planned_question_count"]],
+                assessment_method="automatic", correct_option_id=q["correct"]))
+
+
+def build_records(raw, profile, assignment=None, now=None):
+    if raw.get("menu") in LEGACY_MENUS:
+        return build_legacy_records(raw, profile, assignment, now)
+    attempt = UUID(raw["id"])
+    menu = MENUS[raw["menu"]]
+    pid = raw["pref"]
+    status = raw["status"]
+    lo, hi = parse(raw["started"]), parse(raw["ended"])
+    total = menu["planned_question_count"]
+    items = raw["questions"]
+    if (attempt.version != 4 or pid not in menu["prefectures"] or status not in ("completed", "abandoned")
+            or not isinstance(items, list) or len(items) > total or lo > hi
+            or hi > (now or datetime.now(timezone.utc)) + timedelta(minutes=5)):
+        raise ValueError("invalid attempt")
+    events = []
+
+    def add(kind, when, payload, question=None, occurrence=None, segment=None):
+        events.append((when, kind, payload, question, occurrence, segment))
+
+    start = dict(menu_id=menu["menu_id"], category_id=menu["category_id"], difficulty_id=menu["difficulty_id"],
+                 planned_question_count=total, mode="challenge", prefecture_id=pid,
+                 settings_snapshot={"activity": "prefecture_discovery", "question_count": total, "explored_before_quiz": True})
+    if (assignment and raw.get("assignment") == assignment["plan_item_id"]
+            and menu["menu_id"] == assignment["menu_id"] and assignment["content_version"] == VERSION):
+        start["plan_item_id"] = assignment["plan_item_id"]
+    add("session_started", lo, start)
+    opened = set()
+    placed = False
+    previous = lo
+    actions = raw["actions"]
+    if not isinstance(actions, list) or len(actions) > 200:
+        raise ValueError("invalid map activity")
+    for action in actions:
+        at = parse(action["at"])
+        if not previous <= at <= hi:
+            raise ValueError("invalid action time")
+        previous = at
+        kind = action["type"]
+        data = {"prefecture_id": pid}
+        if kind == "placement" and not placed:
+            target = action.get("target")
+            if target is not None and target not in PREFECTURES:
+                raise ValueError("invalid drop")
+            placed = target == pid
+            add("learning_activity", at, {**data, "activity": "map_placement",
+                "selected_prefecture_id": target, "is_correct": placed})
+        elif kind == "hint" and not placed:
+            add("support_used", at, {**data, "support_type": "hint", "hint_step": 1})
+        elif kind == "zoom" and not placed:
+            add("learning_activity", at, {**data, "activity": "map_zoom"})
+        elif kind == "explore" and placed and action.get("feature") in ("capital", "land", "industry"):
+            feature = action["feature"]
+            if feature not in opened:
+                opened.add(feature)
+                add("learning_activity", at, {**data, "activity": "prefecture_feature_opened", "feature": feature})
+        else:
+            raise ValueError("invalid activity")
+    if items and (not placed or not {"capital", "land", "industry"} <= opened):
+        raise ValueError("exploration missing")
+
+    correct = answered = 0
+    sources = DISCOVERY[pid]["questions"]
+    for index, item in enumerate(items):
+        question = sources[index]
+        at = parse(item["shown"])
+        options = item["options"]
+        if (not previous <= at <= hi or item["id"] != question["id"]
+                or not isinstance(options, list) or len(options) != 3 or set(options) != {"0", "1", "2"}):
+            raise ValueError("invalid question")
+        occur = str(uuid5(attempt, question["id"]))
+        add("item_presented", at, dict(presentation_kind="first", parent_occurrence_id=None, order=index+1,
+            answer_exposed_before=question["id"].rsplit(".", 1)[-1] != "evidence",
+            choice_order=options), question["id"], occur)
+        choice = item.get("choice")
+        previous = at
+        if choice is None:
+            if status == "completed" or index != len(items)-1:
+                raise ValueError("incomplete question")
+            continue
+        when = parse(item["answered"])
+        if choice not in options or not at <= when <= hi:
+            raise ValueError("invalid answer")
+        previous = when
+        right = choice == question["correct"]
+        correct += int(right)
+        answered += 1
+        add("response_submitted", when, dict(response_index=1, response_status="answered",
+            assessment_method="automatic", is_correct=right, input_method="choice",
+            response_value={"choice_id": choice, "prefecture_id": pid, "skill": question["skill"]},
+            support_before_response={"hint_count": 0, "explanation_seen": False, "answer_seen": False,
+                "worked_example_seen": False, "parent_help": False},
+            answer_latency_ms=int((when-at).total_seconds()*1000)), question["id"], occur)
+    if status == "completed" and answered != total:
+        raise ValueError("invalid completion")
+
+    previous = lo
+    intervals = raw["intervals"]
+    if not isinstance(intervals, list) or len(intervals) > 500:
+        raise ValueError("invalid intervals")
+    for index, pair in enumerate(intervals):
+        a, b = map(parse, pair)
+        duration = round((b-a).total_seconds()*1000)
+        if not previous <= a < b <= hi or duration > 180_000:
+            raise ValueError("invalid interval")
+        previous = b
+        add("time_interval_closed", b, dict(start_at=iso(a), end_at=iso(b), active_ms=duration,
+            timing_quality="complete", phase="other"), segment=str(uuid5(attempt, f"interval:{index}")))
+    add("session_ended", hi, dict(status=status, answered_count=answered, first_correct_count=correct, prefecture_id=pid))
+    records = []
+    for sequence, (when, kind, payload, question, occurrence, segment) in enumerate(
+            sorted(events, key=lambda e:e[0]), 1):
+        event = dict(schema_version=1, source_app=SOURCE, profile_id=profile, attempt_id=str(attempt),
+            event_id=str(uuid5(attempt, f"event:{sequence}")), app_version="2.0.0", content_version=VERSION,
+            event_type=kind, occurred_at=iso(when), sequence=sequence, question_id=question,
+            occurrence_id=occurrence, segment_id=segment, payload=payload)
+        event["event_hash"] = hashlib.sha256(json.dumps(event, sort_keys=True, ensure_ascii=False,
+            separators=(",", ":")).encode()).hexdigest()
+        records.append(event)
+    medal = None if status != "completed" else dict(
+        source_app=SOURCE, profile_id=profile, attempt_id=str(attempt), category_key=menu["category_id"],
+        category_label=PREFECTURES[pid]["name"]+"の発見", stamp_char="地", reading="ち", difficulty=menu["difficulty_id"],
+        correct_count=correct, total_count=total, grade="gold" if correct == total else "silver", finished_at=iso(hi))
+    return records, medal
+
 
 # Streamlitのカスタムコンポーネント。配布時の追加ファイルは不要。
 FRONTEND_HTML = r'''<!doctype html>
@@ -973,6 +1326,28 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
  .map-controls{flex-direction:row;margin-left:auto;gap:4px}
  .map-controls button{min-height:40px;padding:4px;font-size:.72rem}
 }
+#age-label{display:block;margin:0 0 14px;color:var(--muted)}
+#age{font:inherit;border:1px solid var(--edge);border-radius:8px;padding:6px;color:var(--ink);background:var(--panel)}
+#phase-explore,#phase-quiz{margin-top:12px}
+#pref-name,#quiz-prompt{margin:0 0 5px;font-size:clamp(1.2rem,3vw,1.7rem)}
+#pref-capital,#quiz-name{margin:0 0 6px;color:var(--muted);font-weight:700}
+.discovery-map{position:relative;background:var(--sea);border:1px solid #98c3c5;border-radius:13px;overflow:hidden}
+#fact-map{display:block;width:100%;height:clamp(205px,42vw,330px)}
+#fact-shape{fill:#a4dabe;stroke:#267358;stroke-width:1.4;vector-effect:non-scaling-stroke}
+.fact-pin{cursor:pointer}
+.fact-pin circle{fill:#fff7df;stroke:#335554;stroke-width:1.5;vector-effect:non-scaling-stroke}
+.fact-pin text{fill:#204a44;pointer-events:none}
+.fact-pin.selected circle,.fact-pin:focus circle{fill:#ffd17d;stroke:#ad4d0a;stroke-width:3}
+.industry-map{position:absolute;bottom:9px;right:9px}
+.feature-keys{display:flex;flex-wrap:wrap;gap:6px;padding:8px 0}
+.feature-keys button[aria-pressed=true]{background:#e5f2e9;border-color:var(--dark)}
+.fact,#quiz-feedback{background:#fffef5;border:1px solid var(--edge);padding:9px 13px;margin:4px 0 12px;border-radius:11px}
+.fact h3,.fact p{margin:0 0 6px}
+#think{margin:5px 0 9px;color:var(--muted)}
+#choices{grid-template-columns:1fr}
+#choices button{text-align:left}
+#start-quiz:disabled{opacity:.5}
+.actions{margin-top:14px}
 </style>
 </head>
 <body>
@@ -984,12 +1359,14 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
 <main>
   <section id="menu" hidden>
     <h2>どこから はじめる？</h2>
+    <label id="age-label" for="age">ねんれい <select id="age"></select></label>
     <div id="courses"></div>
     <button id="export" class="secondary">この端末の学習ログを保存</button>
   </section>
   <section id="game" hidden>
     <div class="progress"><strong id="course"></strong><span id="count"></span></div>
     <progress id="meter"></progress>
+    <div id="phase-map">
     <p class="instruction" id="prompt">ピースを 地図の ぴったりの場所へ</p>
     <div class="play">
       <div class="tray">
@@ -1008,14 +1385,46 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
       </div>
     </div>
     <p id="feedback" role="status" aria-live="polite">ドラッグするか、ピースと置く場所を順にタップ。</p>
-    <div id="choices" hidden></div>
+    </div>
+    <div id="phase-explore" hidden>
+      <h2 id="pref-name" tabindex="-1"></h2>
+      <p id="pref-capital"></p>
+      <p class="instruction">地図のしるしを タップして 発見しよう。</p>
+      <div class="discovery-map">
+        <svg id="fact-map" role="group" aria-label="都道府県の拡大地図。県庁と地形のしるし。">
+          <path id="fact-shape" fill-rule="evenodd"/>
+          <g id="fact-pins"></g>
+        </svg>
+        <button class="secondary industry-map" id="industry-map">産業・特産品</button>
+      </div>
+      <div class="feature-keys">
+        <button id="discover-capital" aria-pressed="false" class="secondary">★ 県庁 <span hidden>✓</span></button>
+        <button id="discover-land" aria-pressed="false" class="secondary">● 地形 <span hidden>✓</span></button>
+        <button id="discover-industry" aria-pressed="false" class="secondary">産業・特産品 <span hidden>✓</span></button>
+      </div>
+      <article class="fact" aria-live="polite">
+        <h3 id="fact-title"></h3>
+        <p id="fact-text"></p><p id="fact-use" hidden></p>
+        <button id="fact-speaker" class="secondary">🔊 よみあげ</button>
+      </article>
+      <button id="start-quiz" disabled>特徴クイズに すすむ</button>
+    </div>
+    <div id="phase-quiz" hidden>
+      <p id="quiz-name"></p>
+      <h2 id="quiz-prompt" tabindex="-1"></h2>
+      <p id="think" hidden>どんな土地や気候だったかな？ まず、じぶんの言葉で話してみよう。</p>
+      <button id="quiz-speaker" class="secondary">🔊 問題を よみあげ</button>
+      <div id="choices"></div>
+      <p id="quiz-feedback" role="status" hidden></p>
+      <button id="next" hidden>つぎの問題</button>
+    </div>
     <div class="actions">
       <button id="quit" class="secondary">コースをおわる</button>
-      <button id="next" hidden>つぎへ</button>
     </div>
   </section>
   <section id="result" hidden>
-    <h2>コース クリア！</h2>
+    <h2>都道府県 たんけん クリア！</h2>
+    <p id="result-reason"></p>
     <p id="summary"></p>
     <button id="again">コースをえらぶ</button>
   </section>
@@ -1090,10 +1499,13 @@ function selectOwner(next) {
   cache = load(owner) || {queue:[], history:[], active:null};
   attempt = cache.active;
   zoomed = false;
-  if (attempt) {
-    if (attempt.questions.length) showQuestion();
-    else nextQuestion();
-  } else showMenu();
+  if (attempt && !attempt.pref) {
+    cache.previous_active = attempt;
+    attempt = null;
+    persist();
+  }
+  if (attempt) showQuestion();
+  else showMenu();
 }
 function receive(event) {
   if (event.source !== parent || event.data?.type !== "streamlit:render") return;
@@ -1142,6 +1554,13 @@ function init() {
     $("outlines").append(path);
     paths.set(pref.id, path);
   }
+  const ages = Array.from({length:11}, (_,i)=> {
+    const choice = document.createElement("option");
+    choice.value = String(i+1);
+    choice.textContent = i === 10 ? "11さい いじょう" : `${i+1}さい`;
+    return choice;
+  });
+  $("age").replaceChildren(...ages);
   if (args.hub) {
     const url = new URL(args.hub);
     url.searchParams.set("cm_plan_return", "1");
@@ -1158,23 +1577,36 @@ function display(next) {
   stage = next;
   for (const name of ["menu", "game", "result"]) $(name).hidden = name !== next;
 }
+function ageValue() {
+  return Number(args.age || cache.age || 6);
+}
 function showMenu() {
   display("menu");
-  const list = [...menus.values()];
+  const age = ageValue();
+  $("age").value = String(Math.min(age,11));
+  $("age").disabled = Boolean(args.age);
   const assigned = args.assignment?.content_version === args.version ? args.assignment : null;
-  list.sort((a,b) => Number(b.menu_id === assigned?.menu_id) - Number(a.menu_id === assigned?.menu_id));
+  const list = [...menus.values()].filter(menu => menu.age_min <= age && age <= menu.age_max);
+  const assignmentMenu = menus.get(assigned?.menu_id);
+  if (assignmentMenu && !list.includes(assignmentMenu)) list.unshift(assignmentMenu);
+  list.sort((a,b) => Number(b.menu_id === assigned?.menu_id) - Number(a.menu_id === assigned?.menu_id)
+    || Number(b.region === "all") - Number(a.region === "all"));
   $("courses").replaceChildren(...list.map(menu => {
     const button = document.createElement("button");
     const isAssigned = menu.menu_id === assigned?.menu_id;
     if (isAssigned) button.className = "assigned";
-    button.textContent = menu.label;
+    button.textContent = menu.region_label;
     const count = document.createElement("small");
-    count.textContent = `${menu.prefectures.length}もん${isAssigned ? " ・ きょうの課題" : ""}`;
+    count.textContent = `1つの都道府県・${menu.planned_question_count}問${isAssigned ? " ・ きょうの課題" : ""}`;
     button.append(count);
     button.onclick = () => {
-      attempt = {id:uuid(), menu:menu.menu_id, started:time(), order:shuffled(menu.prefectures),
-        assignment:isAssigned ? assigned.plan_item_id : null, questions:[], intervals:[]};
-      nextQuestion();
+      const learned = new Set(cache.history.filter(a => a.status === "completed").map(a => a.pref));
+      const newPlaces = menu.prefectures.filter(id => !learned.has(id));
+      const pool = newPlaces.length ? newPlaces : menu.prefectures;
+      attempt = {id:uuid(), menu:menu.menu_id, started:time(), pref:shuffled(pool)[0],
+        phase:"map", actions:[], intervals:[], questions:[], assignment:isAssigned ? assigned.plan_item_id : null};
+      zoomed = false;
+      showQuestion();
     };
     return button;
   }));
@@ -1200,45 +1632,47 @@ function stopTime() {
   }
   activeSince = undefined;
 }
-function current() { return attempt.questions.at(-1); }
-function placed() { return current().actions.some(a => a.type === "placement" && a.target === current().id); }
-function containsHint() { return current().actions.some(a => a.type === "hint"); }
-function nextQuestion() {
-  if (attempt.questions.length >= attempt.order.length) { finish("completed"); return; }
-  const id = attempt.order[attempt.questions.length];
-  const menu = menus.get(attempt.menu);
-  const region = [...menus.values()].find(m => m.category_id !== "all" && m.prefectures.includes(id));
-  const alternatives = (menu.category_id === "all" ? region : menu).prefectures.filter(p => p !== id);
-  options = shuffled([id, ...shuffled(alternatives).slice(0,3)]);
-  attempt.questions.push({id, shown:time(), options, actions:[]});
-  zoomed = false;
-  showQuestion();
-}
+function current() { return attempt; }
+function placed() { return attempt.actions.some(a => a.type === "placement" && a.target === attempt.pref); }
+function containsHint() { return attempt.actions.some(a => a.type === "hint"); }
+function info() { return args.discovery[attempt.pref]; }
+function didOpen(key) { return attempt.actions.some(a => a.type === "explore" && a.feature === key); }
 function showQuestion() {
-  const item = current(), pref = prefectures.get(item.id);
+  const pref = prefectures.get(attempt.pref);
   display("game");
-  armed = false;
-  drag = null;
-  keyboard = -1;
-  $("course").textContent = menus.get(attempt.menu).label;
-  $("count").textContent = `${attempt.questions.length} / ${attempt.order.length}`;
-  $("meter").max = attempt.order.length;
-  $("meter").value = attempt.questions.length - Number(!item.choice);
-  $("piecePath").setAttribute("d", pref.path);
-  const [x,y,w,h] = pref.bounds;
-  const pad = Math.max(w,h) * .12;
-  $("pieceImage").setAttribute("viewBox", [x-pad,y-pad,w+2*pad,h+2*pad].join(" "));
-  $("ghost").setAttribute("d", pref.path);
-  $("ghost").setAttribute("visibility","hidden");
-  $("feedback").textContent = "ドラッグするか、ピースと置く場所を順にタップ。";
-  drawQuestion();
-  updateMap();
+  for (const phase of ["map","explore","quiz"]) $("phase-"+phase).hidden = attempt.phase !== phase;
+  $("course").textContent = ({
+    map:"1　ピースを はめる", explore:"2　地図を たんけん", quiz:"3　とくちょうに ちょうせん",
+  })[attempt.phase];
+  const total = menus.get(attempt.menu).planned_question_count;
+  $("count").textContent = attempt.phase === "quiz" ? `${attempt.questions.length} / ${total}` : "";
+  $("meter").max = total;
+  $("meter").value = attempt.questions.filter(q=>q.choice !== undefined).length;
+  $("meter").hidden = attempt.phase !== "quiz";
+  if (attempt.phase === "map") {
+    armed = false;
+    drag = null;
+    keyboard = -1;
+    $("piecePath").setAttribute("d", pref.path);
+    const [x,y,w,h] = pref.bounds;
+    const pad = Math.max(w,h) * .12;
+    $("pieceImage").setAttribute("viewBox", [x-pad,y-pad,w+2*pad,h+2*pad].join(" "));
+    $("ghost").setAttribute("d", pref.path);
+    $("ghost").setAttribute("visibility","hidden");
+    $("feedback").textContent = "ドラッグするか、ピースと置く場所を順にタップ。";
+    drawQuestion();
+    updateMap();
+  } else if (attempt.phase === "explore") {
+    drawExplore(pref);
+  } else {
+    drawQuiz();
+  }
   wake();
   persist();
 }
 function updateMap() {
-  const pref = prefectures.get(current().id);
-  const region = [...menus.values()].find(menu => menu.category_id !== "all" && menu.prefectures.includes(pref.id));
+  const pref = prefectures.get(attempt.pref);
+  const region = [...menus.values()].find(menu => menu.region !== "all" && menu.prefectures.includes(pref.id));
   let box = BOARD;
   if (zoomed) {
     const members = (pref.id === "47" ? ["47"] : region.prefectures.filter(id => id !== "47")).map(id => prefectures.get(id).bounds);
@@ -1247,69 +1681,149 @@ function updateMap() {
     box = [x0,y0,w,h].join(" ");
   }
   $("map").setAttribute("viewBox", box);
-  $("inset").hidden = zoomed && pref.id !== "47";
   $("inset").style.display = zoomed && pref.id !== "47" ? "none" : "";
   $("zoom").textContent = zoomed ? "全国にもどす" : "ちいきを 拡大";
 }
 function drawQuestion() {
-  const item = current(), correctPlace = placed(), hinted = containsHint();
+  const hint = containsHint();
   const highlight = keyboard >= 0 ? [...paths.keys()][keyboard] : null;
   for (const [id,path] of paths) {
-    path.classList.toggle("found", correctPlace && id === item.id);
-    path.classList.toggle("hinted", !correctPlace && hinted && id === item.id);
+    path.classList.toggle("hinted", hint && id === attempt.pref);
     path.classList.toggle("keyboard", id === highlight);
   }
   $("piece").setAttribute("aria-pressed", String(!!armed));
-  $("piece").disabled = correctPlace;
-  $("hint").disabled = correctPlace || hinted;
-  $("zoom").disabled = correctPlace || item.actions.length >= 110;
-  $("prompt").textContent = correctPlace ? "ここは なんという 名前？" : "ピースを 地図の ぴったりの場所へ";
-  $("choices").hidden = !correctPlace;
-  $("next").hidden = !item.choice;
-  $("next").textContent = attempt.questions.length === attempt.order.length ? "けっかを 見る" : "つぎへ";
-  if (correctPlace) $("choices").replaceChildren(...item.options.map(id => {
-    const pref = prefectures.get(id), button = document.createElement("button");
-    const reading = document.createElement("small");
-    button.textContent = pref.name;
-    reading.textContent = pref.reading;
-    button.append(reading);
-    button.disabled = !!item.choice;
-    if (item.choice && id === item.id) button.className = "answer";
-    if (item.choice === id && id !== item.id) button.className = "incorrect";
-    button.onclick = () => answer(id);
-    return button;
-  }));
-  if (item.choice) feedbackName(item);
-  else if (correctPlace) $("feedback").textContent = "ぴったり！ 名前を えらぼう。";
-}
-function feedbackName(item) {
-  const pref = prefectures.get(item.id);
-  $("feedback").textContent = item.choice === item.id ? `せいかい！ ${pref.name}（${pref.reading}）`
-    : `ここは ${pref.name}（${pref.reading}）だよ。`;
-}
-function answer(id) {
-  if (!placed() || current().choice) return;
-  wake();
-  current().choice = id;
-  current().answered = time();
-  $("meter").value = attempt.questions.length;
-  drawQuestion();
-  $("next").focus();
-  persist();
+  $("hint").disabled = hint;
+  $("zoom").disabled = attempt.actions.length >= 195;
 }
 function put(target) {
-  if (placed()) return;
+  if (attempt.phase !== "map") return;
   wake();
-  const actions = current().actions;
-  if (actions.length >= 115 && target !== current().id) {
+  const actions = attempt.actions;
+  if (actions.length >= 195 && target !== attempt.pref) {
     $("feedback").textContent = "ヒントで 場所を たしかめよう。";
     return;
   }
   actions.push({type:"placement", target, at:time()});
   armed = false;
-  drawQuestion();
-  if (!placed()) $("feedback").textContent = "まだ はまらないね。形や となりを 見くらべよう。";
-  else $("choices").querySelector("button")?.focus({preventScroll:true});
+  if (target === attempt.pref) {
+    attempt.phase = "explore";
+    attempt.view = "capital";
+    attempt.actions.push({type:"explore",feature:"capital",at:time()});
+    showQuestion();
+    $("pref-name").focus({preventScroll:true});
+  } else {
+    drawQuestion();
+    $("feedback").textContent = "まだ はまらないね。形や となりを 見くらべよう。";
+  }
+  persist();
+}
+function speakText(text) {
+  if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
+  speechSynthesis.cancel();
+  const voice = new SpeechSynthesisUtterance(text);
+  voice.lang = "ja-JP"; voice.rate = .86;
+  speechSynthesis.speak(voice);
+}
+function drawExplore(pref) {
+  const item = info(), selected = attempt.view;
+  $("pref-name").textContent = `${item.name}（${item.reading}）`;
+  $("pref-capital").textContent = `都道府県庁所在地　${item.capital}（${item.capital_reading}）`;
+  $("fact-shape").setAttribute("d", pref.path);
+  const [x,y,w,h] = pref.bounds;
+  const margin = Math.max(w,h)*.19+2;
+  $("fact-map").setAttribute("viewBox", [x-margin,y-margin,w+2*margin,h+2*margin].join(" "));
+  const marks = [{id:"capital",xy:item.capital_point,symbol:"★",label:item.capital},
+    {id:"land",xy:item.land_point,symbol:"●",label:item.land}].map(mark => {
+    const node = document.createElementNS(SVG,"g");
+    const size = Math.max(w,h)*.055+1;
+    node.setAttribute("class", `fact-pin ${selected === mark.id ? "selected" : ""}`);
+    node.setAttribute("role","button"); node.setAttribute("tabindex","0");
+    node.setAttribute("aria-label", mark.label+"をみる");
+    node.setAttribute("transform",`translate(${mark.xy[0]} ${mark.xy[1]})`);
+    const ball = document.createElementNS(SVG,"circle"); ball.setAttribute("r",size);
+    const glyph = document.createElementNS(SVG,"text");
+    glyph.textContent = mark.symbol;
+    glyph.setAttribute("font-size",size*1.25);
+    glyph.setAttribute("dominant-baseline","central");
+    glyph.setAttribute("text-anchor","middle");
+    node.append(ball,glyph);
+    node.onclick = () => openFeature(mark.id);
+    node.onkeydown = event => {
+      if (["Enter"," "].includes(event.key)) { event.preventDefault(); openFeature(mark.id); }
+    };
+    return node;
+  });
+  $("fact-pins").replaceChildren(...marks);
+  const facts = {
+    capital: [item.capital+"（"+item.capital_reading+"）", "ここに都道府県庁があります。"],
+    land: [item.land+"（"+item.land_reading+"）", `${item.kind}を地図で見つけよう。 ${item.climate}。`],
+    industry: [item.industry+"（"+item.industry_reading+"）", item.link],
+  };
+  const [title, text] = facts[selected];
+  $("fact-title").textContent = title;
+  $("fact-text").textContent = text;
+  $("fact-use").hidden = selected !== "industry";
+  $("fact-use").textContent = "土地や水の使い方　"+item.use;
+  $("fact-speaker").onclick = () => speakText(title+"。"+text+(selected === "industry" ? item.use : ""));
+  for (const key of ["capital","land","industry"]) {
+    const control = $("discover-"+key);
+    control.setAttribute("aria-pressed", String(selected === key));
+    control.querySelector("span").hidden = !didOpen(key);
+  }
+  $("start-quiz").disabled = !didOpen("land") || !didOpen("industry");
+}
+function openFeature(key) {
+  if (attempt.phase !== "explore") return;
+  wake();
+  if (!didOpen(key)) attempt.actions.push({type:"explore",feature:key,at:time()});
+  attempt.view = key;
+  drawExplore(prefectures.get(attempt.pref));
+  persist();
+}
+function startQuiz() {
+  if (!didOpen("land") || !didOpen("industry")) return;
+  attempt.phase = "quiz";
+  nextQuestion();
+}
+function nextQuestion() {
+  if (!attempt || attempt.phase !== "quiz") return;
+  const total = menus.get(attempt.menu).planned_question_count;
+  if (attempt.questions.length >= total) { finish("completed"); return; }
+  const q = info().questions[attempt.questions.length];
+  attempt.questions.push({id:q.id, shown:time(), options:shuffled(["0","1","2"])});
+  showQuestion();
+  $("quiz-prompt").focus({preventScroll:true});
+}
+function drawQuiz() {
+  const question = info().questions[attempt.questions.length-1], recorded = attempt.questions.at(-1);
+  const answered = recorded.choice !== undefined;
+  $("quiz-name").textContent = info().name;
+  $("quiz-prompt").textContent = question.prompt;
+  $("think").hidden = !question.reasoning || answered;
+  $("quiz-speaker").onclick = () => speakText(question.prompt+"。"+recorded.options.map(key=>question.options[Number(key)]).join("。"));
+  $("choices").replaceChildren(...recorded.options.map(key => {
+    const button = document.createElement("button");
+    button.textContent = question.options[Number(key)];
+    button.disabled = answered;
+    if (answered && key === question.correct) button.className = "answer";
+    if (answered && recorded.choice === key && key !== question.correct) button.className = "incorrect";
+    button.onclick = () => answer(key);
+    return button;
+  }));
+  $("quiz-feedback").hidden = !answered;
+  if (answered) $("quiz-feedback").textContent = (recorded.choice === question.correct ? "せいかい！ " : "なるほど！ ")+question.explanation;
+  $("next").hidden = !answered;
+  $("next").textContent = attempt.questions.length === menus.get(attempt.menu).planned_question_count ? "けっかを 見る" : "つぎの問題";
+}
+function answer(id) {
+  const recorded = attempt.questions.at(-1);
+  if (recorded.choice !== undefined) return;
+  wake();
+  recorded.choice = id;
+  recorded.answered = time();
+  $("meter").value = attempt.questions.length;
+  drawQuiz();
+  $("next").focus();
   persist();
 }
 function mapPoint(event) {
@@ -1325,7 +1839,7 @@ function targetAt(event) {
 function moveGhost(event) {
   const point = mapPoint(event);
   if (!point) return;
-  const [x,y] = prefectures.get(current().id).anchor;
+  const [x,y] = prefectures.get(attempt.pref).anchor;
   $("ghost").setAttribute("transform", `translate(${point.x-x} ${point.y-y})`);
   $("ghost").setAttribute("visibility","visible");
 }
@@ -1333,16 +1847,13 @@ function finish(status) {
   stopTime();
   attempt.ended = time();
   attempt.status = status;
-  const questions = attempt.questions.filter(item=>item.choice);
-  const mapScore = questions.filter(item=>item.actions.find(a=>a.type==="placement")?.target===item.id).length;
-  const nameScore = questions.filter(item=>item.choice===item.id).length;
-  const nationwide = menus.get(attempt.menu).category_id === "all";
-  const score = questions.filter(item=>item.choice===item.id && item.actions.find(a=>a.type==="placement")?.target===item.id
-    && !item.actions.some(a=>a.type==="hint" || (nationwide && a.type==="zoom"))).length;
-  const missed = questions.length-score;
-  const medals = ["金","銀","銅","白"];
-  const grade = questions.length<=10 ? medals[Math.min(3,missed)] : medals[[90,80,70,0].findIndex(pct=>score*100>=questions.length*pct)];
-  $("summary").textContent = `${grade}メダル。場所 ${mapScore} / ${questions.length}、名前 ${nameScore} / ${questions.length}。ヒントなしで両方を初回正解 ${score}もん。`;
+  if (status === "completed") {
+    const total = menus.get(attempt.menu).planned_question_count;
+    const right = attempt.questions.filter(q=>q.choice === "0").length;
+    const item = info();
+    $("summary").textContent = `${right === total ? "金" : "銀"}メダル　${item.name}　${right} / ${total}問 正解`;
+    $("result-reason").textContent = item.link;
+  }
   cache.history.push(attempt);
   if (profile) cache.queue.push(attempt);
   attempt = null;
@@ -1414,12 +1925,16 @@ $("zoom").onclick = () => {
   if (zoomed) current().actions.push({type:"zoom",at:time()});
   updateMap(); drawQuestion(); persist();
 };
+$("age").onchange = () => { cache.age = Number($("age").value); persist(); showMenu(); };
+for (const key of ["capital","land","industry"]) $("discover-"+key).onclick = () => openFeature(key);
+$("industry-map").onclick = () => openFeature("industry");
+$("start-quiz").onclick = startQuiz;
 $("next").onclick = nextQuestion;
 $("quit").onclick = () => finish("abandoned");
 $("again").onclick = showMenu;
 $("retry").onclick = () => { if (profile) sync(); else send("hello"); updateConnection(); };
 $("export").onclick = () => {
-  const url = URL.createObjectURL(new Blob([JSON.stringify(cache.history,null,2)],{type:"application/json"}));
+  const url = URL.createObjectURL(new Blob([JSON.stringify(cache.previous_active ? [...cache.history,cache.previous_active] : cache.history,null,2)],{type:"application/json"}));
   const a = document.createElement("a"); a.href = url; a.download = "geography-learning-log.json"; a.click();
   setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
@@ -1464,8 +1979,10 @@ def request(path, body, prefer=None):
 
 @st.cache_data(ttl=3600, show_spinner=False)
 def publish_catalog(base):
-    request("chokomana_learning_catalog?on_conflict=source_app,entry_type,entry_id,content_version",
-            list(catalog()), "resolution=merge-duplicates,missing=default,return=minimal")
+    rows = list(catalog())
+    for start in range(0, len(rows), 200):
+        request("chokomana_learning_catalog?on_conflict=source_app,entry_type,entry_id,content_version",
+                rows[start:start+200], "resolution=merge-duplicates,missing=default,return=minimal")
 
 
 def process(message, state, configured):
@@ -1492,11 +2009,14 @@ def process(message, state, configured):
                     state["profile"] = str(UUID(profile))
                     state["proof"] = proof
                     state["assignment"] = data.get("assignment")
+                    age = data.get("age")
+                    state["age"] = age if type(age) is int and 1 <= age <= 100 else None
                     result["status"] = "linked"
                 else:
                     state.pop("profile", None)
                     state.pop("proof", None)
                     state.pop("assignment", None)
+                    state.pop("age", None)
                     result["status"] = "invalid_ticket" if ticket else "local"
                 state.pop("ticket", None)
                 if "cm_launch" in st.query_params:
@@ -1565,7 +2085,7 @@ def main():
             pass
     hub = setting("CHOKOMANA_HOME_URL", HUB_URL)
     component = declare_component("chokomana_geography", path=frontend_folder().name)
-    message = component(map=MAP, menus=list(MENUS.values()), version=VERSION,
+    message = component(map=MAP, discovery=DISCOVERY, menus=list(MENUS.values()), version=VERSION, age=state.get("age"),
         hub=hub if https(hub) else "", configured=configured, profile=state.get("profile"),
         assignment=state.get("assignment"), ack=state.get("ack"),
         key="geography_" + state.get("launch", "standalone")[:16], default=None)
