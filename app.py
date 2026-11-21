@@ -2,7 +2,6 @@
 from base64 import b64decode
 from datetime import datetime, timedelta, timezone
 import hashlib
-from html import escape
 import json
 import logging
 import os
@@ -2230,7 +2229,6 @@ button{min-height:42px;border:1px solid var(--dark);background:var(--dark);color
 button:focus-visible,#map:focus-visible,a:focus-visible{outline:3px solid #a76400;outline-offset:3px}
 button:disabled{cursor:default}
 .secondary{background:var(--panel);color:var(--dark);border-color:var(--edge)}
-.sync{display:flex;align-items:center;gap:8px;min-height:36px;color:var(--muted);font-size:.79rem}
 .sync button{font-size:inherit;min-height:32px;padding:4px 9px;background:var(--panel);color:var(--dark);border-color:var(--edge)}
 #courses{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(190px,100%),1fr));gap:10px;margin-bottom:16px}
 #courses button{text-align:left;background:var(--panel);color:var(--ink);border-color:var(--edge);min-height:66px}
@@ -2321,7 +2319,6 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
 .medal-stamp b{font-size:37px}
 .medal-actions{display:flex;justify-content:center;flex-wrap:wrap;gap:7px;margin-top:10px}
 body:has(#medal-dialog[open]){min-height:435px}
-#medal-status,#result-sync{color:var(--muted);font-size:.85rem}
 .feature-keys{display:flex;flex-wrap:wrap;gap:6px;padding:8px 0}
 .feature-keys button[aria-pressed=true]{background:#e5f2e9;border-color:var(--dark)}
 .fact,#quiz-feedback{background:#fffef5;border:1px solid var(--edge);padding:9px 13px;margin:4px 0 12px;border-radius:11px}
@@ -2342,7 +2339,6 @@ body:has(#medal-dialog[open]){min-height:435px}
     <label><input type="checkbox" id="voice-toggle" checked><span id="voice-label">自動読み上げ</span></label>
   </div>
 </header>
-<div class="sync"><output id="connection">学習記録を準備中…</output><button id="retry" hidden>再接続・同期</button></div>
 <main>
   <section id="menu" hidden>
     <div class="region-heading">
@@ -2431,16 +2427,14 @@ body:has(#medal-dialog[open]){min-height:435px}
   <section id="result" hidden>
     <h2>都道府県 たんけん クリア！</h2>
     <p id="result-reason"></p>
-    <p id="summary"></p><p id="result-sync" role="status"></p>
+    <p id="summary"></p>
     <button id="again">しゃかい・ちりトップ</button>
   </section>
 </main>
-<dialog id="medal-dialog" aria-labelledby="medal-title" aria-describedby="medal-status">
+<dialog id="medal-dialog" aria-labelledby="medal-title">
   <h2 id="medal-title">メダル</h2>
   <div id="medal-stamp" class="medal-stamp"><small id="medal-tier"></small><b>地</b><small>ち</small></div>
   <p id="medal-score"></p>
-  <p id="medal-status" role="status"></p>
-  <button id="medal-retry" class="secondary" hidden>もう一度 同期</button>
   <div class="medal-actions">
     <button type="button" class="secondary" id="medal-export">UI・通信ログを保存</button>
     <button type="button" id="medal-top">しゃかい・ちりトップ</button>
@@ -2467,11 +2461,13 @@ const time = () => new Date().toISOString();
 const uuid = () => crypto.randomUUID();
 const device = load("device") || [...crypto.getRandomValues(new Uint8Array(32))]
   .map(v => v.toString(16).padStart(2, "0")).join("");
-let storageWorks = save("device", device), args, profile, owner = "local";
+save("device", device);
+let args, profile, owner = "local";
 let pending, hello = "waiting", attempt, stage = "menu", armed, drag, options;
 let zoomed = false, keyboard = -1, activeSince, lastActivity, idleTimer, paths = new Map(), prefectures, menus;
 let cache, medalResult;
 const attemptedSync = new Set();
+const syncRetries = new Map();
 let autoVoice = true;
 
 function load(key) {
@@ -2485,8 +2481,7 @@ function save(key, value) {
 function persist() {
   if (!args || !cache) return;
   cache.active = attempt || null;
-  storageWorks = save(owner, cache);
-  updateConnection();
+  save(owner, cache);
 }
 function post(type, values = {}) {
   parent.postMessage({isStreamlitMessage:true, type:"streamlit:" + type, ...values}, "*");
@@ -2500,39 +2495,37 @@ function send(action, extra = {}) {
     hello = "retry";
     diagnostic("request",{operation:action,outcome:"timeout",ms:26000});
     if (action === "sync") {
-      if (medalResult?.id === sentAttempt && medalResult.mode==="saving") setMedalMode("retry");
+      retrySyncLater(sentAttempt);
       sync();
     }
     if (action === "hello" && !cache) selectOwner("local");
-    updateConnection();
   }, 26000)};
   post("setComponentValue", {value:{id, action, device, ...extra}, dataType:"json"});
 }
-function updateConnection() {
-  const waiting = cache?.queue.length || 0;
-  const label = profile ? (hello === "relink" ? "ホームから開き直して学習記録を同期してください。"
-    : hello === "invalid" ? "保存できない記録があります。ログを端末に保存できます。"
-    : waiting ? (pending?.action === "sync" ? `同期中（${waiting}件）` : `同期待ち ${waiting}件。再同期できます。`) : "ちょこまなと連携中")
-    : ({waiting:"学習記録を準備中…", invalid_ticket:"起動リンクを確認できません。ホームから開き直してください。",
-        retry:"通信を確認できません。端末内で学習できます。", local:"この端末に学習記録を保存します。"}[hello] || "");
-  $("connection").textContent = label + (cache?.rejected && hello !== "invalid" ? " 未同期の記録あり。" : "") + (storageWorks ? "" : " ブラウザを閉じると未同期の記録は消えます。");
-  $("retry").hidden = !["retry", "invalid_ticket"].includes(hello) && !waiting;
-  $("retry").disabled = !!pending;
+function retrySyncLater(id) {
+  const retries = syncRetries.get(id) || 0;
+  if (retries >= 2) return;
+  syncRetries.set(id, retries + 1);
+  const queuedCache = cache;
+  setTimeout(() => {
+    if (cache !== queuedCache || !cache?.queue.some(item => item.id === id)) return;
+    attemptedSync.delete(id);
+    sync();
+  }, retries === 0 ? 2500 : 8000);
 }
 function sync() {
   if (!profile || !cache || pending || hello === "relink") return;
   const queued = cache.queue.find(item=>!attemptedSync.has(item.id));
   if (!queued) return;
   attemptedSync.add(queued.id);
-  if (medalResult?.id === queued.id && medalResult.mode !== "saved") setMedalMode("saving");
   send("sync", {profile, attempt:queued});
-  updateConnection();
 }
 function selectOwner(next) {
   if (cache && next === owner) return;
   if (attempt && cache) { stopTime(); persist(); }
   owner = next;
   attemptedSync.clear();
+  syncRetries.clear();
   cache = load(owner) || {queue:[], history:[], active:null};
   attempt = cache.active;
   zoomed = false;
@@ -2564,17 +2557,17 @@ function receive(event) {
       if (profile) sync();
     } else if (ack.status === "saved") {
       cache.queue = cache.queue.filter(item => item.id !== ack.attempt_id);
-      if (medalResult?.id===ack.attempt_id && ack.medal_saved) setMedalMode("saved");
+      attemptedSync.delete(ack.attempt_id);
+      syncRetries.delete(ack.attempt_id);
       persist();
       sync();
     } else {
-      if (medalResult?.id===sentAttempt && medalResult.mode==="saving") {
-        setMedalMode(ack.status==="relink" ? "relink" : ack.status==="invalid" ? "invalid" : "retry");
+      if (ack.status === "retry" && (!ack.http_status || [408,429].includes(ack.http_status) || ack.http_status >= 500)) {
+        retrySyncLater(sentAttempt);
       }
       if (ack.status !== "relink") sync();
     }
   }
-  updateConnection();
 }
 function shuffled(values) {
   values = [...values];
@@ -3007,29 +3000,11 @@ function readCurrent() {
 }
 function updateMedal() {
   if (!medalResult) return;
-  const {grade,mode} = medalResult, label = grade === "gold" ? "金" : "銀";
-  const pendingSave = mode==="saving";
+  const {grade} = medalResult, label = grade === "gold" ? "金" : "銀";
   $("medal-stamp").className = "medal-stamp "+grade;
   $("medal-tier").textContent = label;
-  $("medal-title").textContent = mode==="saved" ? `${label}メダルを ゲット！` :
-    mode==="local" ? `${label}メダル！` : "都道府県たんけん クリア！";
-  const status = ({saved:"ちょこまなの「今日の成果」に保存しました。",saving:"メダルを ちょこまなに保存しています。",
-    retry:"同期できませんでした。記録は端末に残っています。再同期できます。",
-    relink:"ちょこまなから開き直すと、この記録を送れます。",
-    invalid:"記録形式を確認できません。記録は端末に残っています。",
-    local:"この端末の記録です。" })[mode];
-  $("medal-status").textContent = status;
-  $("result-sync").textContent = status;
-  $("medal-retry").hidden = mode !== "retry";
+  $("medal-title").textContent = `${label}メダルを ゲット！`;
   $("medal-stamp").setAttribute("aria-label",label+"メダル");
-  $("medal-dialog").setAttribute("aria-busy",String(pendingSave));
-}
-function setMedalMode(mode) {
-  if (!medalResult || medalResult.mode==="saved") return;
-  medalResult.mode = mode;
-  updateMedal();
-  if (mode === "saved" && stage==="result") speakText(
-    (medalResult.grade === "gold" ? "金" : "銀")+"メダルをゲット！ ちょこまなの今日の成果に保存しました。");
 }
 function diagnostic(event, data = {}) {
   try {
@@ -3154,7 +3129,7 @@ function finish(status) {
     const item = info();
     $("summary").textContent = `${right === total ? "金" : "銀"}メダル　${item.name}　${right} / ${total}問 正解`;
     $("result-reason").textContent = item.link;
-    medalResult = {id:attempt.id,grade:right===total?"gold":"silver",mode:profile?"saving":"local",info:item};
+    medalResult = {grade:right===total?"gold":"silver",info:item};
     $("medal-score").textContent = `${item.name}　${right} / ${total}問 正解`;
     diagnostic("round_finished",{state:"completed"});
   }
@@ -3253,14 +3228,6 @@ $("voice-toggle").onchange = () => {
   autoVoice = $("voice-toggle").checked;
   if (autoVoice) readCurrent(); else cancelSpeech();
 };
-function retrySync() {
-  if (pending) return;
-  attemptedSync.clear();
-  if (profile && hello !== "relink") sync(); else send("hello");
-  updateConnection();
-}
-$("medal-retry").onclick = retrySync;
-$("retry").onclick = retrySync;
 function exportDiagnostics() {
   const payload = {version:args?.version,build:args?.build,records:load("ui-diagnostics") || []};
   const url = URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}));
@@ -3279,7 +3246,10 @@ function pausePage() {
   persist();
   cancelSpeech();
 }
-document.addEventListener("visibilitychange", () => { if (document.hidden) pausePage(); else wake(); });
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) pausePage();
+  else { wake(); sync(); }
+});
 window.addEventListener("pagehide", pausePage);
 window.addEventListener("message", receive);
 new ResizeObserver(() => post("setFrameHeight",{height:Math.ceil(document.body.getBoundingClientRect().height)+1})).observe(document.body);
@@ -3498,15 +3468,7 @@ def main():
     parts = urlsplit(hub if https(hub) else HUB_URL)
     query = dict(parse_qsl(parts.query))
     query["cm_plan_return"] = "1"
-    href = escape(urlunsplit(parts._replace(query=urlencode(query))), quote=True)
-    st.markdown(
-        '<style>.cm-native-home{display:inline-flex;align-items:center;padding:.5rem .8rem;'
-        'min-height:42px;border:1px solid #bfd3c6;border-radius:11px;color:#12624b!important;'
-        'background:#fffef5;font-weight:700;text-decoration:none!important}'
-        '.cm-native-home:focus-visible{outline:3px solid #a76400}</style>'
-        f'<a class="cm-native-home" href="{href}" target="_self">← ちょこまなへ</a>',
-        unsafe_allow_html=True,
-    )
+    st.link_button("← ちょこまなへ", urlunsplit(parts._replace(query=urlencode(query))))
     build = hashlib.sha256(FRONTEND_HTML.encode("utf-8")).hexdigest()[:16]
     log = {"source_app": SOURCE, "version": VERSION, "build": build,
            "records": state.get("server_diagnostics", [])}
