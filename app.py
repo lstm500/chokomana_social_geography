@@ -2,6 +2,7 @@
 from base64 import b64decode
 from datetime import datetime, timedelta, timezone
 import hashlib
+from html import escape
 import json
 import logging
 import os
@@ -883,7 +884,7 @@ def build_legacy_records(raw, profile, assignment=None, now=None):
             attempt_id=str(attempt), event_id=str(uuid5(attempt, f"event:{sequence}")),
             app_version="1.0.0", content_version=LEGACY_VERSION, event_type=kind,
             occurred_at=iso(when), sequence=sequence, question_id=question,
-            occurrence_id=occurrence, segment_id=segment or str(uuid5(attempt, "session-segment")), payload=payload)
+            occurrence_id=occurrence, segment_id=segment, payload=payload)
         event["event_hash"] = hashlib.sha256(json.dumps(event, sort_keys=True,
             ensure_ascii=False, separators=(",", ":")).encode()).hexdigest()
         events.append(event)
@@ -2054,74 +2055,10 @@ VERIFIED_MAP_DATA = (
     "as9XaEVxWJzDnMfFf/mX/wPAMMp/"
 )
 VERIFIED_MAP = json.loads(decompress(b64decode(VERIFIED_MAP_DATA)))
-# Land boundaries. Pairs are listed once, then indexed in both directions.
-LAND_BOUNDARIES = """
-02:03 05
-03:04 05
-04:05 06 07
-05:06
-06:07 15
-07:08 09 10 15
-08:09 11 12
-09:10 11
-10:11 15 20
-11:12 13 19 20
-12:13
-13:14 19
-14:19 22
-15:16 20
-16:17 20 21
-17:18 21
-18:21 25 26
-19:20 22
-20:21 22 23
-21:23 24 25
-22:23
-23:24
-24:25 26 29 30
-25:26
-26:27 28 29
-27:28 29 30
-28:31 33
-29:30
-31:32 33 34
-32:34 35
-33:34 37
-34:35 38
-36:37 38 39
-37:38
-38:39
-40:41 43 44
-41:42
-43:44 45 46
-44:45
-45:46
-"""
-NEIGHBORS = {pid: [] for pid in PREFECTURES}
-for line in LAND_BOUNDARIES.strip().splitlines():
-    pid, codes = line.split(":")
-    for neighbor in codes.split():
-        NEIGHBORS[pid].append(neighbor)
-        NEIGHBORS[neighbor].append(pid)
-
-# Representative points in the lakes, in latitude/longitude (GSI Maps).
-LAKE_FEATURES = {
-    "01": [("サロマ湖", "44.13,143.80")],
-    "02": [("十和田湖", "40.46,140.88"), ("小川原湖", "40.77,141.34")],
-    "05": [("十和田湖", "40.46,140.88")],
-    "07": [("猪苗代湖", "37.45,140.09")],
-    "08": [("霞ヶ浦", "36.06,140.37")],
-    "20": [("諏訪湖", "36.05,138.08")],
-    "22": [("浜名湖", "34.75,137.58")],
-    "25": [("琵琶湖", "35.32,136.11")],
-    "32": [("宍道湖", "35.45,132.92")],
-}
 DISCOVERY = {
     pid: {**info, "capital_point": project(pid, CAPITAL_POINTS[pid]),
           "land_point": project(pid, info["place"]), "questions": discovery_questions(pid),
           "industry_icon": INDUSTRY_MAP[pid][0], "industry_points": INDUSTRY_MAP[pid][1],
-          "neighbors": NEIGHBORS[pid],
-          "lakes": [{"name": name, "point": project(pid, point)} for name, point in LAKE_FEATURES.get(pid, [])],
           **VERIFIED_MAP[pid]}
     for pid, info in PREFECTURE_INFO.items()
 }
@@ -2259,7 +2196,7 @@ def build_records(raw, profile, assignment=None, now=None):
         event = dict(schema_version=1, source_app=SOURCE, profile_id=profile, attempt_id=str(attempt),
             event_id=str(uuid5(attempt, f"event:{sequence}")), app_version="2.0.0", content_version=VERSION,
             event_type=kind, occurred_at=iso(when), sequence=sequence, question_id=question,
-            occurrence_id=occurrence, segment_id=segment or str(uuid5(attempt, "session-segment")), payload=payload)
+            occurrence_id=occurrence, segment_id=segment, payload=payload)
         event["event_hash"] = hashlib.sha256(json.dumps(event, sort_keys=True, ensure_ascii=False,
             separators=(",", ":")).encode()).hexdigest()
         records.append(event)
@@ -2293,6 +2230,7 @@ button{min-height:42px;border:1px solid var(--dark);background:var(--dark);color
 button:focus-visible,#map:focus-visible,a:focus-visible{outline:3px solid #a76400;outline-offset:3px}
 button:disabled{cursor:default}
 .secondary{background:var(--panel);color:var(--dark);border-color:var(--edge)}
+.sync{display:flex;align-items:center;gap:8px;min-height:36px;color:var(--muted);font-size:.79rem}
 .sync button{font-size:inherit;min-height:32px;padding:4px 9px;background:var(--panel);color:var(--dark);border-color:var(--edge)}
 #courses{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(190px,100%),1fr));gap:10px;margin-bottom:16px}
 #courses button{text-align:left;background:var(--panel);color:var(--ink);border-color:var(--edge);min-height:66px}
@@ -2352,11 +2290,6 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
 .discovery-map{background:linear-gradient(#d0ecea,#e4f4f0);border:1px solid #94bcbb;border-radius:13px;overflow:hidden}
 #fact-map{display:block;width:100%;height:auto;max-height:428px}
 #fact-shape{fill:#e8eed8;stroke:#427266;stroke-width:1.3;vector-effect:non-scaling-stroke}
-.neighbor-shape{fill:#e0e8dd;stroke:#94a89f;stroke-width:1;vector-effect:non-scaling-stroke}
-.neighbor-name{font-size:14px;font-weight:650;fill:#415a51;stroke:#f2f7ee;stroke-width:3;paint-order:stroke;pointer-events:none}
-.voice-volume{display:flex;align-items:center;gap:.4rem}
-#voice-volume{width:clamp(70px,15vw,120px);accent-color:#12624b}
-#voice-volume-value{min-width:3.2em}
 .capital-point circle,.production-pin circle{fill:#fffdf3;stroke:#496358;stroke-width:1.3}
 .capital-point text{fill:#254f43}
 .production-pin circle{fill:#fff1d0;stroke:#98603b}
@@ -2366,12 +2299,7 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
 .map-river.selected{stroke:#024774;stroke-width:3.65}
 .river-hit{fill:none;stroke:transparent;stroke-width:16;pointer-events:stroke;vector-effect:non-scaling-stroke}
 .map-peak circle{fill:#fff9ec;stroke:none;opacity:.82}
-.map-peak .mountain-slope{fill:#715077;stroke:#51305d;stroke-width:1;stroke-linejoin:round}
-.map-peak .mountain-ridge{fill:none;stroke:#d6aad5;stroke-width:1.25;stroke-linejoin:round}
-.map-lake{cursor:pointer}
-.map-lake .lake-shape{fill:#b9e8f4;stroke:#246580;stroke-width:1.4}
-.map-lake .lake-wave{fill:none;stroke:#246580;stroke-width:1.2;stroke-linecap:round}
-.map-lake.selected .lake-shape{fill:#72c6e1;stroke-width:2.2}
+.map-peak path{fill:#6d4875;stroke:#51305d;stroke-width:1}
 .map-peak.selected circle{fill:#f2d4a7;stroke:#6d4875;stroke-width:1.5}
 #fact-map [tabindex]:focus-visible{outline:2px solid #aa6522;outline-offset:2px}
 #relief-controls{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
@@ -2387,12 +2315,12 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
  .place-reference{font-size:12px;font-weight:750;fill:#386252;paint-order:stroke;stroke:#fbfff4;stroke-width:3;pointer-events:none}
 #medal-dialog{width:min(360px,calc(100% - 30px));padding:18px;border:1px solid var(--edge);border-radius:19px;background:#fffef6;color:var(--ink);text-align:center;box-shadow:0 12px 40px #18362e45}
 #medal-dialog::backdrop{background:#18362e78}
+body:has(#medal-dialog[open]){min-height:365px}
 .medal-stamp{box-sizing:border-box;display:grid;place-content:center;gap:0;width:106px;height:106px;margin:8px auto;border:5px double;border-radius:50%;line-height:1.12;box-shadow:inset 0 6px 13px #ffffffa1,0 6px 14px #10283022}
 .medal-stamp.gold{background:radial-gradient(circle at 28% 18%,#fff9cf,#f5d361 49%,#c38d1d);border-color:#bd8c26;color:#69470a}
 .medal-stamp.silver{background:radial-gradient(circle at 28% 18%,#fff,#d8e0e8 53%,#9aa8b8);border-color:#9aa9b8;color:#3d5266}
 .medal-stamp b{font-size:37px}
-.medal-actions{display:flex;justify-content:center;flex-wrap:wrap;gap:7px;margin-top:10px}
-body:has(#medal-dialog[open]){min-height:435px}
+#medal-status,#result-sync{color:var(--muted);font-size:.85rem}
 .feature-keys{display:flex;flex-wrap:wrap;gap:6px;padding:8px 0}
 .feature-keys button[aria-pressed=true]{background:#e5f2e9;border-color:var(--dark)}
 .fact,#quiz-feedback{background:#fffef5;border:1px solid var(--edge);padding:9px 13px;margin:4px 0 12px;border-radius:11px}
@@ -2403,18 +2331,17 @@ body:has(#medal-dialog[open]){min-height:435px}
 #start-quiz:disabled{opacity:.5}
 .actions{margin-top:14px}
 </style>
-</head>
+<style>.cm-graduation-badge{display:inline-block;color:#a12e61;font-weight:800;margin:.2rem .4rem}
+.cm-graduation-complete:disabled{color:#5b3c4b!important;opacity:.9!important;cursor:default}
+</style></head>
 <body>
 <header>
   <div><div class="subject">ちょこまな　しゃかい・ちり</div><h1>日本地図パズル</h1></div>
   <div class="voice-tools">
-    <button type="button" class="secondary" id="geo-top">しゃかい・ちりトップ</button>
-    <button type="button" class="secondary" id="export">UI・通信ログを保存</button>
     <label><input type="checkbox" id="voice-toggle" checked><span id="voice-label">自動読み上げ</span></label>
-    <label class="voice-volume">音量 <input type="range" id="voice-volume" min="0" max="100" step="5" value="100">
-      <output id="voice-volume-value" for="voice-volume">100%</output></label>
   </div>
 </header>
+<div class="sync"><output id="connection">学習記録を準備中…</output><button id="retry" hidden>再接続・同期</button></div>
 <main>
   <section id="menu" hidden>
     <div class="region-heading">
@@ -2426,6 +2353,7 @@ body:has(#medal-dialog[open]){min-height:435px}
     <div id="courses"></div>
     <div class="menu-extra">
       <button id="national-course" class="secondary">全国から 出題</button>
+      <button id="export" class="secondary">UI・通信ログを保存</button>
     </div>
   </section>
   <section id="game" hidden>
@@ -2463,23 +2391,20 @@ body:has(#medal-dialog[open]){min-height:435px}
           <defs>
             <clipPath id="fact-clip"><use href="#fact-shape"/></clipPath>
           </defs>
-          <g id="fact-neighbors" aria-hidden="true"></g>
           <path id="fact-shape" fill-rule="evenodd" clip-rule="evenodd"/>
-          <g id="fact-neighbor-labels" aria-hidden="true"></g>
           <g id="fact-industry-area" clip-path="url(#fact-clip)" aria-hidden="true"></g>
           <g id="fact-rivers" clip-path="url(#fact-clip)"></g>
           <g id="fact-peaks"></g>
-          <g id="fact-lakes"></g>
           <g id="fact-pins"></g>
         </svg>
       </div>
       <div class="map-key">
         <span id="capital-key-group">県庁所在地</span>
-        <span id="terrain-key-group" hidden>川・山・湖と地形</span>
+        <span id="terrain-key-group" hidden>川・山と地形</span>
         <span id="industry-key-group" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><g id="industry-key-symbol" class="industry-icon"></g></svg><span id="industry-name"></span></span>
       </div>
       <p class="map-note" id="map-caption"></p>
-      <div id="relief-controls" hidden aria-label="川・山・湖を選ぶ"></div>
+      <div id="relief-controls" hidden aria-label="川と山を選ぶ"></div>
       <div class="feature-keys">
         <button id="discover-capital" aria-pressed="false" class="secondary">★ 県庁 <span hidden>✓</span></button>
         <button id="discover-land" aria-pressed="false" class="secondary">● 地形 <span hidden>✓</span></button>
@@ -2506,18 +2431,17 @@ body:has(#medal-dialog[open]){min-height:435px}
   <section id="result" hidden>
     <h2>都道府県 たんけん クリア！</h2>
     <p id="result-reason"></p>
-    <p id="summary"></p>
-    <button id="again">しゃかい・ちりトップ</button>
+    <p id="summary"></p><p id="result-sync" role="status"></p>
+    <button id="again">コースをえらぶ</button>
   </section>
 </main>
-<dialog id="medal-dialog" aria-labelledby="medal-title">
+<dialog id="medal-dialog" aria-labelledby="medal-title" aria-describedby="medal-status">
   <h2 id="medal-title">メダル</h2>
   <div id="medal-stamp" class="medal-stamp"><small id="medal-tier"></small><b>地</b><small>ち</small></div>
   <p id="medal-score"></p>
-  <div class="medal-actions">
-    <button type="button" id="medal-top">しゃかい・ちりトップ</button>
-    <form method="dialog"><button class="secondary" type="submit">とじる</button></form>
-  </div>
+  <p id="medal-status" role="status"></p>
+  <button id="medal-retry" class="secondary" hidden>もう一度 同期</button>
+  <form method="dialog"><button type="submit">とじる</button></form>
 </dialog>
 <footer>
   地図の出典
@@ -2539,16 +2463,11 @@ const time = () => new Date().toISOString();
 const uuid = () => crypto.randomUUID();
 const device = load("device") || [...crypto.getRandomValues(new Uint8Array(32))]
   .map(v => v.toString(16).padStart(2, "0")).join("");
-save("device", device);
-let args, profile, owner = "local";
+let storageWorks = save("device", device), args, profile, owner = "local";
 let pending, hello = "waiting", attempt, stage = "menu", armed, drag, options;
 let zoomed = false, keyboard = -1, activeSince, lastActivity, idleTimer, paths = new Map(), prefectures, menus;
 let cache, medalResult;
-const attemptedSync = new Set();
-const syncRetries = new Map();
 let autoVoice = true;
-let voiceVolume = load("voice-volume");
-if (!Number.isInteger(voiceVolume) || voiceVolume < 0 || voiceVolume > 100) voiceVolume = 100;
 
 function load(key) {
   try { return JSON.parse(localStorage.getItem(PREFIX + key)); }
@@ -2561,7 +2480,8 @@ function save(key, value) {
 function persist() {
   if (!args || !cache) return;
   cache.active = attempt || null;
-  save(owner, cache);
+  storageWorks = save(owner, cache);
+  updateConnection();
 }
 function post(type, values = {}) {
   parent.postMessage({isStreamlitMessage:true, type:"streamlit:" + type, ...values}, "*");
@@ -2569,43 +2489,37 @@ function post(type, values = {}) {
 function send(action, extra = {}) {
   if (pending) return;
   const id = uuid();
-  const sentAttempt = extra.attempt?.id;
-  pending = {id, action, sentAttempt, started:performance.now(), timer: setTimeout(() => {
+  pending = {id, action, started:performance.now(), timer: setTimeout(() => {
     pending = null;
     hello = "retry";
     diagnostic("request",{operation:action,outcome:"timeout",ms:26000});
-    if (action === "sync") {
-      retrySyncLater(sentAttempt);
-      sync();
-    }
+    if (action === "sync" && medalResult?.mode==="saving") setMedalMode("retry");
     if (action === "hello" && !cache) selectOwner("local");
+    updateConnection();
   }, 26000)};
   post("setComponentValue", {value:{id, action, device, ...extra}, dataType:"json"});
 }
-function retrySyncLater(id) {
-  const retries = syncRetries.get(id) || 0;
-  if (retries >= 2) return;
-  syncRetries.set(id, retries + 1);
-  const queuedCache = cache;
-  setTimeout(() => {
-    if (cache !== queuedCache || !cache?.queue.some(item => item.id === id)) return;
-    attemptedSync.delete(id);
-    sync();
-  }, retries === 0 ? 2500 : 8000);
+function updateConnection() {
+  const waiting = cache?.queue.length || 0;
+  const label = profile ? (hello === "relink" ? "ホームから開き直して学習記録を同期してください。"
+    : hello === "invalid" ? "保存できない記録があります。ログを端末に保存できます。"
+    : waiting ? (hello === "retry" ? `同期できませんでした。再同期できます（${waiting}件）。` : `同期待ち ${waiting}件`) : "ちょこまなと連携中")
+    : ({waiting:"学習記録を準備中…", invalid_ticket:"起動リンクを確認できません。ホームから開き直してください。",
+        retry:"通信を確認できません。端末内で学習できます。", local:"この端末に学習記録を保存します。"}[hello] || "");
+  $("connection").textContent = label + (cache?.rejected && hello !== "invalid" ? " 未同期の記録あり。" : "") + (storageWorks ? "" : " ブラウザを閉じると未同期の記録は消えます。");
+  $("retry").hidden = !["retry", "invalid_ticket"].includes(hello) && !waiting;
+  $("retry").disabled = !!pending;
 }
 function sync() {
-  if (!profile || !cache || pending || hello === "relink") return;
-  const queued = cache.queue.find(item=>!attemptedSync.has(item.id));
-  if (!queued) return;
-  attemptedSync.add(queued.id);
-  send("sync", {profile, attempt:queued});
+  if (profile && cache.queue.length && !pending) {
+    send("sync", {profile, attempt:cache.queue[0]});
+    updateConnection();
+  }
 }
 function selectOwner(next) {
   if (cache && next === owner) return;
   if (attempt && cache) { stopTime(); persist(); }
   owner = next;
-  attemptedSync.clear();
-  syncRetries.clear();
   cache = load(owner) || {queue:[], history:[], active:null};
   attempt = cache.active;
   zoomed = false;
@@ -2619,14 +2533,15 @@ function selectOwner(next) {
 }
 function receive(event) {
   if (event.source !== parent || event.data?.type !== "streamlit:render") return;
+  const oldGraduation = JSON.stringify(args?.graduated_units || []);
   args = event.data.args;
   if (!prefectures) init();
+  else if (stage === "menu" && oldGraduation !== JSON.stringify(args.graduated_units || [])) showMenu();
   const ack = args.ack;
   if (ack && ack.id === pending?.id) {
-    const {action,sentAttempt} = pending;
+    const action = pending.action;
     diagnostic("request",{operation:action,outcome:ack.status,stage:ack.stage || action,code:ack.http_status || null,
-      db_code:ack.db_code || null, failure:ack.failure || null, column:ack.column || null,
-      constraint:ack.constraint || null, ms:Math.round(performance.now()-pending.started)});
+      ms:Math.round(performance.now()-pending.started)});
     clearTimeout(pending.timer);
     pending = null;
     hello = ack.status;
@@ -2637,17 +2552,14 @@ function receive(event) {
       if (profile) sync();
     } else if (ack.status === "saved") {
       cache.queue = cache.queue.filter(item => item.id !== ack.attempt_id);
-      attemptedSync.delete(ack.attempt_id);
-      syncRetries.delete(ack.attempt_id);
+      if (medalResult?.id===ack.attempt_id && ack.medal_saved) setMedalMode("saved");
       persist();
       sync();
-    } else {
-      if (ack.status === "retry" && (!ack.http_status || [408,429].includes(ack.http_status) || ack.http_status >= 500)) {
-        retrySyncLater(sentAttempt);
-      }
-      if (ack.status !== "relink") sync();
+    } else if (medalResult?.mode==="saving") {
+      setMedalMode(ack.status==="relink" ? "relink" : ack.status==="invalid" ? "invalid" : "retry");
     }
   }
+  updateConnection();
 }
 function shuffled(values) {
   values = [...values];
@@ -2675,8 +2587,6 @@ function init() {
     return choice;
   });
   $("age").replaceChildren(...ages);
-  $("voice-volume").value = String(voiceVolume);
-  $("voice-volume-value").textContent = voiceVolume+"%";
   updateVoiceControl();
   diagnostic("ui_ready",{build:args.build,touch:navigator.maxTouchPoints>0,screen_width:window.innerWidth});
   if (args.catalog_status) diagnostic("request",args.catalog_status);
@@ -2708,6 +2618,7 @@ function courseAreas(menu) {
   return menu.region === "all" ? [] : [{key:menu.region, ids:menu.prefectures}];
 }
 function beginCourse(menu, area, assignment = null) {
+  if (!menu || cmCourseIsGraduated(menu)) return;
   if (attempt) finish("abandoned");
   const ids = area?.ids || menu.prefectures;
   const learned = new Set(cache.history.filter(a => a.status === "completed").map(a => a.pref));
@@ -2719,6 +2630,24 @@ function beginCourse(menu, area, assignment = null) {
   showQuestion();
   readCurrent();
 }
+function cmGraduationBadge(){
+  const badge=document.createElement('span');
+  badge.className='cm-graduation-badge';
+  badge.setAttribute('aria-label','修了');
+  badge.textContent='🌸 修了';
+  return badge;
+}
+function cmCourseIsGraduated(menu){return (args.graduated_units||[]).includes(menu?.menu_id)}
+function cmCourseButton(menu,label,sublabel,run){
+  const button=courseButton(label,sublabel,run);
+  if(cmCourseIsGraduated(menu)){
+    button.disabled=true;
+    button.classList.add('cm-graduation-complete');
+    button.append(cmGraduationBadge());
+  }
+  return button;
+}
+
 function courseButton(label, sublabel, run) {
   const button = document.createElement("button");
   button.textContent = label;
@@ -2738,15 +2667,18 @@ function showMenu() {
   const assignmentMenu = menus.get(assigned?.menu_id);
   $("assigned-course").hidden = !assignmentMenu;
   if (assignmentMenu) {
-    $("assigned-course").replaceChildren(courseButton("きょうの課題　"+assignmentMenu.region_label,
+    $("assigned-course").replaceChildren(cmCourseButton(assignmentMenu, "きょうの課題　"+assignmentMenu.region_label,
       `1つの都道府県・${assignmentMenu.planned_question_count}問`,
       () => beginCourse(assignmentMenu, null, assigned.plan_item_id)));
   }
   const list = [...menus.values()].filter(menu => menu.age_min <= age && age <= menu.age_max);
   const national = list.find(menu => menu.region === "all");
   $("national-course").onclick = () => beginCourse(national, null);
+  $("national-course").disabled = !national || cmCourseIsGraduated(national);
+  $("national-course").querySelector('.cm-graduation-badge')?.remove();
+  if(cmCourseIsGraduated(national))$("national-course").append(cmGraduationBadge());
   $("courses").replaceChildren(...list.flatMap(menu => courseAreas(menu).map(area =>
-    courseButton(AREA_LABELS[area.key], `1つの都道府県・${menu.planned_question_count}問`,
+    cmCourseButton(menu, AREA_LABELS[area.key], `1つの都道府県・${menu.planned_question_count}問`,
       () => beginCourse(menu, area)))));
   if (navigator.userActivation?.hasBeenActive) readCurrent();
 }
@@ -2906,50 +2838,15 @@ function featureControl(node, label, action) {
   };
   return node;
 }
-function renderNeighbors(item, transform, toMap) {
-  const shapes = $("fact-neighbors"), labels = $("fact-neighbor-labels");
-  shapes.replaceChildren();
-  labels.replaceChildren();
-  const occupied = [];
-  for (const id of item.neighbors) {
-    const neighbor = prefectures.get(id);
-    shapes.append(svgNode("path",{d:neighbor.path,transform,class:"neighbor-shape","fill-rule":"evenodd"}));
-    const path = paths.get(id);
-    if (!path?.isPointInFill) continue;
-    const [left,top] = toMap(neighbor.bounds);
-    const [right,bottom] = toMap([neighbor.bounds[0]+neighbor.bounds[2],neighbor.bounds[1]+neighbor.bounds[3]]);
-    const padding = neighbor.name.length*7+5;
-    const endX = Math.min(FACT_WIDTH-padding,right), endY = Math.min(FACT_HEIGHT-12,bottom);
-    const startX = Math.max(padding,left), startY = Math.max(12,top);
-    const scale = (right-left)/neighbor.bounds[2];
-    const inside = (x,y) => path.isPointInFill(new DOMPoint((x-left)/scale+neighbor.bounds[0],
-                                                            (y-top)/scale+neighbor.bounds[1]));
-    let best;
-    for (let y=startY; y<=endY; y+=7) for (let x=startX; x<=endX; x+=7) {
-      if (occupied.some(([ox,oy,ow])=>Math.abs(y-oy)<18&&Math.abs(x-ox)<ow+padding)) continue;
-      if (!inside(x,y)) continue;
-      const margin = [0.5,1].filter(f => inside(x-padding*f,y) && inside(x+padding*f,y)
-                                         && inside(x,y-8*f) && inside(x,y+8*f)).length;
-      const score = margin*1000 - Math.hypot(x-(startX+endX)/2,y-(startY+endY)/2);
-      if (!best || score>best.score) best = {x,y,score};
-    }
-    if (!best) continue;
-    occupied.push([best.x,best.y,padding]);
-    const label = svgNode("text",{x:best.x,y:best.y,class:"neighbor-name","text-anchor":"middle","dominant-baseline":"central"});
-    label.textContent = neighbor.name;
-    labels.append(label);
-  }
-}
 function renderFactMap(pref, item, selected) {
   const [x,y,w,h] = pref.bounds;
   const scale = Math.min((FACT_WIDTH-90)/w,(FACT_HEIGHT-62)/h);
   const tx = FACT_WIDTH/2-(x+w/2)*scale, ty = FACT_HEIGHT/2-(y+h/2)*scale;
   const transform = `translate(${tx} ${ty}) scale(${scale})`;
   const toMap = ([px,py]) => [tx+px*scale,ty+py*scale];
-  renderNeighbors(item, transform, toMap);
   $("fact-shape").setAttribute("d",pref.path);
   $("fact-shape").setAttribute("transform",transform);
-  for (const id of ["fact-rivers","fact-peaks","fact-lakes","fact-industry-area","fact-pins","relief-controls"]) $(id).replaceChildren();
+  for (const id of ["fact-rivers","fact-peaks","fact-industry-area","fact-pins","relief-controls"]) $(id).replaceChildren();
   $("fact-industry-area").hidden = selected !== "industry";
   $("relief-controls").hidden = selected !== "land";
   $("terrain-key-group").hidden = selected !== "land";
@@ -2980,9 +2877,8 @@ function renderFactMap(pref, item, selected) {
     $("industry-name").textContent = item.industry;
     return;
   }
-  $("map-caption").textContent = "青い線は川の流路です。流路は簡略化しています。";
-  if (!item.rivers.some(r=>r.name===item.land) && !item.peaks.some(m=>m.name.includes(item.land))
-      && !item.lakes.some(lake=>lake.name===item.land)) {
+  $("map-caption").textContent = "青い線は川の流路、三角は山頂の位置です。全体を見渡せるよう、流路は簡略化しています。";
+  if (!item.rivers.some(r=>r.name===item.land) && !item.peaks.some(m=>m.name.includes(item.land))) {
     const [lx,ly] = toMap(item.land_point);
     const label = svgNode("text",{x:lx,y:ly-7,class:"place-reference","text-anchor":"middle"});
     label.textContent = item.land+" 付近";
@@ -3009,27 +2905,12 @@ function renderFactMap(pref, item, selected) {
   for (const [index, peak] of item.peaks.entries()) {
     const pin = svgNode("g",{class:"map-peak"+(selectedRelief?.kind==="peak" && selectedRelief.index===index?" selected":""),
       transform:`translate(${toMap(peak.point).join(" ")})`});
-    pin.append(svgNode("circle",{r:13}),
-      svgNode("path",{class:"mountain-slope",d:"M-11 7 L-5 -2 L-2 2 L3 -8 L11 7Z"}),
-      svgNode("path",{class:"mountain-ridge",d:"M0 -2 L3 0 L5 -2"}));
+    pin.append(svgNode("circle",{r:13}),svgNode("path",{d:"M-8 6 L0 -8 L8 6Z"}));
     $("fact-peaks").append(featureControl(pin,peak.name+"をみる",()=>openRelief("peak",index)));
-  }
-  for (const [index, lake] of item.lakes.entries()) {
-    const [px,py] = toMap(lake.point);
-    const pin = svgNode("g",{class:"map-lake"+(selectedRelief?.kind==="lake" && selectedRelief.index===index?" selected":""),
-      transform:`translate(${px} ${py})`});
-    pin.append(svgNode("path",{class:"lake-shape",d:"M-12 2 C-13-5 -6-8 0-5 C5-2 12-5 12 1 C12 7 3 9 -3 6 C-7 4 -11 7 -12 2Z"}),
-      svgNode("path",{class:"lake-wave",d:"M-8 1 Q-5 -1 -2 1 T4 1 T9 1"}));
-    $("fact-lakes").append(featureControl(pin,lake.name+"をみる",()=>openRelief("lake",index)));
-    const label = svgNode("text",{x:Math.max(48,Math.min(FACT_WIDTH-48,px)),y:Math.max(15,py-13),
-      class:"place-reference","text-anchor":"middle","pointer-events":"none"});
-    label.textContent = lake.name;
-    $("fact-lakes").append(label);
   }
   const controls = [
     ...item.rivers.map((f,i)=>["river",i,"川",f.name]),
     ...item.peaks.map((f,i)=>["peak",i,"山",f.name]),
-    ...item.lakes.map((f,i)=>["lake",i,"湖",f.name]),
   ];
   for (const [kind,index,icon,name] of controls) {
     const button = document.createElement("button");
@@ -3069,7 +2950,7 @@ function cancelSpeech() {
   if (speechAvailable()) speechSynthesis.cancel();
 }
 function speakText(text, item = null) {
-  if (!autoVoice || !voiceVolume || !speechAvailable() || !text || document.hidden) return;
+  if (!autoVoice || !speechAvailable() || !text || document.hidden) return;
   const voices = speechSynthesis.getVoices();
   if (!voices.length) { waitingSpeech={text,item}; return; }
   const voice = japaneseVoice(voices);
@@ -3086,7 +2967,6 @@ function speakText(text, item = null) {
   const speech = new SpeechSynthesisUtterance(text);
   speech.voice = voice;
   speech.lang = voice.lang.replace("_","-"); speech.rate = .96;
-  speech.volume = voiceVolume / 100;
   speech.onerror = event => {
     if (!["canceled","interrupted"].includes(event.error)) diagnostic("speech",{outcome:"error",code:event.error});
   };
@@ -3105,7 +2985,6 @@ if (speechAvailable()) {
 function updateVoiceControl() {
   const available = speechAvailable(), voices = available ? speechSynthesis.getVoices() : [];
   $("voice-toggle").disabled = !available;
-  $("voice-volume").disabled = !available;
   $("voice-toggle").checked = available && autoVoice;
   $("voice-label").textContent = !available ? "読み上げ未対応" :
     voices.length && !japaneseVoice(voices) ? "日本語音声なし" : "自動読み上げ";
@@ -3135,11 +3014,29 @@ function readCurrent() {
 }
 function updateMedal() {
   if (!medalResult) return;
-  const {grade} = medalResult, label = grade === "gold" ? "金" : "銀";
+  const {grade,mode} = medalResult, label = grade === "gold" ? "金" : "銀";
+  const pendingSave = mode==="saving";
   $("medal-stamp").className = "medal-stamp "+grade;
   $("medal-tier").textContent = label;
-  $("medal-title").textContent = `${label}メダルを ゲット！`;
+  $("medal-title").textContent = mode==="saved" ? `${label}メダルを ゲット！` :
+    mode==="local" ? `${label}メダル！` : "都道府県たんけん クリア！";
+  const status = ({saved:"ちょこまなの「今日の成果」に保存しました。",saving:"メダルを ちょこまなに保存しています。",
+    retry:"同期できませんでした。記録は端末に残っています。再同期できます。",
+    relink:"ちょこまなから開き直すと、この記録を送れます。",
+    invalid:"記録形式を確認できません。記録は端末に残っています。",
+    local:"この端末の記録です。" })[mode];
+  $("medal-status").textContent = status;
+  $("result-sync").textContent = status;
+  $("medal-retry").hidden = mode !== "retry";
   $("medal-stamp").setAttribute("aria-label",label+"メダル");
+  $("medal-dialog").setAttribute("aria-busy",String(pendingSave));
+}
+function setMedalMode(mode) {
+  if (!medalResult || medalResult.mode==="saved") return;
+  medalResult.mode = mode;
+  updateMedal();
+  if (mode === "saved" && stage==="result") speakText(
+    (medalResult.grade === "gold" ? "金" : "銀")+"メダルをゲット！ ちょこまなの今日の成果に保存しました。");
 }
 function diagnostic(event, data = {}) {
   try {
@@ -3165,10 +3062,6 @@ function drawExplore(pref) {
   } else if (selected === "land" && relief?.kind === "peak" && item.peaks[relief.index]) {
     const peak = item.peaks[relief.index];
     facts.land = [peak.name, `標高は${peak.height}メートルです。`];
-  } else if (selected === "land" && relief?.kind === "lake" && item.lakes[relief.index]) {
-    const lake = item.lakes[relief.index];
-    facts.land = [lake.name, lake.name==="琵琶湖" ? "滋賀県の中央にある、日本でいちばん面積が大きい湖です。"
-      : `地図の水色のしるしが、${lake.name}の位置です。`];
   }
   const [title, text] = facts[selected];
   $("fact-title").textContent = title;
@@ -3268,7 +3161,7 @@ function finish(status) {
     const item = info();
     $("summary").textContent = `${right === total ? "金" : "銀"}メダル　${item.name}　${right} / ${total}問 正解`;
     $("result-reason").textContent = item.link;
-    medalResult = {grade:right===total?"gold":"silver",info:item};
+    medalResult = {id:attempt.id,grade:right===total?"gold":"silver",mode:profile?"saving":"local",info:item};
     $("medal-score").textContent = `${item.name}　${right} / ${total}問 正解`;
     diagnostic("round_finished",{state:"completed"});
   }
@@ -3353,50 +3246,35 @@ $("age").onchange = () => { cache.age = Number($("age").value); persist(); showM
 for (const key of ["capital","land","industry"]) $("discover-"+key).onclick = () => openFeature(key);
 $("start-quiz").onclick = startQuiz;
 $("next").onclick = nextQuestion;
-function returnToGeography() {
-  if (!cache) return;
-  $("medal-dialog").close();
+$("quit").onclick = () => {
   stopTime();
   persist();
   showMenu();
   $("region-heading").focus({preventScroll:true});
-}
-for (const id of ["quit","geo-top","again","medal-top"]) $(id).onclick = returnToGeography;
+};
 $("resume").onclick = () => { showQuestion(); readCurrent(); };
 $("voice-toggle").onchange = () => {
   autoVoice = $("voice-toggle").checked;
   if (autoVoice) readCurrent(); else cancelSpeech();
 };
-$("voice-volume").oninput = () => {
-  voiceVolume = Number($("voice-volume").value);
-  $("voice-volume-value").textContent = voiceVolume+"%";
-  if (!voiceVolume) cancelSpeech();
+$("medal-retry").onclick = () => { setMedalMode("saving"); sync(); };
+$("again").onclick = showMenu;
+$("retry").onclick = () => {
+  if (profile && hello!=="relink") { if (medalResult) setMedalMode("saving"); sync(); }
+  else send("hello");
+  updateConnection();
 };
-$("voice-volume").onchange = () => {
-  save("voice-volume", voiceVolume);
-  if (voiceVolume) readCurrent();
+$("export").onclick = () => {
+  const url = URL.createObjectURL(new Blob([JSON.stringify({version:args.version,build:args.build,records:load("ui-diagnostics") || []},null,2)],{type:"application/json"}));
+  const a = document.createElement("a"); a.href = url; a.download = "geography-ui-network-log.json"; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
-function exportDiagnostics() {
-  const payload = {version:args?.version,build:args?.build,records:load("ui-diagnostics") || []};
-  const url = URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}));
-  const a = document.createElement("a");
-  a.href = url; a.download = "geography-ui-network-log.json"; a.hidden = true;
-  const dialog = $("medal-dialog");
-  (dialog.open ? dialog : document.body).append(a);
-  a.click();
-  a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),30000);
-}
-$("export").onclick = exportDiagnostics;
 function pausePage() {
   stopTime();
   persist();
   cancelSpeech();
 }
-document.addEventListener("visibilitychange", () => {
-  if (document.hidden) pausePage();
-  else { wake(); sync(); }
-});
+document.addEventListener("visibilitychange", () => { if (document.hidden) pausePage(); else wake(); });
 window.addEventListener("pagehide", pausePage);
 window.addEventListener("message", receive);
 new ResizeObserver(() => post("setFrameHeight",{height:Math.ceil(document.body.getBoundingClientRect().height)+1})).observe(document.body);
@@ -3439,60 +3317,8 @@ def request(path, body, prefer=None):
 def publish_catalog(base):
     rows = list(catalog())
     for start in range(0, len(rows), 200):
-        batch = rows[start:start+200]
-        registered = request("rpc/cm_geography_publish_catalog_v1", {"p_rows": batch})
-        if not isinstance(registered, dict) or registered.get("received") != len(batch):
-            raise RuntimeError("missing geography catalog confirmation")
-
-
-def http_fault(error):
-    """Export only stable database metadata. Error bodies can contain learner records."""
-    fault = {"http_status": error.code}
-    try:
-        problem = json.loads(error.read(8192))
-    except (ValueError, OSError):
-        return fault
-    if not isinstance(problem, dict):
-        return fault
-    code = problem.get("code")
-    if isinstance(code, str) and re.fullmatch(r"(?:PGRST[0-9]{3}|[A-Z0-9]{5})", code):
-        fault["db_code"] = code
-    message = problem.get("message")
-    if isinstance(message, str):
-        reason = {
-            "unverified profile": "unverified_profile",
-            "event mismatch": "event_mismatch",
-            "medal mismatch": "medal_mismatch",
-            "geography event write failed": "event_write",
-            "geography medal write failed": "medal_write",
-            "attempt content conflict": "attempt_conflict",
-        }.get(message)
-        if reason:
-            fault["failure"] = reason
-            if reason in ("event_write", "medal_write"):
-                raw = problem.get("details")
-                if isinstance(raw, str):
-                    try:
-                        detail = json.loads(raw)
-                    except ValueError:
-                        detail = {}
-                    if isinstance(detail, dict):
-                        for key in ("column", "constraint"):
-                            value = detail.get(key)
-                            if isinstance(value, str) and re.fullmatch(r"[a-zA-Z_][a-zA-Z_0-9]{0,95}", value):
-                                fault[key] = value
-    return fault
-
-
-def server_diagnostic(state, operation, result, start):
-    log = state.setdefault("server_diagnostics", [])
-    entry = {"at": iso(datetime.now(timezone.utc)), "operation": operation,
-             "ms": round((perf_counter() - start) * 1000)}
-    for key in ("stage", "status", "http_status", "db_code", "failure", "column", "constraint"):
-        if key in result:
-            entry[key] = result[key]
-    log.append(entry)
-    del log[:-250]
+        request("chokomana_learning_catalog?on_conflict=source_app,entry_type,entry_id,content_version",
+                rows[start:start+200], "resolution=merge-duplicates,missing=default,return=minimal")
 
 
 def process(message, state, configured):
@@ -3501,7 +3327,6 @@ def process(message, state, configured):
         return False
     result = {"id": ident, "status": "retry"}
     stage = "connection"
-    start = perf_counter()
     try:
         if message["action"] == "hello":
             device = message["device"]
@@ -3561,16 +3386,17 @@ def process(message, state, configured):
     except (ValueError, TypeError, KeyError, PermissionError, IndexError):
         result["status"] = "invalid"
     except HTTPError as error:
-        result.update(http_fault(error))
-        logging.getLogger(__name__).warning("Geography %s failed (HTTP %s, database: %s)",
-                                            stage, error.code, result.get("db_code"))
-        if result.get("failure") == "unverified_profile":
+        result["http_status"] = error.code
+        try:
+            problem = json.loads(error.read(8192))
+        except (ValueError, OSError):
+            problem = {}
+        logging.getLogger(__name__).warning("Geography %s failed (HTTP %s)", stage, error.code)
+        if isinstance(problem,dict) and problem.get("code") == "42501" and problem.get("message") == "unverified profile":
             result["status"] = "relink"
     except (OSError, RuntimeError):
         logging.getLogger(__name__).warning("Geography persistence unavailable")
     result["stage"] = stage
-    operation = message.get("action")
-    server_diagnostic(state, operation if operation in ("hello", "sync") else "unknown", result, start)
     state["ack"] = result
     return True
 
@@ -3580,6 +3406,58 @@ def frontend_folder(page):
     folder = TemporaryDirectory(prefix="chokomana_geography_")
     (Path(folder.name) / "index.html").write_text(page, encoding="utf-8")
     return folder
+
+
+def cm_graduation_snapshot(rows, profile, source):
+    if not isinstance(rows, list) or len(rows) > 1:
+        raise ValueError('invalid graduation state')
+    if not rows:
+        return {}
+    row = rows[0]
+    if str(row.get('profile_id')) != str(profile) or row.get('source_app') != source:
+        raise ValueError('graduation owner mismatch')
+    items = row.get('items')
+    if not isinstance(items, dict):
+        raise ValueError('invalid graduation items')
+    return {key: item for key, item in items.items()
+            if key.startswith(('unit:', 'question:')) and isinstance(item, dict)}
+
+
+def cm_poll_graduation(st, state, profile, source, read_rows):
+    # The profile comes from the server-verified link, never the browser message.
+    if state.get('_cm_graduation_owner') != profile:
+        state['_cm_graduation_owner'] = profile
+        state['_cm_graduation_units'] = []
+        state.pop('_cm_graduation_checked', None)
+    if not profile:
+        return
+    import time
+    if time.monotonic() - state.get('_cm_graduation_checked', -15) < 14:
+        return
+    state['_cm_graduation_checked'] = time.monotonic()
+    try:
+        items = cm_graduation_snapshot(read_rows(), profile, source)
+    except Exception as exc:
+        import logging
+        logging.getLogger('chokomana_graduation').warning('%s graduation read failed (%s)', source, type(exc).__name__)
+        return
+    units = sorted(key[5:] for key, item in items.items()
+                   if key.startswith('unit:') and isinstance(item.get('record'), dict))
+    if units != state['_cm_graduation_units']:
+        state['_cm_graduation_units'] = units
+        st.rerun()
+
+
+def cm_geography_graduation_rows(profile):
+    base = setting('SUPABASE_URL').rstrip('/')
+    key = setting('SUPABASE_SERVICE_ROLE_KEY') or setting('SUPABASE_SECRET_KEY')
+    params = urlencode({'profile_id': 'eq.' + profile, 'source_app': 'eq.geography',
+                        'select': 'profile_id,source_app,items', 'limit': '1'})
+    headers = {'apikey': key}
+    if not key.startswith('sb_secret_'):
+        headers['Authorization'] = 'Bearer ' + key
+    with urlopen(Request(base + '/rest/v1/chokomana_graduation_states?' + params, headers=headers), timeout=8) as response:
+        return json.load(response)
 
 
 def main():
@@ -3592,38 +3470,43 @@ def main():
     if ticket and re.fullmatch(r"[A-Za-z0-9_-]{20,128}", ticket):
         mark = hashlib.sha256(ticket.encode()).hexdigest()
         if mark != state.get("launch"):
-            server_log = state.get("server_diagnostics", [])
             state.clear()
-            state.update(ticket=ticket, launch=mark, server_diagnostics=server_log)
+            state.update(ticket=ticket, launch=mark)
     base = setting("SUPABASE_URL")
     configured = https(base) and bool(setting("SUPABASE_SERVICE_ROLE_KEY") or setting("SUPABASE_SECRET_KEY"))
     if configured and not state.get("catalog_checked"):
         state["catalog_checked"] = True
         start = perf_counter()
-        result = {"stage": "catalog", "status": "saved"}
+        outcome, code = "saved", None
         try:
             publish_catalog(base)
         except HTTPError as error:
-            result.update(http_fault(error), status="retry")
-        except (ValueError, OSError, RuntimeError):
-            result["status"] = "retry"
-        state["catalog_status"] = dict(operation="catalog", stage="catalog", outcome=result["status"],
-                                       code=result.get("http_status"), db_code=result.get("db_code"),
-                                       ms=round((perf_counter()-start)*1000))
-        server_diagnostic(state, "catalog", result, start)
+            outcome, code = "retry", error.code
+        except (ValueError, OSError):
+            outcome = "retry"
+        state["catalog_status"] = dict(operation="catalog",stage="catalog",outcome=outcome,
+                                       code=code,ms=round((perf_counter()-start)*1000))
     hub = setting("CHOKOMANA_HOME_URL", HUB_URL)
     parts = urlsplit(hub if https(hub) else HUB_URL)
     query = dict(parse_qsl(parts.query))
     query["cm_plan_return"] = "1"
-    st.link_button("← ちょこまなへ", urlunsplit(parts._replace(query=urlencode(query))))
+    href = escape(urlunsplit(parts._replace(query=urlencode(query))), quote=True)
+    st.markdown(
+        '<style>.cm-native-home{display:inline-flex;align-items:center;padding:.5rem .8rem;'
+        'min-height:42px;border:1px solid #bfd3c6;border-radius:11px;color:#12624b!important;'
+        'background:#fffef5;font-weight:700;text-decoration:none!important}'
+        '.cm-native-home:focus-visible{outline:3px solid #a76400}</style>'
+        f'<a class="cm-native-home" href="{href}" target="_self">← ちょこまなへ</a>',
+        unsafe_allow_html=True,
+    )
     build = hashlib.sha256(FRONTEND_HTML.encode("utf-8")).hexdigest()[:16]
-    log = {"source_app": SOURCE, "version": VERSION, "build": build,
-           "records": state.get("server_diagnostics", [])}
-    st.download_button("サーバー通信ログを保存", json.dumps(log, ensure_ascii=False, indent=2),
-                       file_name="geography-server-network-log.json", mime="application/json",
-                       on_click="ignore")
     component = declare_component(f"chokomana_geography_{build}", path=frontend_folder(FRONTEND_HTML).name)
-    message = component(map=MAP, discovery=DISCOVERY, menus=list(MENUS.values()), version=VERSION, build=build, age=state.get("age"),
+    profile = state.get('profile') if configured else None
+    @st.fragment(run_every=15)
+    def check_graduation():
+        cm_poll_graduation(st, state, profile, 'geography', lambda: cm_geography_graduation_rows(profile))
+    check_graduation()
+    message = component(graduated_units=state.get('_cm_graduation_units', []), map=MAP, discovery=DISCOVERY, menus=list(MENUS.values()), version=VERSION, build=build, age=state.get("age"),
         configured=configured, profile=state.get("profile"),
         assignment=state.get("assignment"), ack=state.get("ack"), catalog_status=state.get("catalog_status"),
         key="geography_" + state.get("launch", "standalone")[:16], default=None)
