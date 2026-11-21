@@ -1289,7 +1289,8 @@ button:disabled{cursor:default}
 .sync button{font-size:inherit;min-height:32px;padding:4px 9px;background:var(--panel);color:var(--dark);border-color:var(--edge)}
 #courses{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(190px,100%),1fr));gap:10px;margin-bottom:16px}
 #courses button{text-align:left;background:var(--panel);color:var(--ink);border-color:var(--edge);min-height:66px}
-#courses button.assigned{background:#e5f2e9;border:2px solid var(--dark)}
+#assigned-course button{background:#e5f2e9;color:var(--ink);text-align:left}
+#assigned-course small{display:block;color:var(--muted);font-weight:500}
 #courses small{display:block;color:var(--muted);font-weight:500}
 .progress,.actions{display:flex;justify-content:space-between;gap:12px;align-items:center}
 progress{display:block;width:100%;height:8px;accent-color:#3e956d;margin-top:5px}
@@ -1300,8 +1301,16 @@ progress{display:block;width:100%;height:8px;accent-color:#3e956d;margin-top:5px
 #piece{display:grid;width:100%;justify-items:center;background:#fff3d7;border-color:#ae6a21;color:#653d15;touch-action:none;user-select:none;cursor:grab}
 #piece[aria-pressed=true]{background:#ffdf9e}
 #piece:disabled{opacity:.6}
-#pieceImage{width:100%;height:91px}
-#piecePath,#ghost{fill:var(--piece);stroke:#824712;stroke-width:1.25;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+#pieceImage{display:block;width:100%;height:96px;overflow:visible;pointer-events:none}
+#resume,#assigned-course{margin:0 0 10px}
+.region-heading{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:9px}
+.region-heading h2{margin:0 0 12px}
+#board-label{font-weight:750;font-size:.85rem;color:var(--muted)}
+.menu-extra{display:flex;gap:8px;flex-wrap:wrap}
+#courses button{text-align:left}
+
+#piecePath,#ghost{stroke-linejoin:round;vector-effect:non-scaling-stroke}
+#ghost{fill:var(--piece);stroke:#824712;stroke-width:1.25}
 .map-frame{background:var(--sea);border:1px solid #98c3c5;border-radius:13px;display:grid;place-items:center;overflow:hidden}
 #map{width:100%;display:block;max-height:520px;cursor:crosshair;user-select:none}
 #outlines path{fill:#f6edcf;stroke:#547770;stroke-width:.7;stroke-linejoin:round;vector-effect:non-scaling-stroke}
@@ -1321,8 +1330,8 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
 @media(max-width:540px){
  .play{grid-template-columns:1fr;gap:5px}
  .tray{flex-direction:row;align-items:center}
- #piece{width:auto;grid-template-columns:62px 1fr;align-items:center;padding:2px 6px;font-size:.74rem;white-space:nowrap}
- #pieceImage{height:50px}
+ #piece{width:auto;grid-template-columns:70px 1fr;align-items:center;padding:2px 6px;font-size:.74rem;white-space:nowrap}
+ #pieceImage{height:58px}
  .map-controls{flex-direction:row;margin-left:auto;gap:4px}
  .map-controls button{min-height:40px;padding:4px;font-size:.72rem}
 }
@@ -1358,20 +1367,31 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
 <div class="sync"><output id="connection">学習記録を準備中…</output><button id="retry" hidden>再接続・同期</button></div>
 <main>
   <section id="menu" hidden>
-    <h2>どこから はじめる？</h2>
-    <label id="age-label" for="age">ねんれい <select id="age"></select></label>
+    <div class="region-heading">
+      <h2 id="region-heading" tabindex="-1">どの地方から はじめる？</h2>
+      <label id="age-label" for="age">ねんれい <select id="age"></select></label>
+    </div>
+    <button id="resume" class="secondary" hidden>つづきから</button>
+    <div id="assigned-course" hidden></div>
     <div id="courses"></div>
-    <button id="export" class="secondary">この端末の学習ログを保存</button>
+    <div class="menu-extra">
+      <button id="national-course" class="secondary">全国から 出題</button>
+      <button id="export" class="secondary">この端末の学習ログを保存</button>
+    </div>
   </section>
   <section id="game" hidden>
     <div class="progress"><strong id="course"></strong><span id="count"></span></div>
-    <progress id="meter"></progress>
+    <progress id="meter" value="0" max="1" hidden></progress>
     <div id="phase-map">
-    <p class="instruction" id="prompt">ピースを 地図の ぴったりの場所へ</p>
+    <p class="instruction" id="prompt">ピースを 地図の ぴったりの場所へ <span id="board-label"></span></p>
     <div class="play">
       <div class="tray">
         <button type="button" id="piece" aria-label="ピースをつかむ" aria-pressed="false">
-          <svg id="pieceImage" viewBox="0 0 120 90" aria-hidden="true"><path id="piecePath" fill-rule="evenodd"/></svg>
+          <svg id="pieceImage" viewBox="0 0 120 90" aria-hidden="true" focusable="false">
+            <g id="pieceLayer">
+              <path id="piecePath" fill="#f4a742" stroke="#703a14" stroke-width="2" vector-effect="non-scaling-stroke" fill-rule="evenodd"/>
+            </g>
+          </svg>
           <span>ピースを つかむ</span>
         </button>
         <div class="map-controls"><button id="zoom" class="secondary">ちいきを 拡大</button><button id="hint" class="secondary">ヒント</button></div>
@@ -1419,7 +1439,7 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
       <button id="next" hidden>つぎの問題</button>
     </div>
     <div class="actions">
-      <button id="quit" class="secondary">コースをおわる</button>
+      <button id="quit" class="secondary">地方をえらびなおす</button>
     </div>
   </section>
   <section id="result" hidden>
@@ -1499,13 +1519,13 @@ function selectOwner(next) {
   cache = load(owner) || {queue:[], history:[], active:null};
   attempt = cache.active;
   zoomed = false;
-  if (attempt && !attempt.pref) {
+  if (attempt && (!menus.get(attempt.menu)?.prefectures.includes(attempt.pref)
+      || !["map","explore","quiz"].includes(attempt.phase))) {
     cache.previous_active = attempt;
     attempt = null;
     persist();
   }
-  if (attempt) showQuestion();
-  else showMenu();
+  showMenu();
 }
 function receive(event) {
   if (event.source !== parent || event.data?.type !== "streamlit:render") return;
@@ -1580,36 +1600,67 @@ function display(next) {
 function ageValue() {
   return Number(args.age || cache.age || 6);
 }
+const AREA_LABELS = {
+  hokkaido:"北海道", tohoku:"東北", kanto:"関東", chubu:"中部", kinki:"近畿",
+  chugoku:"中国", shikoku:"四国", kyushu:"九州", okinawa:"沖縄",
+};
+function courseAreas(menu) {
+  if (menu.region === "north") return [
+    {key:"hokkaido", ids:["01"]}, {key:"tohoku", ids:menu.prefectures.filter(id=>id !== "01")},
+  ];
+  if (menu.region === "kyushu") return [
+    {key:"kyushu", ids:menu.prefectures.filter(id=>id !== "47")}, {key:"okinawa", ids:["47"]},
+  ];
+  return menu.region === "all" ? [] : [{key:menu.region, ids:menu.prefectures}];
+}
+function beginCourse(menu, area, assignment = null) {
+  if (attempt) finish("abandoned");
+  const ids = area?.ids || menu.prefectures;
+  const learned = new Set(cache.history.filter(a => a.status === "completed").map(a => a.pref));
+  const fresh = ids.filter(id => !learned.has(id));
+  attempt = {id:uuid(), menu:menu.menu_id, pref:shuffled(fresh.length ? fresh : ids)[0], started:time(),
+    area:area?.key || null, mapZoomed:menu.region !== "all", phase:"map",
+    actions:[], intervals:[], questions:[], assignment};
+  showQuestion();
+}
+function courseButton(label, sublabel, run) {
+  const button = document.createElement("button");
+  button.textContent = label;
+  const count = document.createElement("small");
+  count.textContent = sublabel;
+  button.append(count);
+  button.onclick = run;
+  return button;
+}
 function showMenu() {
   display("menu");
   const age = ageValue();
   $("age").value = String(Math.min(age,11));
   $("age").disabled = Boolean(args.age);
+  $("resume").hidden = !attempt;
   const assigned = args.assignment?.content_version === args.version ? args.assignment : null;
-  const list = [...menus.values()].filter(menu => menu.age_min <= age && age <= menu.age_max);
   const assignmentMenu = menus.get(assigned?.menu_id);
-  if (assignmentMenu && !list.includes(assignmentMenu)) list.unshift(assignmentMenu);
-  list.sort((a,b) => Number(b.menu_id === assigned?.menu_id) - Number(a.menu_id === assigned?.menu_id)
-    || Number(b.region === "all") - Number(a.region === "all"));
-  $("courses").replaceChildren(...list.map(menu => {
-    const button = document.createElement("button");
-    const isAssigned = menu.menu_id === assigned?.menu_id;
-    if (isAssigned) button.className = "assigned";
-    button.textContent = menu.region_label;
-    const count = document.createElement("small");
-    count.textContent = `1つの都道府県・${menu.planned_question_count}問${isAssigned ? " ・ きょうの課題" : ""}`;
-    button.append(count);
-    button.onclick = () => {
-      const learned = new Set(cache.history.filter(a => a.status === "completed").map(a => a.pref));
-      const newPlaces = menu.prefectures.filter(id => !learned.has(id));
-      const pool = newPlaces.length ? newPlaces : menu.prefectures;
-      attempt = {id:uuid(), menu:menu.menu_id, started:time(), pref:shuffled(pool)[0],
-        phase:"map", actions:[], intervals:[], questions:[], assignment:isAssigned ? assigned.plan_item_id : null};
-      zoomed = false;
-      showQuestion();
-    };
-    return button;
-  }));
+  $("assigned-course").hidden = !assignmentMenu;
+  if (assignmentMenu) {
+    $("assigned-course").replaceChildren(courseButton("きょうの課題　"+assignmentMenu.region_label,
+      `1つの都道府県・${assignmentMenu.planned_question_count}問`,
+      () => beginCourse(assignmentMenu, null, assigned.plan_item_id)));
+  }
+  const list = [...menus.values()].filter(menu => menu.age_min <= age && age <= menu.age_max);
+  const national = list.find(menu => menu.region === "all");
+  $("national-course").onclick = () => beginCourse(national, null);
+  $("courses").replaceChildren(...list.flatMap(menu => courseAreas(menu).map(area =>
+    courseButton(AREA_LABELS[area.key], `1つの都道府県・${menu.planned_question_count}問`,
+      () => beginCourse(menu, area)))));
+}
+function areaForAttempt() {
+  const menu = menus.get(attempt.menu);
+  const region = menu.region === "all"
+    ? [...menus.values()].find(item => item.region !== "all" && item.prefectures.includes(attempt.pref))
+    : menu;
+  const areas = courseAreas(region);
+  return areas.find(area=>area.key === attempt.area && area.ids.includes(attempt.pref))
+    || areas.find(area=>area.ids.includes(attempt.pref));
 }
 function wake() {
   if (stage !== "game" || !attempt || document.hidden) return;
@@ -1639,7 +1690,6 @@ function info() { return args.discovery[attempt.pref]; }
 function didOpen(key) { return attempt.actions.some(a => a.type === "explore" && a.feature === key); }
 function showQuestion() {
   const pref = prefectures.get(attempt.pref);
-  display("game");
   for (const phase of ["map","explore","quiz"]) $("phase-"+phase).hidden = attempt.phase !== phase;
   $("course").textContent = ({
     map:"1　ピースを はめる", explore:"2　地図を たんけん", quiz:"3　とくちょうに ちょうせん",
@@ -1653,10 +1703,12 @@ function showQuestion() {
     armed = false;
     drag = null;
     keyboard = -1;
-    $("piecePath").setAttribute("d", pref.path);
     const [x,y,w,h] = pref.bounds;
-    const pad = Math.max(w,h) * .12;
-    $("pieceImage").setAttribute("viewBox", [x-pad,y-pad,w+2*pad,h+2*pad].join(" "));
+    const scale = Math.min(96/w, 70/h);
+    const left = (120-w*scale)/2-x*scale, top = (90-h*scale)/2-y*scale;
+    $("pieceLayer").setAttribute("transform", `translate(${left} ${top}) scale(${scale})`);
+    $("piecePath").setAttribute("d", pref.path);
+    zoomed = attempt.mapZoomed ?? (menus.get(attempt.menu).region !== "all");
     $("ghost").setAttribute("d", pref.path);
     $("ghost").setAttribute("visibility","hidden");
     $("feedback").textContent = "ドラッグするか、ピースと置く場所を順にタップ。";
@@ -1667,22 +1719,23 @@ function showQuestion() {
   } else {
     drawQuiz();
   }
+  display("game");
   wake();
   persist();
 }
 function updateMap() {
-  const pref = prefectures.get(attempt.pref);
-  const region = [...menus.values()].find(menu => menu.region !== "all" && menu.prefectures.includes(pref.id));
+  const area = areaForAttempt();
   let box = BOARD;
   if (zoomed) {
-    const members = (pref.id === "47" ? ["47"] : region.prefectures.filter(id => id !== "47")).map(id => prefectures.get(id).bounds);
+    const members = area.ids.map(id => prefectures.get(id).bounds);
     const x0 = Math.min(...members.map(b=>b[0]))-18, y0 = Math.min(...members.map(b=>b[1]))-18;
     const w = Math.max(...members.map(b=>b[0]+b[2]))+18-x0, h = Math.max(...members.map(b=>b[1]+b[3]))+18-y0;
     box = [x0,y0,w,h].join(" ");
   }
   $("map").setAttribute("viewBox", box);
-  $("inset").style.display = zoomed && pref.id !== "47" ? "none" : "";
-  $("zoom").textContent = zoomed ? "全国にもどす" : "ちいきを 拡大";
+  $("inset").style.display = zoomed ? "none" : "";
+  $("board-label").textContent = zoomed ? AREA_LABELS[area.key] + "の地図" : "日本全体";
+  $("zoom").textContent = zoomed ? "全国の地図" : "地方の地図";
 }
 function drawQuestion() {
   const hint = containsHint();
@@ -1922,6 +1975,7 @@ $("hint").onclick = () => {
 $("zoom").onclick = () => {
   wake();
   zoomed = !zoomed;
+  attempt.mapZoomed = zoomed;
   if (zoomed) current().actions.push({type:"zoom",at:time()});
   updateMap(); drawQuestion(); persist();
 };
@@ -1930,7 +1984,13 @@ for (const key of ["capital","land","industry"]) $("discover-"+key).onclick = ()
 $("industry-map").onclick = () => openFeature("industry");
 $("start-quiz").onclick = startQuiz;
 $("next").onclick = nextQuestion;
-$("quit").onclick = () => finish("abandoned");
+$("quit").onclick = () => {
+  stopTime();
+  persist();
+  showMenu();
+  $("region-heading").focus({preventScroll:true});
+};
+$("resume").onclick = () => showQuestion();
 $("again").onclick = showMenu;
 $("retry").onclick = () => { if (profile) sync(); else send("hello"); updateConnection(); };
 $("export").onclick = () => {
