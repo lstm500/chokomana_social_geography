@@ -2315,11 +2315,12 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
  .place-reference{font-size:12px;font-weight:750;fill:#386252;paint-order:stroke;stroke:#fbfff4;stroke-width:3;pointer-events:none}
 #medal-dialog{width:min(360px,calc(100% - 30px));padding:18px;border:1px solid var(--edge);border-radius:19px;background:#fffef6;color:var(--ink);text-align:center;box-shadow:0 12px 40px #18362e45}
 #medal-dialog::backdrop{background:#18362e78}
-body:has(#medal-dialog[open]){min-height:365px}
 .medal-stamp{box-sizing:border-box;display:grid;place-content:center;gap:0;width:106px;height:106px;margin:8px auto;border:5px double;border-radius:50%;line-height:1.12;box-shadow:inset 0 6px 13px #ffffffa1,0 6px 14px #10283022}
 .medal-stamp.gold{background:radial-gradient(circle at 28% 18%,#fff9cf,#f5d361 49%,#c38d1d);border-color:#bd8c26;color:#69470a}
 .medal-stamp.silver{background:radial-gradient(circle at 28% 18%,#fff,#d8e0e8 53%,#9aa8b8);border-color:#9aa9b8;color:#3d5266}
 .medal-stamp b{font-size:37px}
+.medal-actions{display:flex;justify-content:center;flex-wrap:wrap;gap:7px;margin-top:10px}
+body:has(#medal-dialog[open]){min-height:435px}
 #medal-status,#result-sync{color:var(--muted);font-size:.85rem}
 .feature-keys{display:flex;flex-wrap:wrap;gap:6px;padding:8px 0}
 .feature-keys button[aria-pressed=true]{background:#e5f2e9;border-color:var(--dark)}
@@ -2336,6 +2337,8 @@ body:has(#medal-dialog[open]){min-height:365px}
 <header>
   <div><div class="subject">ちょこまな　しゃかい・ちり</div><h1>日本地図パズル</h1></div>
   <div class="voice-tools">
+    <button type="button" class="secondary" id="geo-top">しゃかい・ちりトップ</button>
+    <button type="button" class="secondary" id="export">UI・通信ログを保存</button>
     <label><input type="checkbox" id="voice-toggle" checked><span id="voice-label">自動読み上げ</span></label>
   </div>
 </header>
@@ -2351,7 +2354,6 @@ body:has(#medal-dialog[open]){min-height:365px}
     <div id="courses"></div>
     <div class="menu-extra">
       <button id="national-course" class="secondary">全国から 出題</button>
-      <button id="export" class="secondary">UI・通信ログを保存</button>
     </div>
   </section>
   <section id="game" hidden>
@@ -2430,7 +2432,7 @@ body:has(#medal-dialog[open]){min-height:365px}
     <h2>都道府県 たんけん クリア！</h2>
     <p id="result-reason"></p>
     <p id="summary"></p><p id="result-sync" role="status"></p>
-    <button id="again">コースをえらぶ</button>
+    <button id="again">しゃかい・ちりトップ</button>
   </section>
 </main>
 <dialog id="medal-dialog" aria-labelledby="medal-title" aria-describedby="medal-status">
@@ -2439,7 +2441,11 @@ body:has(#medal-dialog[open]){min-height:365px}
   <p id="medal-score"></p>
   <p id="medal-status" role="status"></p>
   <button id="medal-retry" class="secondary" hidden>もう一度 同期</button>
-  <form method="dialog"><button type="submit">とじる</button></form>
+  <div class="medal-actions">
+    <button type="button" class="secondary" id="medal-export">UI・通信ログを保存</button>
+    <button type="button" id="medal-top">しゃかい・ちりトップ</button>
+    <form method="dialog"><button class="secondary" type="submit">とじる</button></form>
+  </div>
 </dialog>
 <footer>
   地図の出典
@@ -2465,6 +2471,7 @@ let storageWorks = save("device", device), args, profile, owner = "local";
 let pending, hello = "waiting", attempt, stage = "menu", armed, drag, options;
 let zoomed = false, keyboard = -1, activeSince, lastActivity, idleTimer, paths = new Map(), prefectures, menus;
 let cache, medalResult;
+const attemptedSync = new Set();
 let autoVoice = true;
 
 function load(key) {
@@ -2487,11 +2494,15 @@ function post(type, values = {}) {
 function send(action, extra = {}) {
   if (pending) return;
   const id = uuid();
-  pending = {id, action, started:performance.now(), timer: setTimeout(() => {
+  const sentAttempt = extra.attempt?.id;
+  pending = {id, action, sentAttempt, started:performance.now(), timer: setTimeout(() => {
     pending = null;
     hello = "retry";
     diagnostic("request",{operation:action,outcome:"timeout",ms:26000});
-    if (action === "sync" && medalResult?.mode==="saving") setMedalMode("retry");
+    if (action === "sync") {
+      if (medalResult?.id === sentAttempt && medalResult.mode==="saving") setMedalMode("retry");
+      sync();
+    }
     if (action === "hello" && !cache) selectOwner("local");
     updateConnection();
   }, 26000)};
@@ -2501,7 +2512,7 @@ function updateConnection() {
   const waiting = cache?.queue.length || 0;
   const label = profile ? (hello === "relink" ? "ホームから開き直して学習記録を同期してください。"
     : hello === "invalid" ? "保存できない記録があります。ログを端末に保存できます。"
-    : waiting ? (hello === "retry" ? `同期できませんでした。再同期できます（${waiting}件）。` : `同期待ち ${waiting}件`) : "ちょこまなと連携中")
+    : waiting ? (pending?.action === "sync" ? `同期中（${waiting}件）` : `同期待ち ${waiting}件。再同期できます。`) : "ちょこまなと連携中")
     : ({waiting:"学習記録を準備中…", invalid_ticket:"起動リンクを確認できません。ホームから開き直してください。",
         retry:"通信を確認できません。端末内で学習できます。", local:"この端末に学習記録を保存します。"}[hello] || "");
   $("connection").textContent = label + (cache?.rejected && hello !== "invalid" ? " 未同期の記録あり。" : "") + (storageWorks ? "" : " ブラウザを閉じると未同期の記録は消えます。");
@@ -2509,15 +2520,19 @@ function updateConnection() {
   $("retry").disabled = !!pending;
 }
 function sync() {
-  if (profile && cache.queue.length && !pending) {
-    send("sync", {profile, attempt:cache.queue[0]});
-    updateConnection();
-  }
+  if (!profile || !cache || pending || hello === "relink") return;
+  const queued = cache.queue.find(item=>!attemptedSync.has(item.id));
+  if (!queued) return;
+  attemptedSync.add(queued.id);
+  if (medalResult?.id === queued.id && medalResult.mode !== "saved") setMedalMode("saving");
+  send("sync", {profile, attempt:queued});
+  updateConnection();
 }
 function selectOwner(next) {
   if (cache && next === owner) return;
   if (attempt && cache) { stopTime(); persist(); }
   owner = next;
+  attemptedSync.clear();
   cache = load(owner) || {queue:[], history:[], active:null};
   attempt = cache.active;
   zoomed = false;
@@ -2535,9 +2550,10 @@ function receive(event) {
   if (!prefectures) init();
   const ack = args.ack;
   if (ack && ack.id === pending?.id) {
-    const action = pending.action;
+    const {action,sentAttempt} = pending;
     diagnostic("request",{operation:action,outcome:ack.status,stage:ack.stage || action,code:ack.http_status || null,
-      ms:Math.round(performance.now()-pending.started)});
+      db_code:ack.db_code || null, failure:ack.failure || null, column:ack.column || null,
+      constraint:ack.constraint || null, ms:Math.round(performance.now()-pending.started)});
     clearTimeout(pending.timer);
     pending = null;
     hello = ack.status;
@@ -2551,8 +2567,11 @@ function receive(event) {
       if (medalResult?.id===ack.attempt_id && ack.medal_saved) setMedalMode("saved");
       persist();
       sync();
-    } else if (medalResult?.mode==="saving") {
-      setMedalMode(ack.status==="relink" ? "relink" : ack.status==="invalid" ? "invalid" : "retry");
+    } else {
+      if (medalResult?.id===sentAttempt && medalResult.mode==="saving") {
+        setMedalMode(ack.status==="relink" ? "relink" : ack.status==="invalid" ? "invalid" : "retry");
+      }
+      if (ack.status !== "relink") sync();
     }
   }
   updateConnection();
@@ -3035,7 +3054,7 @@ function drawExplore(pref) {
     facts.land = [river.name, `太い青い線が、地図に示した${river.name}の流路です。`];
   } else if (selected === "land" && relief?.kind === "peak" && item.peaks[relief.index]) {
     const peak = item.peaks[relief.index];
-    facts.land = [peak.name, `三角の位置が山頂です。標高は${peak.height}メートルです。`];
+    facts.land = [peak.name, `標高は${peak.height}メートルです。`];
   }
   const [title, text] = facts[selected];
   $("fact-title").textContent = title;
@@ -3220,29 +3239,41 @@ $("age").onchange = () => { cache.age = Number($("age").value); persist(); showM
 for (const key of ["capital","land","industry"]) $("discover-"+key).onclick = () => openFeature(key);
 $("start-quiz").onclick = startQuiz;
 $("next").onclick = nextQuestion;
-$("quit").onclick = () => {
+function returnToGeography() {
+  if (!cache) return;
+  $("medal-dialog").close();
   stopTime();
   persist();
   showMenu();
   $("region-heading").focus({preventScroll:true});
-};
+}
+for (const id of ["quit","geo-top","again","medal-top"]) $(id).onclick = returnToGeography;
 $("resume").onclick = () => { showQuestion(); readCurrent(); };
 $("voice-toggle").onchange = () => {
   autoVoice = $("voice-toggle").checked;
   if (autoVoice) readCurrent(); else cancelSpeech();
 };
-$("medal-retry").onclick = () => { setMedalMode("saving"); sync(); };
-$("again").onclick = showMenu;
-$("retry").onclick = () => {
-  if (profile && hello!=="relink") { if (medalResult) setMedalMode("saving"); sync(); }
-  else send("hello");
+function retrySync() {
+  if (pending) return;
+  attemptedSync.clear();
+  if (profile && hello !== "relink") sync(); else send("hello");
   updateConnection();
-};
-$("export").onclick = () => {
-  const url = URL.createObjectURL(new Blob([JSON.stringify({version:args.version,build:args.build,records:load("ui-diagnostics") || []},null,2)],{type:"application/json"}));
-  const a = document.createElement("a"); a.href = url; a.download = "geography-ui-network-log.json"; a.click();
-  setTimeout(()=>URL.revokeObjectURL(url),1000);
-};
+}
+$("medal-retry").onclick = retrySync;
+$("retry").onclick = retrySync;
+function exportDiagnostics() {
+  const payload = {version:args?.version,build:args?.build,records:load("ui-diagnostics") || []};
+  const url = URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}));
+  const a = document.createElement("a");
+  a.href = url; a.download = "geography-ui-network-log.json"; a.hidden = true;
+  const dialog = $("medal-dialog");
+  (dialog.open ? dialog : document.body).append(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),30000);
+}
+$("export").onclick = exportDiagnostics;
+$("medal-export").onclick = exportDiagnostics;
 function pausePage() {
   stopTime();
   persist();
@@ -3291,8 +3322,60 @@ def request(path, body, prefer=None):
 def publish_catalog(base):
     rows = list(catalog())
     for start in range(0, len(rows), 200):
-        request("chokomana_learning_catalog?on_conflict=source_app,entry_type,entry_id,content_version",
-                rows[start:start+200], "resolution=merge-duplicates,missing=default,return=minimal")
+        batch = rows[start:start+200]
+        registered = request("rpc/cm_geography_publish_catalog_v1", {"p_rows": batch})
+        if not isinstance(registered, dict) or registered.get("received") != len(batch):
+            raise RuntimeError("missing geography catalog confirmation")
+
+
+def http_fault(error):
+    """Export only stable database metadata. Error bodies can contain learner records."""
+    fault = {"http_status": error.code}
+    try:
+        problem = json.loads(error.read(8192))
+    except (ValueError, OSError):
+        return fault
+    if not isinstance(problem, dict):
+        return fault
+    code = problem.get("code")
+    if isinstance(code, str) and re.fullmatch(r"(?:PGRST[0-9]{3}|[A-Z0-9]{5})", code):
+        fault["db_code"] = code
+    message = problem.get("message")
+    if isinstance(message, str):
+        reason = {
+            "unverified profile": "unverified_profile",
+            "event mismatch": "event_mismatch",
+            "medal mismatch": "medal_mismatch",
+            "geography event write failed": "event_write",
+            "geography medal write failed": "medal_write",
+            "attempt content conflict": "attempt_conflict",
+        }.get(message)
+        if reason:
+            fault["failure"] = reason
+            if reason in ("event_write", "medal_write"):
+                raw = problem.get("details")
+                if isinstance(raw, str):
+                    try:
+                        detail = json.loads(raw)
+                    except ValueError:
+                        detail = {}
+                    if isinstance(detail, dict):
+                        for key in ("column", "constraint"):
+                            value = detail.get(key)
+                            if isinstance(value, str) and re.fullmatch(r"[a-zA-Z_][a-zA-Z_0-9]{0,95}", value):
+                                fault[key] = value
+    return fault
+
+
+def server_diagnostic(state, operation, result, start):
+    log = state.setdefault("server_diagnostics", [])
+    entry = {"at": iso(datetime.now(timezone.utc)), "operation": operation,
+             "ms": round((perf_counter() - start) * 1000)}
+    for key in ("stage", "status", "http_status", "db_code", "failure", "column", "constraint"):
+        if key in result:
+            entry[key] = result[key]
+    log.append(entry)
+    del log[:-250]
 
 
 def process(message, state, configured):
@@ -3301,6 +3384,7 @@ def process(message, state, configured):
         return False
     result = {"id": ident, "status": "retry"}
     stage = "connection"
+    start = perf_counter()
     try:
         if message["action"] == "hello":
             device = message["device"]
@@ -3360,17 +3444,16 @@ def process(message, state, configured):
     except (ValueError, TypeError, KeyError, PermissionError, IndexError):
         result["status"] = "invalid"
     except HTTPError as error:
-        result["http_status"] = error.code
-        try:
-            problem = json.loads(error.read(8192))
-        except (ValueError, OSError):
-            problem = {}
-        logging.getLogger(__name__).warning("Geography %s failed (HTTP %s)", stage, error.code)
-        if isinstance(problem,dict) and problem.get("code") == "42501" and problem.get("message") == "unverified profile":
+        result.update(http_fault(error))
+        logging.getLogger(__name__).warning("Geography %s failed (HTTP %s, database: %s)",
+                                            stage, error.code, result.get("db_code"))
+        if result.get("failure") == "unverified_profile":
             result["status"] = "relink"
     except (OSError, RuntimeError):
         logging.getLogger(__name__).warning("Geography persistence unavailable")
     result["stage"] = stage
+    operation = message.get("action")
+    server_diagnostic(state, operation if operation in ("hello", "sync") else "unknown", result, start)
     state["ack"] = result
     return True
 
@@ -3392,22 +3475,25 @@ def main():
     if ticket and re.fullmatch(r"[A-Za-z0-9_-]{20,128}", ticket):
         mark = hashlib.sha256(ticket.encode()).hexdigest()
         if mark != state.get("launch"):
+            server_log = state.get("server_diagnostics", [])
             state.clear()
-            state.update(ticket=ticket, launch=mark)
+            state.update(ticket=ticket, launch=mark, server_diagnostics=server_log)
     base = setting("SUPABASE_URL")
     configured = https(base) and bool(setting("SUPABASE_SERVICE_ROLE_KEY") or setting("SUPABASE_SECRET_KEY"))
     if configured and not state.get("catalog_checked"):
         state["catalog_checked"] = True
         start = perf_counter()
-        outcome, code = "saved", None
+        result = {"stage": "catalog", "status": "saved"}
         try:
             publish_catalog(base)
         except HTTPError as error:
-            outcome, code = "retry", error.code
-        except (ValueError, OSError):
-            outcome = "retry"
-        state["catalog_status"] = dict(operation="catalog",stage="catalog",outcome=outcome,
-                                       code=code,ms=round((perf_counter()-start)*1000))
+            result.update(http_fault(error), status="retry")
+        except (ValueError, OSError, RuntimeError):
+            result["status"] = "retry"
+        state["catalog_status"] = dict(operation="catalog", stage="catalog", outcome=result["status"],
+                                       code=result.get("http_status"), db_code=result.get("db_code"),
+                                       ms=round((perf_counter()-start)*1000))
+        server_diagnostic(state, "catalog", result, start)
     hub = setting("CHOKOMANA_HOME_URL", HUB_URL)
     parts = urlsplit(hub if https(hub) else HUB_URL)
     query = dict(parse_qsl(parts.query))
@@ -3422,6 +3508,11 @@ def main():
         unsafe_allow_html=True,
     )
     build = hashlib.sha256(FRONTEND_HTML.encode("utf-8")).hexdigest()[:16]
+    log = {"source_app": SOURCE, "version": VERSION, "build": build,
+           "records": state.get("server_diagnostics", [])}
+    st.download_button("サーバー通信ログを保存", json.dumps(log, ensure_ascii=False, indent=2),
+                       file_name="geography-server-network-log.json", mime="application/json",
+                       on_click="ignore")
     component = declare_component(f"chokomana_geography_{build}", path=frontend_folder(FRONTEND_HTML).name)
     message = component(map=MAP, discovery=DISCOVERY, menus=list(MENUS.values()), version=VERSION, build=build, age=state.get("age"),
         configured=configured, profile=state.get("profile"),
