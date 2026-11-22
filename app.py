@@ -3074,7 +3074,10 @@ function init() {
   }
 }
 function display(next) {
-  if (stage !== next) diagnostic("screen",{view:next});
+  if (stage !== next) {
+    if (next === "menu") cancelSpeech();
+    diagnostic("screen",{view:next});
+  }
   stage = next;
   for (const name of ["menu", "game", "result"]) $(name).hidden = name !== next;
 }
@@ -3158,7 +3161,6 @@ function showMenu() {
   $("courses").replaceChildren(...list.flatMap(menu => courseAreas(menu).map(area =>
     cmCourseButton(menu, AREA_LABELS[area.key], `1つの都道府県・${menu.planned_question_count}問`,
       () => beginCourse(menu, area)))));
-  if (navigator.userActivation?.hasBeenActive) readCurrent();
 }
 function areaForAttempt() {
   const menu = menus.get(attempt.menu);
@@ -3615,7 +3617,7 @@ function cancelSpeech() {
   if (speechAvailable()) speechSynthesis.cancel();
 }
 function speakText(text, item = null) {
-  if (!autoVoice || !speechAvailable() || !text || document.hidden) return;
+  if (stage === "menu" || !autoVoice || !speechAvailable() || !text || document.hidden) return;
   const voices = speechSynthesis.getVoices();
   if (!voices.length) { waitingSpeech={text,item}; return; }
   const voice = japaneseVoice(voices);
@@ -3655,9 +3657,7 @@ function updateVoiceControl() {
     voices.length && !japaneseVoice(voices) ? "日本語音声なし" : "自動読み上げ";
 }
 function readCurrent() {
-  if (stage === "menu") {
-    speakText("どの地方からはじめる？ "+Object.values(AREA_LABELS).join("、")+"。全国からも選べるよ。");
-  } else if (stage === "game" && attempt?.phase === "map") {
+  if (stage === "game" && attempt?.phase === "map") {
     speakText($("board-label").textContent+"。ピースを、地図のぴったりの場所へ。ドラッグするか、ピースと置く場所を順にタップ。");
   } else if (stage === "game" && attempt?.phase === "explore") {
     const item = info();
