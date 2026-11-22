@@ -2,7 +2,6 @@
 from base64 import b64decode
 from datetime import datetime, timedelta, timezone
 import hashlib
-from html import escape
 import json
 import logging
 import os
@@ -2226,79 +2225,182 @@ for sea, sites in SEA_AREAS.items():
         pid, lat_lon = site.split(":")
         SEA_LABELS.setdefault(pid, []).append(dict(name=sea, point=project(pid, lat_lon)))
 
-# Published product photographs link to the credited source page.
-PRODUCT_PHOTOS = {
-    "01": [("なかしべつ牛乳", "https://webshop.montbell.jp/common/images/product/prod_k/k0443201.jpg",
-            "https://webshop.montbell.jp/goods/disp.php?product_id=0443201", "モンベル")],
-    "09": [("ガーンジィゴールデンミルク", "https://minamigaoka.co.jp/smt/order/images/photo_item_01.png",
-            "https://minamigaoka.co.jp/smt/order/item_01.html", "南ヶ丘牧場")],
-    "11": [("深谷ねぎ", "https://i0.wp.com/assets.st-note.com/img/1662127100178-ZIcIsaTXQD.jpg?ssl=1",
-            "https://negiya-kenmochi.com/2022/09/02/%E6%B7%B1%E8%B0%B7%E3%81%AD%E3%81%8E%E3%80%81%E8%91%B1%E3%82%84-%E3%81%91%E3%82%93%E3%82%82%E3%81%A1%E3%81%AE%E3%81%AD%E3%81%8E%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6%E6%9B%B8%E3%81%84%E3%81%A6%E3%81%BF/",
-            "和合堂")],
-    "14": [("湘南しらすの釜揚げ", "https://shop.r10s.jp/f142018-yokosuka/cabinet/item/akez/akez002.jpg",
-            "https://item.rakuten.co.jp/f142018-yokosuka/akez002/", "横須賀市")],
-    "34": [("米田海産の広島かき", "https://yonedakaisan.co.jp/img/top/img_oyster.png",
-            "https://yonedakaisan.co.jp/", "米田海産")],
-    "45": [("みやざきワンタッチきゅうり", "https://www.pref.miyazaki.lg.jp/parts/000049647.jpg",
-            "https://www.pref.miyazaki.lg.jp/contents/org/honbu/hisho/komiya/local_0602.htm", "宮崎県"),
-           ("きゅうりのキムチ和え", "https://www.pref.miyazaki.lg.jp/parts/000049632.jpg",
-            "https://www.pref.miyazaki.lg.jp/contents/org/honbu/hisho/komiya/local_0602.htm", "宮崎県")],
-    "04": [("だて正夢の炊き込みご飯",
-            "https://datemasayume.pref.miyagi.jp/datemasayume-anniversary/common/images/recipe-a-01-image-01.jpg",
-            "https://datemasayume.pref.miyagi.jp/datemasayume-anniversary/", "だて正夢公式"),
-           ("炊く前のだて正夢",
-            "https://datemasayume.pref.miyagi.jp/datemasayume-anniversary/common/images/recipe-a-01-image-02.jpg",
-            "https://datemasayume.pref.miyagi.jp/datemasayume-anniversary/", "だて正夢公式")],
-    "17": [("加賀れんこん", "https://www.maff.go.jp/e/policies/intel/gi_act/attach/img/Register-6-19.jpg",
-            "https://www.maff.go.jp/j/shokusan/gi_act/register/0178/index.html", "農林水産省")],
-    "32": [("宍道湖産ヤマトシジミ", "https://www.maff.go.jp/e/policies/intel/gi_act/attach/img/Register-6-17.jpg",
-            "https://www.maff.go.jp/j/shokusan/gi_act/register/0171/index.html", "農林水産省")],
-    "47": [("沖縄黒糖", "https://www.maff.go.jp/e/policies/intel/gi_act/attach/img/Register-6-18.jpg",
-            "https://www.maff.go.jp/j/shokusan/gi_act/register/0172/index.html", "農林水産省")],
-}
+# Original, source-hosted photographs: the default row is the regional specialty.
+PRODUCT_PHOTO_ROWS = """
+01|なかしべつ牛乳|https://webshop.montbell.jp/common/images/product/prod_k/k0443201.jpg|https://webshop.montbell.jp/goods/disp.php?product_id=0443201|モンベル
+02||https://www.ja-town.com/img/goods/2001/L/2001-02013nai.jpg|https://www.ja-town.com/shop/g/g2001-02013nai/|JAタウン
+03||https://magazine.hitosara.com/image/2930/MC_2930_87763_1.jpg|https://magazine.hitosara.com/article/2930/|ヒトサラ
+04|だて正夢の炊き込みご飯|https://datemasayume.pref.miyagi.jp/datemasayume-anniversary/common/images/recipe-a-01-image-01.jpg|https://datemasayume.pref.miyagi.jp/datemasayume-anniversary/|だて正夢公式
+05||https://www.tsunagi-japan.co.jp/upload/save_image/10032021_68dfb1a2df131.jpg|https://www.tsunagi-japan.co.jp/products/detail.php?product_id=1546|ツナギ（みずほライス）
+06||https://www.oisix.com/gift/image/sc1-okada-cherry_img-3.jpg|https://www.oisix.com/shop.gift2--Wsc1-okada-cherry__html.htm|Oisix
+07||https://jaec-f-mirai.s3-ap-northeast-1.amazonaws.com/uploads/product_image/image/1589/square_4__1_.png|https://f-mirai.sanchoku-prime.com/products/shunnootodoke2026|JAふくしま未来
+08||https://fujii-renkon.com/system_panel/uploads/images/fv2.jpg|https://fujii-renkon.com/|藤井農園
+09|ガーンジィゴールデンミルク|https://minamigaoka.co.jp/smt/order/images/photo_item_01.png|https://minamigaoka.co.jp/smt/order/item_01.html|南ヶ丘牧場
+10||https://s3.ap-northeast-1.amazonaws.com/prod.owl.private/store/1ce670048eba8e777b8aee4c89437ccb.jpg|https://owl-food.com/areas/kanto/gunma/104256|産直アウル
+11|深谷ねぎ|https://i0.wp.com/assets.st-note.com/img/1662127100178-ZIcIsaTXQD.jpg?ssl=1|https://negiya-kenmochi.com/2022/09/02/%E6%B7%B1%E8%B0%B7%E3%81%AD%E3%81%8E%E3%80%81%E8%91%B1%E3%82%84-%E3%81%91%E3%82%93%E3%82%82%E3%81%A1%E3%81%AE%E3%81%AD%E3%81%8E%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6%E6%9B%B8%E3%81%84%E3%81%A6%E3%81%BF/|和合堂
+12||https://www.maff.go.jp/e/policies/market/k_ryouri/assets/uploads/2022/08/chiba_2_2.jpg|https://www.maff.go.jp/e/policies/market/k_ryouri/search_menu/1189/index.html|農林水産省「うちの郷土料理」
+13||https://www.chiikishigen.metro.tokyo.lg.jp/introduction/details/nbail900000005uj-img/detail116_img02.jpg|https://www.chiikishigen.metro.tokyo.lg.jp/introduction/details/introduction_116.html|東京都
+14|湘南しらすの釜揚げ|https://shop.r10s.jp/f142018-yokosuka/cabinet/item/akez/akez002.jpg|https://item.rakuten.co.jp/f142018-yokosuka/akez002/|横須賀市
+15||https://www.niigata-nosho.com/images/material/item_XXL/4544948257059.jpg|https://www.niigata-nosho.com/item/20705/|新潟農商
+16||https://www.ja-town.com/img/goods/4001/C/4001-4001-155-1-01.JPG|https://www.ja-town.com/shop/g/g4001-4001-155-1-01/|JAタウン
+17|加賀れんこん|https://www.maff.go.jp/e/policies/intel/gi_act/attach/img/Register-6-19.jpg|https://www.maff.go.jp/j/shokusan/gi_act/register/0178/index.html|農林水産省
+18||https://www.pref.fukui.lg.jp/doc/suisan/ryutsu/echizengani_1_d/img/003.jpg|https://www.pref.fukui.lg.jp/doc/suisan/ryutsu/echizengani_1.html|福井県
+19||https://jaec-fruits-yamanashi.s3-ap-northeast-1.amazonaws.com/uploads/product_image/image/709/square_%E3%82%B7%E3%83%A3%E3%82%A4%E3%83%B3%E3%83%9E%E3%82%B9%E3%82%AB%E3%83%83%E3%83%883%E7%AE%B1.png|https://fruits-yamanashi.sanchoku-prime.com/products/1|JAフルーツ山梨
+20||https://kuraonline.jp/public/images/media/1733216723_LVYemNqdGK_thumbnail.png|https://kuraonline.jp/city-guide/27|KURA
+21||https://cdn.visitgifu.com/wp/2021/02/9276430e-002-1_%E9%AE%8E.jpg|https://visitgifu.com/specials-of-gifu/best-of-gifu-food-top-5-food-drink/|岐阜県観光連盟
+22||https://www.daimaru-matsuzakaya.jp/ito/img_public/prod/26A703/26A703462/26A703462/IMG_PATH_L/pc/26A703462_1.jpg|https://www.daimaru-matsuzakaya.jp/Item?prod=26A703462|大丸松坂屋
+23||https://www.ja-town.com/img/goods/4401/L/4401aichiminamimelon5.jpeg|https://www.ja-town.com/shop/g/g4401aichiminamimelon5/|JAタウン
+24||https://www1.pref.mie.lg.jp/g7tmm/blog/08731b69b60/images/hero.jpeg|https://www1.pref.mie.lg.jp/g7tmm/blog/08731b69b60/|三重県
+25||https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/img/shiga_1_3.jpg|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/funa_zushi_shiga.html|農林水産省「うちの郷土料理」
+26||https://www.yamamasa-koyamaen.co.jp/enjoy/assets_c/2026/04/28e3d348e86f6b2edb377fede90a0b45cbe4d094-thumb-960xauto-785.jpg|https://www.yamamasa-koyamaen.co.jp/enjoy/2026/2026-1/|山政小山園
+27||https://www.on-do.net/yaotokusanbutsu/img/menu3.jpg|https://www.on-do.net/yaotokusanbutsu/santyoku.php|八尾特産物net.
+28||https://image-cdn.tabechoku.com/crop/w/1440/h/1153/cw/1440/ch/1080/images/5ccb206a21859ee218051152995548b5e6258115f91e6ce8ac12175e766ff0b4.jpg|https://www.tabechoku.com/products/194613|食べチョク掲載生産者
+29||https://www.ja-town.com/img/goods/5502/S/5502-3014.jpg|https://www.ja-town.com/shop/g/g5502-3014/|JAタウン
+30||https://556.jp/pic-labo/arida147.JPG|https://556.jp/SHOP/aridasininteimikan-1.html|ふみこ農園
+31||https://www.ja-tottoriinaba.jp/product/rakkyo/img/rakkyou.jpg|https://www.ja-tottoriinaba.jp/product/rakkyo/|JA鳥取いなば
+32|宍道湖産ヤマトシジミ|https://www.maff.go.jp/e/policies/intel/gi_act/attach/img/Register-6-17.jpg|https://www.maff.go.jp/j/shokusan/gi_act/register/0171/index.html|農林水産省
+33||https://www.okayama-kanko.jp/lsc/upfile/articleDetail/0000/2823/2823_2_l.jpg|https://www.okayama-kanko.jp/feature/kourousya/20|岡山県観光連盟
+34|米田海産の広島かき|https://yonedakaisan.co.jp/img/top/img_oyster.png|https://yonedakaisan.co.jp/|米田海産
+35||https://yamaguchi-tourism.jp/lsc/upfile/spot/0001/9506/19506_1_m.jpg|https://yamaguchi-tourism.jp/spot/detail_19568.html|山口県観光連盟
+36||https://www.ja-town.com/img/goods/7001/L/7001-0010-2.jpg|https://www.ja-town.com/shop/g/g7001-0010-2/|JAタウン
+37|さぬきの夢の小麦畑|https://flour-net.com/archives/001/202506/large-6c1ff60ffea34b30.jpg|https://flour-net.com/nextKagawaWheat/entry-1168.html|吉原食糧
+38||https://furusato.ana.co.jp/shop_assets/contents/38203/img/goods/L/38203-A375-102018.jpg|https://furusato.ana.co.jp/donation/g/g38203-A375-102018/|ANAのふるさと納税
+39||https://www.radishbo-ya.co.jp/contents/shop/radish/commodity/221523.jpg|https://www.radishbo-ya.co.jp/shop/commodity/radish/2/321323/?srsltid=AfmBOoqeB0mAYHrO4Ey1Ebxf8DIYAxs5JZP3g8LNaElGboaEzGVtm-oZ|らでぃっしゅぼーや
+40||https://www.ja-town.com/img/goods/8002/L/8002-amaou-g-1080-1.JPG|https://www.ja-town.com/shop/g/g8002-amaou-g-1080-1/|JAタウン
+41||https://www.asobo-saga.jp/files/download/article_blocks/09d016d0-bfb1-44a5-91cb-024fbd5ef746/value01/value02/|https://www.asobo-saga.jp/articles/detail/bb26d427-5625-4914-a1f5-0e4195374d90|佐賀県観光連盟
+42||https://www.nagasaki-tabinet.com/storage/tourism_attractions/51728/responsive_images/fj0cDVgboIq0uRYI5hMUd7CR9JbfhqdFNBwZqkh1__825_550.jpeg|https://www.welcomekyushu.jp/event/?id=9999900062553&mode=detail|長崎県観光連盟
+43||https://www.ja-town.com/img/goods/9503/2/9503-K-KUMAMOTO-3222-1.jpg|https://www.ja-town.com/shop/g/g9503-K-KUMAMOTO-3222-1/|JAタウン
+44||https://shop.odakyu-dept.co.jp/storage/ex_product_sku_image/1/1012610599.jpg|https://shop.odakyu-dept.co.jp/product/detail/s/1012610599|小田急百貨店
+45|みやざきワンタッチきゅうり|https://www.pref.miyazaki.lg.jp/parts/000049647.jpg|https://www.pref.miyazaki.lg.jp/contents/org/honbu/hisho/komiya/local_0602.htm|宮崎県
+46||https://furusatobin.itembox.design/product/002/000000000272/000000000272-01-l.jpg?t=20260205134208|https://furusato.karen-ja.or.jp/c/genre/vegetables/sweet-potatoes/500-150|商品掲載元
+47|沖縄黒糖|https://www.maff.go.jp/e/policies/intel/gi_act/attach/img/Register-6-18.jpg|https://www.maff.go.jp/j/shokusan/gi_act/register/0172/index.html|農林水産省
+"""
+PRODUCT_PHOTOS = {}
+for row in PRODUCT_PHOTO_ROWS.strip().splitlines():
+    pid, caption, image, source, credit = row.split("|")
+    PRODUCT_PHOTOS[pid] = dict(caption=caption or LOCAL_PRODUCTS[pid]["name"], image=image, source=source, credit=credit)
 
-# Publisher-hosted previews link back to the original coverage.
-# Only include videos that show the named product or clearly identified use/production.
-PRODUCT_PREVIEWS = {
-    "02": [("青森りんごの品種", "ulkIuH1uBnc")],
-    "03": [("銀河のしずくの産地", "Y4jBf4tNG4E")],
-    "05": [("あきたこまちの新米", "3El8HSwv-1M"), ("あきたこまちの炊き方", "zD2hETWRxso")],
-    "06": [("山形の佐藤錦", "KVBqu11r1RY")],
-    "07": [("福島の桃 あかつき", "911pKuzb0AA")],
-    "08": [("土浦のれんこん", "gSKa7bM2Mzg")],
-    "10": [("嬬恋高原キャベツ", "lvY4lQykQK4")],
-    "12": [("千葉の郷土料理", "kgni-N5UT7k")],
-    "13": [("瑞穂町の東京狭山茶", "HvZuryi7jKA")],
-    "15": [("新潟のこしいぶき", "5q9FhzMD_D0")],
-    "16": [("富富富が給食に", "u0ttC5_YsaU")],
-    "17": [("加賀れんこんの食育動画", "gPvSvOaCLjM")],
-    "18": [("福井の越前がに", "EwpYby3EqoI")],
-    "19": [("シャインマスカットの収穫", "FuEvSy6Ntbs"), ("ぶどうの房を育てる", "tJ3DnlCzTpo")],
-    "20": [("川上村の高原レタス", "gEGANfer6fg")],
-    "21": [("清流長良川の鮎", "tJ6nMbDqzNg")],
-    "22": [("牧之原茶ができるまで", "fJHBf0V90mQ")],
-    "23": [("渥美半島のメロン", "q9T_XFSWD1U")],
-    "24": [("志摩の真珠", "fgP8u_wflY4"), ("真珠を育てる作業", "YFXPpk5r74U")],
-    "25": [("滋賀のふなずし", "x3QeHi3Gbtw")],
-    "26": [("宇治茶の産地", "S59adOVOBiU")],
-    "27": [("八尾若ごぼうと料理", "CyjkZa1AxYE")],
-    "28": [("淡路島たまねぎの収穫", "Q5DbJFmCcRY")],
-    "29": [("五條市西吉野の富有柿", "jfYOv3UtbL4")],
-    "30": [("有田市認定みかん", "MVIe2JgIW6Q")],
-    "31": [("鳥取砂丘らっきょうの収穫", "yXcXvaIjbBs")],
-    "33": [("清水白桃の収穫", "86ew0PS4-9E")],
-    "35": [("下関のふく", "qqayhtge77M")],
-    "36": [("徳島のなると金時", "lfS4Q7tSe68")],
-    "37": [("香川米おいでまい", "U65vzJSqI9c")],
-    "38": [("愛媛・宇和島の真珠", "lsFr6L9DyaE")],
-    "39": [("高知野菜 なす", "oX0umyUP3P0")],
-    "40": [("あまおうの食育動画", "gTiCQ-ygc3I"), ("あまおうの紹介", "FoTDJdGbbAU")],
-    "41": [("有明海と佐賀海苔", "U1fwDJhsoPQ")],
-    "42": [("九十九島かき", "_WIQiXdHLwM")],
-    "43": [("くまもとあか牛の紹介", "4oD0PMrXDXs")],
-    "44": [("大分の原木しいたけ", "NXmHsDa7EJY")],
-    "46": [("指宿のさつまいも", "wn_cV3UnM5U")],
-}
+FOOD_ROWS = """
+01|石狩鍋|いしかりなべ|北海道のさけを、野菜といっしょにみそ味で煮る鍋。さけのうまみがしみた汁も味わってみよう。|https://www.nippon.com/en/ncommon/contents/japan-topics/2916278/2916278.jpg|https://www.nippon.com/en/japan-topics/c153210/so-much-more-than-soup-the-many-uses-of-miso.html|nippon.com
+02|せんべい汁|せんべいじる|八戸の鍋に、汁用の南部せんべいを割り入れるよ。かたいせんべいが、煮るともっちりするのがおもしろいね。|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/img/aomori_3_3.jpg|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/senbei_jiru_aomori.html|農林水産省「うちの郷土料理」
+03|わんこそば||小さなおわんに、ひと口分のそばが次々に入る岩手の名物。おわんがどんどん積み上がるよ。|https://web-japan.org/kidsweb/img/local_wanko-soba_pic03.jpg|https://web-japan.org/kidsweb/ja/local/wanko-soba/|外務省 Web Japan
+04|ずんだ餅|ずんだもち|枝豆をつぶして作った緑色のあんを、お餅にからめるよ。豆の香りとお餅のもちもちをいっしょに味わえるね。|https://www.maff.go.jp/j/keikaku/syokubunka/traditional-foods/files/topics/788_ext_01_0_L.jpg|https://www.maff.go.jp/j/keikaku/syokubunka/traditional-foods/menu/zunda.html|農林水産省「にっぽん伝統食図鑑」
+05|きりたんぽ鍋|きりたんぽなべ|つぶしたごはんを棒に巻いて焼いた「きりたんぽ」を鍋に入れるよ。お米がだしを吸うとどんな味かな？|https://www.a-bisaikan.jp/img/sightseeing/gourmet_kiritanponabe.jpg|https://www.a-bisaikan.jp/sightseeing/|あきた美彩館
+06|芋煮|いもに|さといもを肉や野菜といっしょに煮る料理。山形では秋に、河原で大きな鍋を囲む芋煮会も開かれるよ。|https://www.maff.go.jp/j/syokuiku/kodomo_navi/cuisine/img/1-6_1.png|https://www.maff.go.jp/j/syokuiku/kodomo_navi/cuisine/cuisine1_6.html|農林水産省「うちの郷土料理」
+07|こづゆ||会津のお祝いで食べる汁物。貝柱のだしに、豆麩や野菜を入れるよ。小さな具をいくつ見つけられるかな？|https://www.aizu-ichiba.jp/ichiba/wp-content/uploads/2019/11/kozuyu.jpg|https://www.aizu-ichiba.jp/recipe/128|会津若松市公設地方卸売市場協会
+08|あんこう鍋|あんこうなべ|茨城の海沿いで親しまれる冬の鍋。あんこうの身と皮を見くらべると、どんなちがいがあるかな？|https://www.pref.ibaraki.jp/sangyo/gijyutsu/chiiki/images/ankou.jpg|https://www.pref.ibaraki.jp/sangyo/gijyutsu/chiiki/jizakebar_mito.html|茨城県
+09|しもつかれ||すりおろした大根やにんじんに、さけの頭、大豆などを合わせて煮るよ。冬の栃木に伝わる料理だよ。|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/img/tochigi_1_1.jpg|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/31_1_tochigi.html|農林水産省「うちの郷土料理」
+10|おっきりこみ||幅の広いめんを野菜といっしょに煮こむ群馬の料理。つるっとしためんに、汁の味がしみこんでいるよ。|https://life.ja-group.jp/upload/recipe/main/8555_1.jpg|https://life.ja-group.jp/recipe/detail?id=8555|JAグループ・JAたかさき女性会
+11|すったて||埼玉では、ごまとみそをすり、きゅうりなどを加えた冷たい汁でうどんを食べるよ。まずはごまの香りをかいでみよう。|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/img/saitama_3_1.jpg|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/33_3_saitama.html|農林水産省「うちの郷土料理」
+12|なめろう||房総の漁師料理。魚にみそやねぎを合わせ、包丁でたたいて作るよ。魚の身がどんな形になるか写真で見てみよう。|https://maruchiba.jp/lsc/upfile/articleDetail/0000/4939/4939_1_l.jpg|https://maruchiba.jp/gourmet/feature/detail_454.html|千葉県公式観光サイト
+13|深川めし|ふかがわめし|東京の深川で親しまれたあさりのごはん。汁をごはんにかける作り方と、あさりを炊きこむ作り方があるよ。|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/img/tokyo_1_3.jpg|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/34_1_tokyo.html|農林水産省「うちの郷土料理」
+14|けんちん汁|けんちんじる|大根やごぼう、豆腐などが入った汁物。神奈川の鎌倉にもゆかりがあるよ。具によって歯ごたえが変わるね。|https://www.maff.go.jp/e/policies/market/k_ryouri/assets/uploads/2022/08/kanagawa_1_3.jpg|https://www.maff.go.jp/e/policies/market/k_ryouri/search_menu/1056/index.html|農林水産省「うちの郷土料理」
+15|笹団子|ささだんご|よもぎが香るお団子を笹の葉で包んで蒸すよ。ひもをほどくと、どんな香りがするかな？|https://www.maff.go.jp/e/policies/market/k_ryouri/assets/uploads/2022/09/niigata_4_1.jpg|https://www.maff.go.jp/e/policies/market/k_ryouri/search_menu/pref/Niigata/index.html|農林水産省「うちの郷土料理」
+16|ます寿司|ますずし|ますと酢めしを笹の葉で包んだ富山の押しずし。丸い形を切り分けると、魚とごはんの層が見えるよ。|https://www.info-toyama.com/storage/blog_article_paragraphs/9289/responsive_images/lPuzUezvgl53gZtDjOjXqcMCgdlTTIm80LRNCaQH__731_487.jpeg|https://www.info-toyama.com/articles/kanako-masuzushi|とやま観光ナビ
+17|じぶ煮|じぶに|石川の煮物。粉をまぶした肉や麩、野菜を煮るから、汁にとろみがつくよ。|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/img/ishikawa_1_2.jpg|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/jibuni_ishikawa.html|農林水産省「うちの郷土料理」
+18|越前おろしそば|えちぜんおろしそば|冷たいそばに大根おろしを合わせる福井の名物。つるっとしたそばと、おろしのさっぱりした味が合うよ。|https://www.fuku-e.com/lsc/upfile/blog/main/0000/0601/601_1_m.jpg|https://www.fuku-e.com/fukutabi/detail_480.html|福井県観光連盟
+19|ほうとう||山梨では幅広いめんを、かぼちゃなどの野菜とみそ味で煮こむよ。かぼちゃがとけると汁がほんのり甘くなるね。|https://www.maff.go.jp/j/syokuiku/kodomo_navi/cuisine/img/3-5_3.jpg|https://www.maff.go.jp/j/syokuiku/kodomo_navi/cuisine/cuisine3_5.html|農林水産省「うちの郷土料理」
+20|おやき||小麦粉などの生地に野沢菜やあんを包んだ長野の名物。半分に割って、中の具を見てみよう。|https://www.nagano-cvb.or.jp/uploads/sightseeing/147/20161128145809.jpg|https://www.nagano-cvb.or.jp/modules/sightseeing/page/141|ながの観光net
+21|朴葉味噌|ほおばみそ|岐阜の飛騨では、ほおの葉にみそをのせて焼くよ。葉の色や、焼いたみその香りに注目。|https://www.maff.go.jp/e/policies/market/k_ryouri/assets/uploads/2023/08/gifu_10_3.jpg|https://www.maff.go.jp/e/policies/market/k_ryouri/search_menu/3056/index.html|農林水産省「うちの郷土料理」
+22|桜えびのかき揚げ|さくらえびのかきあげ|静岡の駿河湾でとれる小さな桜えび。かき揚げにすると、色と香ばしさが楽しめるよ。|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/img/shizuoka_28_1.jpg|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/36_28_shizuoka.html|農林水産省「うちの郷土料理」
+23|ひつまぶし||名古屋で親しまれるうなぎのごはん。そのまま、薬味、だしなど、食べ方を変えると味も変わるよ。|https://www.houraiken.com/honten/shared/img/index/sec3_img1.jpg|https://www.houraiken.com/honten/|あつた蓬莱軒
+24|伊勢うどん|いせうどん|三重の伊勢で親しまれるやわらかな太めん。少なめの濃い色のたれをからめて食べるよ。|https://www.maff.go.jp/j/pr/aff/1606/img/n_search_01_02.jpg|https://www.maff.go.jp/j/pr/aff/1606/n_search.html|農林水産省「うちの郷土料理」
+25|焼鯖そうめん|やきさばそうめん|滋賀の湖北では、焼いて煮たさばと、煮汁の味をしみこませたそうめんをいっしょに食べるよ。|https://static.gltjp.com/glt/data/directory/17000/16800/20250403_093030_3839a06b_w1920.webp|https://www.gltjp.com/ja/directory/item/16800/|GOOD LUCK TRIP（翼果楼）
+26|にしんそば||京都で親しまれる、甘辛く煮たにしんをのせたそば。温かいつゆに魚のうまみが広がるよ。|https://www.kyoto-meisan.jp/common/files/shopdata/1507/1507_02.jpg|https://www.kyoto-meisan.jp/shops/matsuba/|京都名産品協同組合
+27|お好み焼き|おこのみやき|大阪のお好み焼きでは、生地にキャベツなどを混ぜて鉄板で焼く作り方がよく知られているよ。|https://storage.googleapis.com/veltra-kurios/media/CACHE/images/articles/article/8752d8d8191b969ab14457c6d9e150d1/2bfe4b7bae395973cfed2c56f15d3e37.jpg|https://www.veltra.com/jp/yokka/article/osaka-gourmet-ekichika/|VELTRA YOKKA
+28|明石焼|あかしやき|兵庫の明石では、たこ入りの丸い玉子焼をだしにつけるよ。見た目が似ているたこ焼きと食べ方を比べてみよう。|https://www.yokoso-akashi.jp/sites/default/files/styles/gridmedia/public/008_kodama01.jpg?itok=bWNm7-Kj|https://www.yokoso-akashi.jp/eat/tamagoyaki?tid=2|明石観光協会
+29|柿の葉寿司|かきのはずし|奈良の名物。さばなどを酢めしにのせて、柿の葉で包むよ。葉を開いて香りをたしかめよう。|https://www.maff.go.jp/e/policies/market/k_ryouri/assets/uploads/2022/08/nara_1_1.jpg|https://www.maff.go.jp/e/policies/market/k_ryouri/search_menu/750/index.html|農林水産省「うちの郷土料理」
+30|めはりずし||和歌山の熊野地方では、ごはんを高菜の漬物の葉で包むよ。まるごとの葉で包む形を見てみよう。|https://www.maff.go.jp/e/policies/market/k_ryouri/assets/uploads/2022/08/wakayama_2_1.jpg|https://www.maff.go.jp/e/policies/market/k_ryouri/search_menu/pref/wakayama/index.html|農林水産省「うちの郷土料理」
+31|いただき||鳥取の西のほうで作られる、油揚げに米や具を詰めて炊く料理。三角に切った油揚げの中に何が入っているかな？|https://www.senmiekisu.co.jp/wp/wp-content/uploads/2023/04/CR22102719-scaled.jpg|https://www.senmiekisu.co.jp/recipe/cr22102719/|センミエキス
+32|出雲そば|いずもそば|島根の名物。割子そばは丸い器を重ねて出すよ。上の段からつゆをかけて味わってみよう。|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/img/shimane_12_4.jpg|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/izumosoba_shimane.html|農林水産省「うちの郷土料理」
+33|ばらずし||岡山では、魚介や野菜をたくさん使った色あざやかなすしをお祝いなどで食べるよ。上に何がのっているかな？|https://www.okayama-kanko.jp/lsc/upfile/spot/0010/0699/100699_1_l.jpg|https://www.okayama-kanko.jp/spot/detail_100699.html|岡山県観光連盟
+34|お好み焼き（広島）|おこのみやき|広島のお好み焼きでは、生地にキャベツやめん、卵などを重ねるよ。切ったときの層を見てみよう。|https://res-3.cloudinary.com/jnto/image/upload/w_1000%2Ch_667%2Cc_fill%2Cf_auto%2Cfl_lossy%2Cq_auto/v1/media/filer_public/57/aa/57aa0f43-4ef0-4068-907a-17c88184a146/it554_003_vsjtha|https://www.japan.travel/en/experiences-in-japan/538/|日本政府観光局（JNTO）
+35|瓦そば|かわらそば|山口の下関では、熱い瓦に茶そばと肉や卵を盛る名物があるよ。瓦に当たっためんは、どんな歯ごたえかな？|https://yamaguchi-tourism.jp/asset/dc-yamaguchi/mv-014.jpg|https://yamaguchi-tourism.jp/dc-yamaguchi/index.html|山口県観光連盟
+36|そば米雑炊|そばごめぞうすい|徳島の郷土料理。そばをめんにせず、殻をむいた粒のまま汁に入れるよ。どんな食感か想像してみよう。|https://www.maff.go.jp/e/policies/market/k_ryouri/assets/uploads/2022/08/tokushima_1_1.jpg|https://www.maff.go.jp/e/policies/market/k_ryouri/search_menu/704/index.html|農林水産省「うちの郷土料理」
+37|讃岐うどん|さぬきうどん|讃岐平野では米のあとに小麦を作る地域があり、その小麦がうどん文化を支えたよ。香川生まれの小麦「さぬきの夢」を使ったうどんもあるよ。もちもちしためんをかんで、コシを感じてみよう。|https://www.maff.go.jp/j/pr/aff/1611/img/n_search_01_02.jpg|https://www.maff.go.jp/j/pr/aff/1611/n_search.html|農林水産省
+38|宇和島鯛めし|うわじまたいめし|愛媛の宇和島では、たいの切り身をたれや卵と合わせてごはんにのせるよ。炊きこむ鯛めしもあるから、見た目を比べてみよう。|https://www.iyokannet.jp/image/rendering/feature_paragraph_detail/75/trim.640/235/156?v=d5a173fa0f88993705e1dbc0d194f3fd9b6c8aea|https://www.iyokannet.jp/feature/tai/taimeshi|愛媛県観光物産協会
+39|かつおのたたき||高知の名物。かつおの表面をさっと焼くよ。切り口を見ると、焼けた外側と中の色がちがうね。|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/img/kochi_12_2.jpg|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/katuonotataki_kochi.html|農林水産省「うちの郷土料理」
+40|がめ煮|がめに|福岡で親しまれる、鶏肉や根菜などの煮物。れんこん、ごぼう、にんじん。ひと口ずつ歯ごたえを比べられるよ。|https://asset.oceans-nadia.com/upload/save_image/ef/efa900bfd0377a6bc50e5d9431bec7d9.jpg|https://oceans-nadia.com/user/236306/recipe/517580|レシピサイトNadia
+41|いかしゅうまい||佐賀の呼子の名物。いかのすり身に細い皮をまぶして蒸すよ。ふんわりした形が目印だね。|https://www.jfa.maff.go.jp/j/kikaku/wpaper/h30_h/trend/1/img/p1_3_4_2-08zoom.jpg|https://www.jfa.maff.go.jp/j/kikaku/wpaper/h30_h/trend/1/zoom_p1_3_4_2-08.html|水産庁（JF佐賀げんかい）
+42|長崎ちゃんぽん|ながさきちゃんぽん|長崎の名物めん料理。野菜や魚介などがたっぷり入るよ。スープにどんなうまみが出ているかな？|https://www.nagasaki-tabinet.com/storage/special_feature_paragraph_contents/7377/responsive_images/Df2CkZzWO44Q4I1SXrxOMEMExCDnQTPDTyUvN3wZ__1171_780.jpeg|https://www.discover-nagasaki.com/en/featured-topics/nyt2026|長崎県観光連盟
+43|だご汁|だごじる|熊本では、こねた小麦粉の生地をちぎって汁に入れるよ。もちっとした「だご」を具の中から探してみよう。|https://www.maff.go.jp/e/policies/market/k_ryouri/assets/uploads/2022/08/kumamoto_2_3.jpg|https://www.maff.go.jp/e/policies/market/k_ryouri/search_menu/275/index.html|農林水産省「うちの郷土料理」
+44|とり天|とりてん|鶏肉に衣をつけて揚げる大分の名物。天ぷらの衣と、肉のやわらかさをいっしょに味わえるよ。|https://www.ja-town.com/img/goods/8401/1/8401-21016.jpg|https://www.ja-town.com/shop/g/g8401-21016/|JAタウン
+45|冷や汁|ひやじる|宮崎では、魚やみそなどを使った冷たい汁をごはんにかけるよ。きゅうりの歯ごたえがさっぱりした味に合うね。|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/img/miyazaki_12_1.jpg|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/hiyajiru_miyazaki.html|農林水産省「うちの郷土料理」
+46|さつま揚げ|さつまあげ|鹿児島では「つけあげ」とも呼ぶよ。魚のすり身を揚げると、外はこんがり、中はふわっと仕上がるよ。|https://www.maff.go.jp/e/policies/market/k_ryouri/assets/uploads/2022/08/kagoshima_7_3.jpg|https://www.maff.go.jp/e/policies/market/k_ryouri/search_menu/140/index.html|農林水産省「うちの郷土料理」
+47|沖縄そば|おきなわそば|沖縄そばのめんは小麦粉が材料。豚肉をのせる食べ方もあるよ。めんの太さや形を写真で見てみよう。|https://www.maff.go.jp/e/policies/market/k_ryouri/assets/uploads/2023/12/okinawa_20_1-2.jpg|https://www.maff.go.jp/e/policies/market/k_ryouri/search_menu/5566/index.html|農林水産省「うちの郷土料理」
+"""
+LOCAL_DISHES = {}
+for row in FOOD_ROWS.strip().splitlines():
+    pid, name, reading, pitch, image, source, credit = row.split("|")
+    LOCAL_DISHES[pid] = dict(name=name, reading=reading, pitch=pitch, image=image, source=source, credit=credit)
+
+# Generalized teaching overlays in the same projection as the prefecture outlines.
+# Coordinates are approximate; these are neither mapped geologic boundaries nor survey data.
+LAND_ROWS = """
+01|area|43.12,144.51 43.20,144.31 43.51,144.26 43.78,144.65 43.68,145.01 43.53,145.10 43.37,145.34 43.16,145.47 43.06,144.93
+02|area|40.53,140.42 40.58,140.31 40.86,140.30 41.03,140.29 41.06,140.50 40.82,140.55 40.63,140.64
+04|area|37.97,140.89 38.10,140.79 38.27,140.88 38.37,141.00 38.36,141.13 38.20,141.11 37.97,140.96
+05|area|39.04,140.47 39.13,140.38 39.30,140.38 39.52,140.39 39.59,140.47 39.50,140.60 39.24,140.64 39.07,140.56
+06|area|38.18,140.30 38.32,140.21 38.53,140.24 38.62,140.34 38.44,140.43 38.25,140.40
+07|area|37.72,140.43 37.77,140.32 37.86,140.44 37.88,140.58 37.77,140.58
+08|water|36.10,140.28 36.08,140.35 36.12,140.39 36.08,140.44 36.04,140.43 35.99,140.51 35.96,140.63 35.93,140.56 35.97,140.47 35.99,140.40 36.03,140.36 36.06,140.34 36.07,140.27
+09|area|37.17,139.97 37.12,139.88 37.03,139.91 36.94,140.03 37.00,140.12 37.11,140.06
+10|area|36.46,138.44 36.49,138.30 36.59,138.35 36.62,138.54 36.55,138.64 36.48,138.55
+11|river|36.18,138.96 36.22,139.08 36.25,139.13 36.28,139.20 36.27,139.28 36.23,139.37 36.20,139.45 36.15,139.56 36.16,139.67 36.13,139.76 36.10,139.84
+12|coast|35.69,140.71 35.64,140.64 35.58,140.56 35.51,140.48 35.44,140.43 35.36,140.39
+13|area|35.77,139.33 35.78,139.36 35.78,139.41 35.77,139.46 35.75,139.43 35.75,139.37
+14|water|35.27,139.11 35.29,139.30 35.30,139.52 35.23,139.66 35.01,139.52 34.96,139.23 35.10,139.10
+15|area|37.44,138.78 37.61,138.72 37.79,138.87 37.98,139.03 38.17,139.39 38.00,139.48 37.80,139.27 37.61,139.07 37.45,138.92
+16|area|36.52,136.87 36.57,136.80 36.73,136.86 36.75,136.99 36.64,137.09 36.54,137.05
+17|water|36.65,136.63 36.69,136.64 36.71,136.69 36.68,136.71 36.65,136.70 36.63,136.67
+18|coast|36.05,136.00 35.98,135.96 35.92,135.95 35.88,135.96 35.82,136.00 35.78,136.05 35.72,136.02
+19|area|35.54,138.49 35.63,138.44 35.71,138.54 35.71,138.74 35.65,138.79 35.55,138.65
+20|river|35.97,138.60 36.01,138.54 36.04,138.50 36.12,138.47 36.22,138.48 36.32,138.44 36.39,138.32 36.47,138.19 36.55,138.14 36.59,138.20 36.66,138.24 36.72,138.30 36.80,138.38 36.85,138.37 36.92,138.43 36.98,138.54 37.01,138.59
+21|river|36.03,136.91 35.95,136.90 35.86,136.88 35.75,136.93 35.67,136.93 35.60,136.91 35.55,136.80 35.48,136.78 35.44,136.78 35.41,136.73 35.35,136.72 35.27,136.66 35.17,136.67 35.10,136.67
+22|area|34.69,138.03 34.78,138.01 34.89,138.09 34.93,138.18 34.85,138.21 34.75,138.15 34.68,138.08
+23|area|34.57,137.01 34.59,137.02 34.65,137.09 34.70,137.24 34.73,137.39 34.66,137.40 34.61,137.25 34.56,137.13
+24|water|34.30,136.73 34.34,136.79 34.33,136.84 34.31,136.87 34.26,136.82 34.25,136.78
+25|water|35.15,135.92 35.24,135.94 35.32,136.04 35.43,136.06 35.50,136.16 35.42,136.26 35.33,136.26 35.24,136.19 35.16,136.07 35.07,135.95 35.01,135.89 35.05,135.87
+26|river|34.95,135.94 34.90,135.90 34.89,135.87 34.89,135.82 34.92,135.80 34.92,135.76 34.91,135.70
+27|area|34.42,135.28 34.56,135.38 34.72,135.42 34.85,135.49 34.86,135.65 34.74,135.68 34.61,135.68 34.48,135.56 34.37,135.37
+28|area|34.16,134.60 34.34,134.64 34.64,134.93 34.66,135.06 34.51,135.03 34.25,134.95 34.16,134.82
+29|river|34.34,136.01 34.32,135.94 34.33,135.90 34.33,135.82 34.40,135.77 34.39,135.73 34.35,135.69 34.34,135.63 34.32,135.58
+30|river|34.23,135.59 34.18,135.52 34.14,135.48 34.10,135.43 34.08,135.39 34.06,135.34 34.07,135.27 34.08,135.23 34.09,135.17 34.09,135.10
+31|area|35.54,134.20 35.55,134.22 35.55,134.26 35.54,134.27 35.53,134.25 35.53,134.22
+32|water|35.42,132.83 35.46,132.83 35.48,132.94 35.47,133.03 35.45,133.05 35.41,133.00 35.40,132.90
+33|area|34.49,133.72 34.60,133.68 34.72,133.83 34.73,133.96 34.67,134.11 34.54,134.11 34.46,133.91
+34|water|34.10,132.20 34.27,132.24 34.38,132.37 34.37,132.48 34.27,132.58 34.13,132.52 33.99,132.37
+35|water|33.94,130.86 33.97,130.92 33.96,130.96 33.99,131.00 33.96,131.02 33.93,130.97 33.92,130.91
+36|river|34.04,133.83 34.03,133.93 34.05,134.01 34.05,134.11 34.06,134.19 34.08,134.26 34.06,134.34 34.09,134.40 34.11,134.45 34.10,134.54 34.09,134.61
+37|area|34.10,133.64 34.12,133.61 34.18,133.66 34.24,133.71 34.23,133.75 34.14,133.75 / 34.19,133.79 34.22,133.78 34.30,133.76 34.31,133.83 34.34,133.90 34.30,133.96 34.24,133.98 34.18,133.91 34.15,133.87 / 34.23,134.00 34.31,133.98 34.37,134.05 34.36,134.13 34.31,134.20 34.25,134.19 34.20,134.10
+38|water|33.01,132.22 33.15,132.23 33.33,132.27 33.49,132.39 33.48,132.47 33.33,132.52 33.16,132.51 32.98,132.47
+39|area|33.46,133.40 33.56,133.41 33.59,133.53 33.58,133.68 33.53,133.76 33.47,133.68 33.47,133.53
+40|area|33.03,130.37 33.18,130.36 33.31,130.45 33.41,130.59 33.36,130.72 33.23,130.68 33.13,130.59 33.01,130.50
+41|water|33.24,130.18 33.17,130.32 33.03,130.43 32.87,130.48 32.72,130.38 32.73,130.24 32.90,130.14 33.09,130.10
+42|water|33.10,129.56 33.23,129.52 33.28,129.58 33.24,129.68 33.14,129.70 33.07,129.66
+44|area|33.40,131.48 33.54,131.36 33.67,131.46 33.69,131.64 33.57,131.74 33.43,131.69
+45|area|31.84,131.37 31.92,131.31 32.03,131.32 32.15,131.40 32.24,131.49 32.19,131.56 32.04,131.55 31.87,131.48
+46|area|31.16,130.28 31.28,130.20 31.50,130.21 31.63,130.30 31.62,130.57 31.44,130.62 31.22,130.66 31.13,130.57
+47|area|26.03,127.61 26.08,127.95 26.30,127.94 26.40,128.06 26.65,128.26 26.86,128.35 26.89,128.18 26.72,128.00 26.55,127.84 26.43,127.68 26.21,127.60
+"""
+
+def land_overlay(pid, kind, rings):
+    path = []
+    for ring in rings.split("/"):
+        coordinates = [",".join(map(str, project(pid, point))) for point in ring.split()]
+        path.append("M"+"L".join(coordinates)+("Z" if kind in ("area", "water") else ""))
+    return {"kind":kind, "path":"".join(path)}
+
+
+LAND_OVERLAYS = {}
+for row in LAND_ROWS.strip().splitlines():
+    pid, kind, rings = row.split("|")
+    LAND_OVERLAYS[pid] = land_overlay(pid, kind, rings)
+
+# The same main channel is called Chikuma in Nagano and Shinano in Niigata.
+chikuma = next((river for river in VERIFIED_MAP["20"]["rivers"] if river["name"] == "信濃川"), None)
+if chikuma:
+    LAND_OVERLAYS["20"] = {"kind":"river", "path":chikuma["path"], "alias":chikuma["name"]}
 
 
 def short_discovery_questions(pid):
@@ -2350,13 +2452,10 @@ DISCOVERY = {
     pid: {**info, "capital_point": project(pid, CAPITAL_POINTS[pid]),
           "land_point": project(pid, info["place"]), "questions": short_discovery_questions(pid),
           "previous_questions": previous_discovery_questions(pid), "seas": SEA_LABELS.get(pid, []),
+          "local_dish": LOCAL_DISHES[pid], "land_overlay": LAND_OVERLAYS.get(pid),
           "product_previews": [
-              dict(caption="写真："+label, image=image, url=url, credit=credit)
-              for label, image, url, credit in PRODUCT_PHOTOS.get(pid, [])
-          ] + [
-              dict(caption="動画："+label, image=f"https://i.ytimg.com/vi/{key}/mqdefault.jpg",
-                   url=f"https://www.youtube.com/watch?v={key}", credit="YouTube")
-              for label, key in PRODUCT_PREVIEWS.get(pid, [])
+              {"caption":LOCAL_DISHES[pid]["name"], **{key:LOCAL_DISHES[pid][key] for key in ("image", "source", "credit")}},
+              PRODUCT_PHOTOS[pid],
           ],
           "core_rivers": [feature["name"] for feature in VERIFIED_MAP[pid]["rivers"]
                           if feature["name"] in CORE_RIVERS or feature["name"] == info["land"]],
@@ -2602,7 +2701,7 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
 .discovery-map{background:linear-gradient(#d0ecea,#e4f4f0);border:1px solid #94bcbb;border-radius:13px;overflow:hidden}
 #fact-map{display:block;width:100%;height:auto;max-height:428px}
 .neighbor-shape{fill:#f3f4e8;stroke:#9ab8ae;stroke-width:.85;vector-effect:non-scaling-stroke}
-.neighbor-name{font-size:17px;font-weight:750;fill:#345b51;paint-order:stroke;
+.neighbor-name{font-size:17px;font-weight:750;fill:#56746c;paint-order:stroke;
   stroke:#f8fbef;stroke-width:3;stroke-linejoin:round}
 #fact-neighbors,#fact-neighbor-names{pointer-events:none}
 #nearby-prefectures{margin:5px 0 2px;color:#365e54;font-size:.78rem}
@@ -2610,17 +2709,29 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
 #fact-shape{fill:#e8eed8;stroke:#427266;stroke-width:1.3;vector-effect:non-scaling-stroke}
 .capital-point circle,.production-pin circle{fill:#fffdf3;stroke:#496358;stroke-width:1.3}
 .capital-point text{fill:#254f43}
-.capital-point .capital-name{font-size:16px;font-weight:850;paint-order:stroke;stroke:#fffef4;stroke-width:3.5;stroke-linejoin:round}
-.sea-name{fill:#17677e;font-size:16px;font-weight:800;paint-order:stroke;stroke:#dff4f3;stroke-width:3;pointer-events:none}
+.capital-point .capital-name{font-size:19px;font-weight:850;paint-order:stroke;stroke:#fffef4;stroke-width:3.5;stroke-linejoin:round}
+.sea-name{fill:#4a7480;font-size:16px;font-weight:800;paint-order:stroke;stroke:#dff4f3;stroke-width:3;pointer-events:none}
 .sea-name.bay-name{font-size:12px}
 .product-previews{display:grid;gap:5px}
-.product-previews a{display:block;min-width:0;padding:3px;border-radius:6px;background:#fffef5;
-  color:#255649;font-weight:700;font-size:11px;line-height:1.2;text-decoration:none}
+#fact-land-extent{pointer-events:none;stroke-width:1.4;stroke-linejoin:round;stroke-linecap:round;
+  vector-effect:non-scaling-stroke}
+#fact-land-extent.land-area{fill:#f4b65b;fill-opacity:.62;stroke:#a66629}
+#fact-land-extent.land-water{fill:#84c4de;fill-opacity:.68;stroke:#327b99}
+#fact-land-extent.land-coast{fill:none;stroke:#a66629;stroke-width:4}
+#fact-land-extent.map-river{stroke:#2d77ab;stroke-width:2.15}
+.place-reference.primary-land{font-size:17px;font-weight:850;fill:#204939}
+.place-reference.secondary-land{fill:#587970}
+.product-previews figure{margin:0;min-width:0;padding:3px;border-radius:7px;background:#fffef5}
+.product-previews a{display:block;color:#285547;text-decoration:none}
 .product-previews a:focus-visible{outline:2px solid #195b48;outline-offset:-2px}
-.product-previews img{display:block;width:100%;height:49px;object-fit:contain;background:#f1f1e7;border-radius:4px}
-.product-previews span{display:block;padding:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#product-previews-below{grid-template-columns:repeat(2,minmax(0,130px));margin:6px 0}
-#product-previews-below a{font-size:.74rem}
+.product-previews img{display:block;width:100%;height:44px;object-fit:contain;background:#f1f1e7;border-radius:4px}
+.product-previews span,.product-previews .photo-credit{display:block;padding:1px 2px;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;font-size:10px;line-height:1.2}
+.product-previews span{font-weight:800}
+.product-previews .photo-credit{font-size:8px;color:#5a746b}
+#product-previews-below{grid-template-columns:repeat(2,minmax(0,160px));margin:6px 0}
+#product-previews-below img{height:64px}
+#product-previews-below span,#product-previews-below .photo-credit{font-size:.72rem}
 #product-previews-below.mobile-only{display:none}
 @media(max-width:520px){
   #map-product-box{display:none}
@@ -2660,10 +2771,13 @@ body:has(#medal-dialog[open]){min-height:365px}
 .feature-keys{display:flex;flex-wrap:wrap;gap:6px;padding:8px 0}
 .feature-keys button[aria-pressed=true]{background:#e5f2e9;border-color:var(--dark)}
 .fact,#quiz-feedback{background:#fffef5;border:1px solid var(--edge);padding:9px 13px;margin:4px 0 12px;border-radius:11px}
-#local-product{margin-top:10px;padding:9px 11px;background:#edf5e9;border-radius:9px}
-#local-product h4{margin:0;color:#214f41;font-size:1.03rem}
-#local-product p{margin:5px 0}
-#local-product a{display:inline-block;padding:4px 10px 4px 0;color:#235f54;font-size:.87rem}
+#local-stories{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(230px,100%),1fr));gap:8px;margin-top:10px}
+.local-story{padding:9px 11px;background:#edf5e9;border-radius:9px}
+.local-story h4{margin:0;color:#214f41;font-size:1.05rem}
+.local-story p{margin:4px 0}
+.local-story .story-category,#fact-area,#fact-use,#pref-capital.supplement,
+  #map-caption,#nearby-prefectures,.map-key{color:#526f66;font-size:.82rem}
+.local-story a{display:inline-block;padding:3px 0;color:#47685e;font-size:.82rem}
 .fact h3,.fact p{margin:0 0 6px}
 #think{margin:5px 0 9px;color:var(--muted)}
 #choices{grid-template-columns:1fr}
@@ -2732,6 +2846,7 @@ body:has(#medal-dialog[open]){min-height:365px}
           </defs>
           <g id="fact-neighbors" aria-hidden="true"></g>
           <path id="fact-shape" fill-rule="evenodd" clip-rule="evenodd"/>
+          <path id="fact-land-extent" aria-hidden="true" hidden/>
           <g id="fact-neighbor-names" aria-hidden="true"></g>
           <g id="fact-water" aria-hidden="true"></g>
           <foreignObject id="map-product-box" hidden>
@@ -2760,12 +2875,20 @@ body:has(#medal-dialog[open]){min-height:365px}
       <article class="fact" aria-live="polite">
         <h3 id="fact-title"></h3>
         <p id="fact-text"></p><p id="fact-area" hidden></p><p id="fact-use" hidden></p>
-        <section id="local-product" aria-labelledby="local-product-name" hidden>
-          <h4 id="local-product-name"></h4>
-          <p id="local-product-pitch"></p>
-          <a id="local-product-source" target="_blank" rel="noopener noreferrer">くわしく見る</a>
-          <a id="local-product-video" target="_blank" rel="noopener noreferrer" hidden>動画を見る（YouTube）</a>
-        </section>
+        <div id="local-stories" hidden>
+          <section class="local-story" aria-labelledby="local-product-name">
+            <p class="story-category">特産品・ブランド</p>
+            <h4 id="local-product-name"></h4>
+            <p id="local-product-pitch"></p>
+            <a id="local-product-source" target="_blank" rel="noopener noreferrer">特産品の出典</a>
+          </section>
+          <section class="local-story" aria-labelledby="local-dish-name">
+            <p class="story-category">有名な食べ物</p>
+            <h4 id="local-dish-name"></h4>
+            <p id="local-dish-pitch"></p>
+            <a id="local-dish-source" target="_blank" rel="noopener noreferrer">料理の出典</a>
+          </section>
+        </div>
       </article>
       <button id="start-quiz" disabled>特徴クイズに すすむ</button>
     </div>
@@ -2802,7 +2925,7 @@ body:has(#medal-dialog[open]){min-height:365px}
   <a href="https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-W05.html" target="_blank" rel="noopener">国土数値情報「河川」</a>・
   <a href="https://www.gsi.go.jp/kihonjohochousa/kihonjohochousa41139.html" target="_blank" rel="noopener">国土地理院「日本の主な山岳標高」</a>・
   <a href="https://geo.maderaojen.me/en/" target="_blank" rel="noopener">国土数値情報「行政区域」加工データ</a>。
-  学習用に形状を簡略化しています。産地の資料は、<a href="https://www.maff.go.jp/j/kanbo/tiho/todouhuken_gaiyou2022.html" target="_blank" rel="noopener">農林水産省の都道府県資料</a>などを参照しています。
+  地形の着色は学習用の目安です。<a href="https://www.gsi.go.jp/bousaichiri/lc_index.html" target="_blank" rel="noopener noreferrer">国土地理院の土地条件図</a>。産地の資料は、<a href="https://www.maff.go.jp/j/kanbo/tiho/todouhuken_gaiyou2022.html" target="_blank" rel="noopener">農林水産省の都道府県資料</a>などを参照しています。
 </footer>
 <script>
 "use strict";
@@ -2894,6 +3017,7 @@ function receive(event) {
   if (ack && ack.id === pending?.id) {
     const action = pending.action;
     diagnostic("request",{operation:action,outcome:ack.status,stage:ack.stage || action,code:ack.http_status || null,
+      db_code:ack.db_code, failure:ack.failure, column:ack.column, constraint:ack.constraint,
       ms:Math.round(performance.now()-pending.started)});
     clearTimeout(pending.timer);
     pending = null;
@@ -3314,11 +3438,13 @@ function renderProductPreviews(pref, item, selected) {
   if (!previews.length || selected !== "industry" || below.dataset.prefecture === pref.id) return;
   below.dataset.prefecture = pref.id;
   for (const parent of [$("map-product-previews"),below]) {
-    parent.replaceChildren(...previews.map(({caption,image,url,credit}) => {
+    parent.replaceChildren(...previews.map(({caption,image,source,credit}) => {
+      const card = document.createElement("figure");
       const link = document.createElement("a");
-      link.href = url;
+      link.href = image;
       link.target = "_blank";
       link.rel = "noopener noreferrer";
+      link.title = caption+"の写真を開く";
       const picture = document.createElement("img");
       picture.loading = "lazy";
       picture.referrerPolicy = "no-referrer";
@@ -3326,9 +3452,17 @@ function renderProductPreviews(pref, item, selected) {
       picture.onerror = () => { picture.hidden = true; };
       picture.src = image;
       const label = document.createElement("span");
-      label.textContent = caption+" · "+credit;
+      label.textContent = caption;
       link.append(picture,label);
-      return link;
+      const attribution = document.createElement("a");
+      attribution.className = "photo-credit";
+      attribution.href = source;
+      attribution.target = "_blank";
+      attribution.rel = "noopener noreferrer";
+      attribution.textContent = "出典："+credit;
+      attribution.title = attribution.textContent;
+      card.append(link,attribution);
+      return card;
     }));
   }
 }
@@ -3344,6 +3478,9 @@ function renderFactMap(pref, item, selected) {
   renderFactNeighbors(pref,item,transform,toMap,scale,tx,ty);
   mapWater(pref,item,toMap,scale,tx,ty);
   renderProductPreviews(pref,item,selected);
+  const extent = $("fact-land-extent");
+  extent.setAttribute("hidden","");
+  const overlay = item.land_overlay;
   for (const id of ["fact-rivers","fact-peaks","fact-industry-area","fact-pins","relief-controls"]) $(id).replaceChildren();
   $("fact-industry-area").hidden = selected !== "industry";
   $("relief-controls").hidden = selected !== "land";
@@ -3381,25 +3518,41 @@ function renderFactMap(pref, item, selected) {
     $("industry-name").textContent = item.industry;
     return;
   }
-  const rivers = [...item.rivers.entries()].filter(([,river]) => item.core_rivers.includes(river.name));
+  const rivers = [...item.rivers.entries()].filter(([,river]) =>
+    item.core_rivers.includes(river.name) && river.name !== overlay?.alias);
   const peaks = [...item.peaks.entries()].filter(([,peak]) => item.core_peaks.includes(peak.name));
   $("relief-controls").hidden = !rivers.length && !peaks.length;
   $("terrain-key-group").textContent = rivers.length && peaks.length ? "川・山と地形" : "地形";
-  $("map-caption").textContent = [rivers.length ? "青い線は川の流路です。" : "",
-    peaks.length ? "山のマークは山頂の位置です。" : ""].join("");
-  if (!rivers.some(([,r])=>r.name===item.land) && !peaks.some(([,m])=>m.name.includes(item.land))) {
-    const [lx,ly] = toMap(item.land_point);
-    const label = svgNode("text",{x:lx,y:ly-7,class:"place-reference","text-anchor":"middle"});
-    label.textContent = item.land+" 付近";
-    $("fact-pins").append(label);
-  }
   const selectedRelief = attempt.relief;
+  const mainRiver = rivers.find(([,feature]) => feature.name === item.land)?.[1];
+  const mainPeak = peaks.find(([,feature]) => feature.name.startsWith(item.land))?.[1];
   const detail = selectedRelief?.kind==="river" ? rivers.find(([index])=>index===selectedRelief.index)?.[1] :
     selectedRelief?.kind==="peak" ? peaks.find(([index])=>index===selectedRelief.index)?.[1] : null;
-  if (detail) {
+  const hasRiver = Boolean(rivers.length || overlay?.kind === "river");
+  $("map-caption").textContent = [
+    overlay && overlay.kind !== "river" ? "色で示した範囲は学習用の目安です。" : "",
+    hasRiver ? "青い線は川の流路です。" : "",
+    peaks.length ? "山のマークは山頂の位置です。" : "",
+  ].join("");
+  if (overlay) {
+    extent.setAttribute("d",overlay.path);
+    extent.setAttribute("transform",transform);
+    extent.setAttribute("class",overlay.kind === "river" ? "map-river" : "land-"+overlay.kind);
+    if (overlay.kind === "area" || overlay.kind === "river") extent.setAttribute("clip-path","url(#fact-clip)");
+    else extent.removeAttribute("clip-path");
+    extent.removeAttribute("hidden");
+  }
+  const [lx,ly] = toMap((mainPeak || mainRiver)?.point || item.land_point);
+  const landLabel = svgNode("text",{
+    x:Math.max(62,Math.min(FACT_WIDTH-62,lx)),y:Math.max(18,ly-(mainPeak ? 19 : 8)),
+    class:"place-reference "+(detail && detail !== mainRiver && detail !== mainPeak ? "secondary-land" : "primary-land"),"text-anchor":"middle",
+  });
+  landLabel.textContent = item.land;
+  $("fact-pins").append(landLabel);
+  if (detail && detail !== mainRiver && detail !== mainPeak) {
     const [px,py] = toMap(detail.point);
     const label = svgNode("text",{x:Math.max(58,Math.min(FACT_WIDTH-58,px)),y:Math.max(17,py-18),
-      class:"place-reference","text-anchor":"middle"});
+      class:"place-reference primary-land","text-anchor":"middle"});
     label.textContent = detail.name;
     $("fact-pins").append(label);
   }
@@ -3513,7 +3666,8 @@ function readCurrent() {
     } else {
       const place = attempt.view === "industry" ? `地図で色をつけた自治体は、${item.production_cities.join("、")}です。` : "";
       const product = attempt.view === "industry" ? item.local_product : null;
-      const pitch = product ? `この土地の名産、${product.reading || product.name}。${product.pitch}` : "";
+      const dish = item.local_dish;
+      const pitch = product ? `この土地の名産、${product.reading || product.name}。${product.pitch}。有名な食べ物、${dish.reading || dish.name}。${dish.pitch}` : "";
       speakText(`${$("fact-title").textContent}。${$("fact-text").textContent}${pitch}${place}`,item);
     }
   } else if (stage === "game" && attempt?.phase === "quiz") {
@@ -3563,6 +3717,7 @@ function drawExplore(pref) {
   const item = info(), selected = attempt.view;
   $("pref-name").textContent = `${item.name}（${item.reading}）`;
   $("pref-capital").textContent = `都道府県庁所在地　${item.capital}（${item.capital_reading}）`;
+  $("pref-capital").classList.toggle("supplement",selected !== "capital");
   renderFactMap(pref,item,selected);
   const facts = {
     capital: [item.capital+"（"+item.capital_reading+"）", "ここに都道府県庁があります。"],
@@ -3584,7 +3739,11 @@ function drawExplore(pref) {
   $("fact-area").textContent = "色を付けた自治体　"+item.production_cities.join("・");
   $("fact-use").hidden = selected !== "industry";
   $("fact-use").textContent = "土地や水の使い方　"+item.use;
-  renderLocalProduct(selected === "industry" ? item.local_product : null);
+  $("local-stories").hidden = selected !== "industry";
+  if (selected === "industry") {
+    renderLocalStory("local-product",item.local_product);
+    renderLocalStory("local-dish",item.local_dish);
+  }
   for (const key of ["capital","land","industry"]) {
     const control = $("discover-"+key);
     control.setAttribute("aria-pressed", String(selected === key));
@@ -3592,16 +3751,11 @@ function drawExplore(pref) {
   }
   $("start-quiz").disabled = !canStartQuiz();
 }
-function renderLocalProduct(product) {
-  $("local-product").hidden = !product;
-  if (!product) return;
-  const {name, reading, pitch, source, video} = product;
-  $("local-product-name").textContent = reading && reading !== name ? `${name}（${reading}）` : name;
-  $("local-product-pitch").textContent = pitch;
-  $("local-product-source").href = source;
-  $("local-product-video").hidden = !video;
-  if (video) $("local-product-video").href = video;
-  else $("local-product-video").removeAttribute("href");
+function renderLocalStory(id, story) {
+  const {name, reading, pitch, source} = story;
+  $(id+"-name").textContent = reading && reading !== name ? `${name}（${reading}）` : name;
+  $(id+"-pitch").textContent = pitch;
+  $(id+"-source").href = source;
 }
 function openFeature(key) {
   if (attempt.phase !== "explore") return;
@@ -3825,14 +3979,12 @@ def https(url):
     return parsed.scheme == "https" and bool(parsed.hostname) and not parsed.username
 
 
-def request(path, body, prefer=None):
+def request(path, body):
     base = setting("SUPABASE_URL").rstrip("/")
     key = setting("SUPABASE_SERVICE_ROLE_KEY") or setting("SUPABASE_SECRET_KEY")
     headers = {"apikey": key, "Content-Type": "application/json"}
     if not key.startswith("sb_secret_"):
         headers["Authorization"] = f"Bearer {key}"
-    if prefer:
-        headers["Prefer"] = prefer
     req = Request(f"{base}/rest/v1/{path}", json.dumps(body).encode(), headers, method="POST")
     with urlopen(req, timeout=11) as response:
         data = response.read()
@@ -3843,8 +3995,43 @@ def request(path, body, prefer=None):
 def publish_catalog(base, version):
     rows = list(catalog())
     for start in range(0, len(rows), 200):
-        request("chokomana_learning_catalog?on_conflict=source_app,entry_type,entry_id,content_version",
-                rows[start:start+200], "resolution=merge-duplicates,missing=default,return=minimal")
+        batch = rows[start:start+200]
+        result = request("rpc/cm_geography_publish_catalog_v1", {"p_rows": batch})
+        if not isinstance(result, dict) or result.get("received") != len(batch):
+            raise RuntimeError("missing catalog confirmation")
+
+
+def database_error(error):
+    fields = {"http_status": error.code}
+    try:
+        problem = json.loads(error.read(8192))
+    except (ValueError, OSError):
+        return fields, False
+    if not isinstance(problem, dict):
+        return fields, False
+    db_code = problem.get("code")
+    if isinstance(db_code, str) and re.fullmatch(r"[A-Z0-9]{5,8}", db_code):
+        fields["db_code"] = db_code
+    message = problem.get("message")
+    for label, description in (
+        ("event_write", "geography event write failed"),
+        ("medal_write", "geography medal write failed"),
+        ("unverified_profile", "unverified profile"),
+    ):
+        if message == description:
+            fields["failure"] = label
+            break
+    if fields.get("failure") in {"event_write", "medal_write"}:
+        try:
+            detail = json.loads(problem.get("details") or "{}")
+        except (TypeError, ValueError):
+            detail = None
+        if isinstance(detail, dict):
+            for key in ("column", "constraint"):
+                value = detail.get(key)
+                if isinstance(value, str) and re.fullmatch(r"[a-z][a-z0-9_]{0,62}", value):
+                    fields[key] = value
+    return fields, db_code == "42501" and message == "unverified profile"
 
 
 def process(message, state, configured):
@@ -3912,13 +4099,10 @@ def process(message, state, configured):
     except (ValueError, TypeError, KeyError, PermissionError, IndexError):
         result["status"] = "invalid"
     except HTTPError as error:
-        result["http_status"] = error.code
-        try:
-            problem = json.loads(error.read(8192))
-        except (ValueError, OSError):
-            problem = {}
-        logging.getLogger(__name__).warning("Geography %s failed (HTTP %s)", stage, error.code)
-        if isinstance(problem,dict) and problem.get("code") == "42501" and problem.get("message") == "unverified profile":
+        fields, relink = database_error(error)
+        result.update(fields)
+        logging.getLogger(__name__).warning("Geography %s failed: %s", stage, fields)
+        if relink:
             result["status"] = "relink"
     except (OSError, RuntimeError):
         logging.getLogger(__name__).warning("Geography persistence unavailable")
@@ -3986,6 +4170,15 @@ def cm_geography_graduation_rows(profile):
         return json.load(response)
 
 
+def hub_return_url():
+    hub = setting("CHOKOMANA_HOME_URL", HUB_URL)
+    parts = urlsplit(hub if https(hub) else HUB_URL)
+    query = [(key, value) for key, value in parse_qsl(parts.query, keep_blank_values=True)
+             if key != "cm_plan_return"]
+    query.append(("cm_plan_return", "1"))
+    return urlunsplit(parts._replace(query=urlencode(query)))
+
+
 def main():
     st.set_page_config(page_title="ちょこまな｜しゃかい・ちり", page_icon="🗾", layout="wide",
                        initial_sidebar_state="collapsed")
@@ -4003,28 +4196,18 @@ def main():
     if configured and not state.get("catalog_checked"):
         state["catalog_checked"] = True
         start = perf_counter()
-        outcome, code = "saved", None
+        outcome, fields = "saved", {}
         try:
             publish_catalog(base, VERSION)
         except HTTPError as error:
-            outcome, code = "retry", error.code
-        except (ValueError, OSError):
+            fields, _ = database_error(error)
             outcome = "retry"
-        state["catalog_status"] = dict(operation="catalog",stage="catalog",outcome=outcome,
-                                       code=code,ms=round((perf_counter()-start)*1000))
-    hub = setting("CHOKOMANA_HOME_URL", HUB_URL)
-    parts = urlsplit(hub if https(hub) else HUB_URL)
-    query = dict(parse_qsl(parts.query))
-    query["cm_plan_return"] = "1"
-    href = escape(urlunsplit(parts._replace(query=urlencode(query))), quote=True)
-    st.markdown(
-        '<style>.cm-native-home{display:inline-flex;align-items:center;padding:.5rem .8rem;'
-        'min-height:42px;border:1px solid #bfd3c6;border-radius:11px;color:#12624b!important;'
-        'background:#fffef5;font-weight:700;text-decoration:none!important}'
-        '.cm-native-home:focus-visible{outline:3px solid #a76400}</style>'
-        f'<a class="cm-native-home" href="{href}" target="_self">← ちょこまなへ</a>',
-        unsafe_allow_html=True,
-    )
+        except (ValueError, OSError, RuntimeError):
+            outcome = "retry"
+        state["catalog_status"] = dict(operation="catalog", stage="catalog", outcome=outcome,
+                                       code=fields.pop("http_status", None),
+                                       ms=round((perf_counter()-start)*1000), **fields)
+    st.link_button("← ちょこまなへ", hub_return_url())
     build = hashlib.sha256(FRONTEND_HTML.encode("utf-8")).hexdigest()[:16]
     component = declare_component(f"chokomana_geography_{build}", path=frontend_folder(FRONTEND_HTML).name)
     profile = state.get('profile') if configured else None
