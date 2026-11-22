@@ -1073,13 +1073,13 @@ def previous_discovery_questions(pid):
 
     kinds = [kind for kind in ("山", "川", "平野", "湖", "台地", "湾") if kind != info["kind"]][:2]
     if pid == "01":
-        why = q("why", "なぜ北海道の東では酪農がさかんなの？",
+        why = q("why", "なぜ、地図で学んだ地域では酪農がさかんなの？",
                 "夏もすずしく、広い牧草地で牛のえさを育てられるから",
                 ["夏の暑さをいかして、暖かい温室で牛を育てるから",
                  "海に囲まれていて、海の水を牧草にまけるから"],
                 info["link"], "reasoning", reasoning=True)
     else:
-        why = q("why", f"{info['land']}の近くで見つけた「{info['industry']}」。土地とのつながりは？",
+        why = q("why", "地図で見た産業と、土地のようすはどうつながっている？",
                 info["link"],
                 ["土地や水のようすに関係なく、どの場所でも同じ方法で行う。",
                  "土地の使い方より、県庁がある場所だけで決まる。"],
@@ -1099,9 +1099,9 @@ def previous_discovery_questions(pid):
         q("industry", "地図で発見した産業や特産品は？", f"{info['industry']}（{info['industry_reading']}）",
           [f"{name}（{next(x['industry_reading'] for x in PREFECTURE_INFO.values() if x['industry']==name)}）" for name in choices("industry")],
           info["link"], "industry"),
-        q("kind", f"{info['land']}は、どんな地形？", info["kind"], kinds,
+        q("kind", "地図でたしかめたのは、どんな地形？", info["kind"], kinds,
           f"{info['land']}は{info['kind']}です。", "map"),
-        q("chain", f"「{info['industry']}」につながる順番は？ 気候・土地のようすから考えよう。",
+        q("chain", "地図で見た産業につながる順番は？ 気候・土地のようすから考えよう。",
           f"{info['climate']} → {info['use']} → {info['industry']}",
           [f"{info['climate']} → {wrong_use} → {info['industry']}",
            f"{wrong_site} → {info['use']} → {info['industry']}"],
@@ -2584,6 +2584,65 @@ KAGAWA_RICE_PHOTO = dict(caption='さぬき米おいでまい', image='https://o
                          source='https://oomoriya.com/products/410-5', credit='大森屋')
 
 
+# Use the product or variety name on quiz buttons and the complete name in feedback.
+QUIZ_PRODUCT_NAMES = {
+    "01": ("牛乳", "ぎゅうにゅう"),
+    "02": ("サンふじ", ""),
+    "08": ("れんこん", ""),
+    "10": ("キャベツ", ""),
+    "11": ("ねぎ", ""),
+    "13": ("狭山茶", "さやまちゃ"),
+    "14": ("しらす", ""),
+    "17": ("れんこん", ""),
+    "19": ("シャインマスカット", ""),
+    "20": ("高原レタス", "こうげんれたす"),
+    "21": ("鮎", "あゆ"),
+    "22": ("深蒸し茶", "ふかむしちゃ"),
+    "23": ("マスクメロン", ""),
+    "24": ("アコヤ真珠", "あこやしんじゅ"),
+    "25": ("ふなずし", ""),
+    "27": ("若ごぼう", "わかごぼう"),
+    "28": ("たまねぎ", ""),
+    "29": ("富有柿", "ふゆうがき"),
+    "30": ("みかん", ""),
+    "31": ("らっきょう", ""),
+    "32": ("ヤマトシジミ", ""),
+    "34": ("かき", ""),
+    "35": ("ふぐ", ""),
+    "37": ("おいでまい", ""),
+    "38": ("アコヤ真珠", "あこやしんじゅ"),
+    "39": ("なす", ""),
+    "41": ("海苔", "のり"),
+    "42": ("かき", ""),
+    "43": ("あか牛", "あかうし"),
+    "44": ("原木乾しいたけ", "げんぼくほししいたけ"),
+    "45": ("ワンタッチきゅうり", ""),
+    "47": ("黒糖", "こくとう"),
+}
+
+QUIZ_LANDFORMS = {
+    "平野": ("低く平らな土地が広がる", "低い丘がいくつも続く", "まわりより一段高い平地が広がる"),
+    "盆地": ("山にかこまれた平らな土地", "海に向かって広がる平らな土地", "まわりより高く平らな土地"),
+    "砂丘": ("風で運ばれた砂が積もった丘", "海の波でけずられたがけ", "川が運んだ土でできた平地"),
+    "湾": ("海が陸に入りこんでいる", "陸が海につき出している", "海が二つの陸の間を通っている"),
+    "島": ("陸のまわりがすべて海", "陸の一方だけが海につき出す", "海が陸に入りこんでいる"),
+}
+
+# Comparable choices where only one or two prefectures use the same product family.
+QUIZ_PRODUCT_ALTERNATIVES = {
+    "01": (("ヨーグルト", ""), ("チーズ", "")),
+    "09": (("ジャージー牛乳", "じゃーじーぎゅうにゅう"), ("ホルスタイン牛乳", "ほるすたいんぎゅうにゅう")),
+    "24": (("マベ真珠", "まべしんじゅ"), ("淡水真珠", "たんすいしんじゅ")),
+    "38": (("マベ真珠", "まべしんじゅ"), ("淡水真珠", "たんすいしんじゅ")),
+    "43": (("黒毛和牛", "くろげわぎゅう"), ("日本短角種", "にほんたんかくしゅ")),
+}
+
+
+def quiz_product_name(pid):
+    product = LOCAL_PRODUCTS[pid]
+    return QUIZ_PRODUCT_NAMES.get(pid, (product["name"], product["reading"]))
+
+
 def short_discovery_questions(pid):
     info, product = PREFECTURE_INFO[pid], LOCAL_PRODUCTS[pid]
     region = region_of(pid)[0]
@@ -2591,7 +2650,6 @@ def short_discovery_questions(pid):
     others = [key for key in PREFECTURE_INFO if key != pid]
 
     def question(code, prompt, label, reading, candidates, explanation, skill):
-        # Closely match the answer's visible length within the relevant category.
         variants = sorted(candidates, key=lambda option: (option[2], abs(len(option[0])-len(label))))
         unique = {label: reading}
         for name, kana, _ in variants:
@@ -2602,30 +2660,42 @@ def short_discovery_questions(pid):
                     options=[f"{name}（{kana}）" if kana and kana != name else name for name, kana in unique.items()],
                     correct="0", skill=skill, reasoning=False)
 
-    geography = {key: value for key, value in PREFECTURE_INFO.items() if key != pid}
     group = next((kinds for kinds in [
         {"川"}, {"平野", "盆地", "台地", "高原", "丘陵"}, {"湖"}, {"湾", "海", "海峡", "海岸", "島", "半島"}, {"山"}
     ] if info["kind"] in kinds), set())
-    geography_options = [
-        (v["land"], v["land_reading"],
-         (v["kind"] != info["kind"], v["kind"] not in group, key not in nearby, region_of(key)[0] != region))
-        for key, v in geography.items()
-    ]
-    # Group distractors by product type so the options are comparable.
-    families = ("rice:03 04 05 15 16 37", "fruit:02 06 07 19 23 29 30 33 40",
-                "vegetable:08 10 11 17 20 27 28 31 39 45", "sea:12 14 18 21 25 32 34 35 41 42",
-                "tea:13 22 26", "milk:01 09", "pearl:24 38", "root:36 44 46 47", "meat:43")
-    family = next(set(group.split(":")[1].split()) for group in families if pid in group.split(":")[1].split())
-    brand_options = [
-        (LOCAL_PRODUCTS[key]["name"], LOCAL_PRODUCTS[key]["reading"],
-         (key not in family, region_of(key)[0] != region, key not in nearby))
-        for key in others
-    ]
+    prefecture = info["name"].removesuffix("県").removesuffix("府")
+    land_label, land_reading = info["land"], info["land_reading"]
+    land_prompt = "地図でたしかめた地形はどれ？"
+    land_explanation = f"地図で見つけたのは{info['land']}です。"
+    if land_label.startswith(prefecture) and info["kind"] in QUIZ_LANDFORMS:
+        land_label, *alternatives = QUIZ_LANDFORMS[info["kind"]]
+        land_reading = ""
+        land_prompt = f"地図でたしかめた{info['kind']}は、どんな地形？"
+        land_explanation = f"{info['land']}は、{land_label}です。"
+        geography_options = [(option, "", (index,)) for index, option in enumerate(alternatives)]
+    else:
+        geography_options = [
+            (v["land"], v["land_reading"],
+             (v["kind"] != info["kind"], v["kind"] not in group, key not in nearby, region_of(key)[0] != region))
+            for key, v in PREFECTURE_INFO.items() if key != pid
+        ]
+
+    families = ("03 04 05 15 16 37", "02 06 07 19 23 29 30 33 40",
+                "08 10 11 17 20 27 28 31 39 45", "12 14 18 21 25 32 34 35 41 42",
+                "13 22 26", "36 44 46 47")
+    product_label, product_reading = quiz_product_name(pid)
+    if pid in QUIZ_PRODUCT_ALTERNATIVES:
+        brand_options = [(name, kana, (index,)) for index, (name, kana) in enumerate(QUIZ_PRODUCT_ALTERNATIVES[pid])]
+    else:
+        family = next(set(members.split()) for members in families if pid in members.split())
+        brand_options = [
+            (*quiz_product_name(key), (key not in family, region_of(key)[0] != region, key not in nearby))
+            for key in others
+        ]
     return [
-        question("land", f"{info['name']}の地図でたしかめた地形は？", info["land"], info["land_reading"],
-                 geography_options, f"{info['name']}で見つけたのは{info['land']}です。", "map"),
-        question("product", f"{info['name']}の名産として紹介したのは？", product["name"], product["reading"],
-                 brand_options, f"{info['name']}の名産として紹介したのは{product['name']}です。{product['pitch']}", "industry"),
+        question("land", land_prompt, land_label, land_reading, geography_options, land_explanation, "map"),
+        question("product", "地図といっしょに学んだ特産品はどれ？", product_label, product_reading, brand_options,
+                 f"学習で紹介したのは{product['name']}です。{STORY_INTROS[pid][0]}", "industry"),
     ]
 
 
@@ -4155,6 +4225,7 @@ function drawQuiz() {
   const question = quizQuestions()[attempt.questions.length-1], recorded = attempt.questions.at(-1);
   const answered = recorded.choice !== undefined;
   $("quiz-name").textContent = info().name;
+  $("quiz-name").hidden = question.id.endsWith(".name");
   $("quiz-prompt").textContent = question.prompt;
   $("think").hidden = !question.reasoning || answered;
   $("choices").replaceChildren(...recorded.options.map(key => {
