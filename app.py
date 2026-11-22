@@ -996,7 +996,8 @@ CAPITAL_DATA = """
 47|26.211538,127.681115
 """
 
-VERSION = "geography-prefecture-discovery-2"
+PREVIOUS_VERSION = "geography-prefecture-discovery-2"
+VERSION = "geography-prefecture-discovery-3"
 # 年齢の帯は、ホームの年齢設定と単独利用の年齢選択で共通。
 AGE_BANDS = [(1, 6, 2), (7, 7, 4), (8, 9, 6), (10, 10, 8), (11, 100, 10)]
 SKILLS = {
@@ -1048,7 +1049,12 @@ MENUS = {
 }
 
 
-def discovery_questions(pid):
+PREVIOUS_MENUS = MENUS
+MENUS = {key: {**menu, "age_min": 1, "age_max": 100}
+         for key, menu in PREVIOUS_MENUS.items() if menu["planned_question_count"] == 2}
+
+
+def previous_discovery_questions(pid):
     info = PREFECTURE_INFO[pid]
     region, region_label = region_of(pid)
     same_region = [p for p in PREFECTURE_INFO if p != pid and region_of(p)[0] == region]
@@ -2122,7 +2128,7 @@ PRODUCT_DATA = """
 01|なかしべつ牛乳|なかしべつぎゅうにゅう|北海道の東にある中標津の牛乳。朝ごはんに一口、そのまま飲んで、牛乳の風味をたしかめてみよう。|https://www.rakunou.org/nyuseihin_syokai/nyuseihin_syokai01.html
 02|青森のサンふじ|あおもりのさんふじ|パリッとかむと、甘い果汁がじゅわっ。切ったりんごの断面にも注目してみよう。|https://www.aomori-ringo.or.jp/wp-content/uploads/2023/04/pop_sanfuji.pdf
 03|銀河のしずく|ぎんがのしずく|炊くと白くつやつや。ほどよいねばりがあって、かむほどお米の甘みがわかるよ。|https://iwate-kome.jp/ginganoshizuku/
-04|だて正夢|だてまさゆめ|もちもちした食感が自慢のお米。おにぎりにして、ひと口ずつゆっくりかんでみよう。|https://datemasayume.pref.miyagi.jp/
+04|だて正夢|だてまさゆめ|もちもちした食感が自慢のお米。おにぎりにして、ひと口ずつゆっくりかんでみよう。|https://datemasayume.pref.miyagi.jp/|https://www.youtube.com/watch?v=uvlS-Sc4zO4
 05|あきたこまち|あきたこまち|冷めてもおいしい秋田のお米。あつあつのごはんと、おべんとうのおにぎり。どちらの食感が好きかな？|https://www.ja-town.com/shop/contents3/farmerinterview12.aspx|https://www.youtube.com/watch?v=3El8HSwv-1M
 06|佐藤錦|さとうにしき|赤く色づくさくらんぼ。甘さの中にほどよいすっぱさがあるよ。はじけるような一粒を味わってみよう。|https://www.pref.yamagata.jp/140032/sangyo/nourinsuisangyou/nogyo/nousambutsu/sakurambo/sakuranbohinsyu.html
 07|あかつき|あかつき|福島の甘くて果汁たっぷりの桃。切りたてをひと口食べると、口いっぱいに果汁が広がるよ。|https://ja-f-mirai.or.jp/topics/?id=6304
@@ -2174,9 +2180,189 @@ for row in PRODUCT_DATA.strip().splitlines():
                                video=videos[0] if videos else "")
 
 
+# Chosen relief features for school geography, including selected local landmarks.
+CORE_RIVERS = set("""
+石狩川 天塩川 岩木川 北上川 雄物川 米代川 最上川 阿武隈川 那珂川 鬼怒川
+利根川 荒川 多摩川 相模川 信濃川 阿賀野川 庄川 黒部川 手取川 九頭竜川
+富士川 木曽川 大井川 天竜川 矢作川 宮川 淀川 大和川 熊野川 紀の川
+千代川 斐伊川 旭川 吉井川 太田川 江の川 吉野川 肱川 渡川 筑後川
+球磨川 大野川 大淀川 川内川
+""".split())
+CORE_PEAKS = set("""
+大雪山 利尻山 岩木山 岩手山 栗駒山 蔵王山 月山 鳥海山 磐梯山 燧ヶ岳
+筑波山 男体山 三本槍岳 赤城山 高尾山 丹沢山 箱根山 妙高山 立山 白山
+富士山 赤岳 槍ヶ岳 乗鞍岳 間ノ岳 茶臼山 御在所山 伊吹山 比叡山
+六甲山 大台ヶ原山 大山 三瓶山 剣山 石鎚山 英彦山 雲仙岳 阿蘇山
+くじゅう連山 霧島山 祖母山
+""".split())
+
+# Sea names use coastal reference points in latitude and longitude.
+# Inland prefectures have no sea labels. Keep enclosed seas distinct from ocean-facing shores.
+SEA_AREAS = {
+    "太平洋": """
+01:41.8,144.5 02:40.8,142.3 03:39.5,142.3 04:38.82,142.15 07:37.5,141.65
+08:36.35,141.2 12:35.55,141.15 13:34.45,140.4 14:34.95,139.45
+22:34.6,138.95 23:34.39,137.2 24:34.02,137.2 30:33.5,135.6 36:33.65,134.95
+39:33.13,133.65 45:32.0,132.02 46:30.62,131.15 47:25.5,128.7
+""",
+    "日本海": """
+01:43.5,138.5 02:40.9,139.7 05:39.75,139.1 06:38.75,139.2 15:38.2,138.18
+16:37.1,137.38 17:37.45,136.1 18:36.05,135.65 26:35.92,135.18 28:35.88,134.72
+31:35.82,134.08 32:35.8,132.9 35:34.73,131.15 40:34.0,130.2
+""",
+    "瀬戸内海": """
+27:34.62,135.14 28:34.52,134.52 33:34.43,134.1 34:34.13,132.85 35:33.73,132.02
+36:34.3,134.68 37:34.54,133.78 38:34.12,132.89 40:33.86,131.24 44:33.61,131.89
+""",
+    "オホーツク海": "01:45.05,144.3",
+    "東シナ海": "42:32.65,128.78 43:32.23,129.88 46:31.55,129.65 47:27.3,126.2",
+    "有明海": "40:33.03,130.37 41:33.04,130.23 42:32.84,130.35 43:32.69,130.33",
+    "東京湾": "12:35.51,139.83 13:35.57,139.88 14:35.37,139.83",
+    "伊勢湾": "23:34.78,136.8 24:34.69,136.8",
+}
+SEA_LABELS = {}
+for sea, sites in SEA_AREAS.items():
+    for site in sites.split():
+        pid, lat_lon = site.split(":")
+        SEA_LABELS.setdefault(pid, []).append(dict(name=sea, point=project(pid, lat_lon)))
+
+# Published product photographs link to the credited source page.
+PRODUCT_PHOTOS = {
+    "01": [("なかしべつ牛乳", "https://webshop.montbell.jp/common/images/product/prod_k/k0443201.jpg",
+            "https://webshop.montbell.jp/goods/disp.php?product_id=0443201", "モンベル")],
+    "09": [("ガーンジィゴールデンミルク", "https://minamigaoka.co.jp/smt/order/images/photo_item_01.png",
+            "https://minamigaoka.co.jp/smt/order/item_01.html", "南ヶ丘牧場")],
+    "11": [("深谷ねぎ", "https://i0.wp.com/assets.st-note.com/img/1662127100178-ZIcIsaTXQD.jpg?ssl=1",
+            "https://negiya-kenmochi.com/2022/09/02/%E6%B7%B1%E8%B0%B7%E3%81%AD%E3%81%8E%E3%80%81%E8%91%B1%E3%82%84-%E3%81%91%E3%82%93%E3%82%82%E3%81%A1%E3%81%AE%E3%81%AD%E3%81%8E%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6%E6%9B%B8%E3%81%84%E3%81%A6%E3%81%BF/",
+            "和合堂")],
+    "14": [("湘南しらすの釜揚げ", "https://shop.r10s.jp/f142018-yokosuka/cabinet/item/akez/akez002.jpg",
+            "https://item.rakuten.co.jp/f142018-yokosuka/akez002/", "横須賀市")],
+    "34": [("米田海産の広島かき", "https://yonedakaisan.co.jp/img/top/img_oyster.png",
+            "https://yonedakaisan.co.jp/", "米田海産")],
+    "45": [("みやざきワンタッチきゅうり", "https://www.pref.miyazaki.lg.jp/parts/000049647.jpg",
+            "https://www.pref.miyazaki.lg.jp/contents/org/honbu/hisho/komiya/local_0602.htm", "宮崎県"),
+           ("きゅうりのキムチ和え", "https://www.pref.miyazaki.lg.jp/parts/000049632.jpg",
+            "https://www.pref.miyazaki.lg.jp/contents/org/honbu/hisho/komiya/local_0602.htm", "宮崎県")],
+    "04": [("だて正夢の炊き込みご飯",
+            "https://datemasayume.pref.miyagi.jp/datemasayume-anniversary/common/images/recipe-a-01-image-01.jpg",
+            "https://datemasayume.pref.miyagi.jp/datemasayume-anniversary/", "だて正夢公式"),
+           ("炊く前のだて正夢",
+            "https://datemasayume.pref.miyagi.jp/datemasayume-anniversary/common/images/recipe-a-01-image-02.jpg",
+            "https://datemasayume.pref.miyagi.jp/datemasayume-anniversary/", "だて正夢公式")],
+    "17": [("加賀れんこん", "https://www.maff.go.jp/e/policies/intel/gi_act/attach/img/Register-6-19.jpg",
+            "https://www.maff.go.jp/j/shokusan/gi_act/register/0178/index.html", "農林水産省")],
+    "32": [("宍道湖産ヤマトシジミ", "https://www.maff.go.jp/e/policies/intel/gi_act/attach/img/Register-6-17.jpg",
+            "https://www.maff.go.jp/j/shokusan/gi_act/register/0171/index.html", "農林水産省")],
+    "47": [("沖縄黒糖", "https://www.maff.go.jp/e/policies/intel/gi_act/attach/img/Register-6-18.jpg",
+            "https://www.maff.go.jp/j/shokusan/gi_act/register/0172/index.html", "農林水産省")],
+}
+
+# Publisher-hosted previews link back to the original coverage.
+# Only include videos that show the named product or clearly identified use/production.
+PRODUCT_PREVIEWS = {
+    "02": [("青森りんごの品種", "ulkIuH1uBnc")],
+    "03": [("銀河のしずくの産地", "Y4jBf4tNG4E")],
+    "05": [("あきたこまちの新米", "3El8HSwv-1M"), ("あきたこまちの炊き方", "zD2hETWRxso")],
+    "06": [("山形の佐藤錦", "KVBqu11r1RY")],
+    "07": [("福島の桃 あかつき", "911pKuzb0AA")],
+    "08": [("土浦のれんこん", "gSKa7bM2Mzg")],
+    "10": [("嬬恋高原キャベツ", "lvY4lQykQK4")],
+    "12": [("千葉の郷土料理", "kgni-N5UT7k")],
+    "13": [("瑞穂町の東京狭山茶", "HvZuryi7jKA")],
+    "15": [("新潟のこしいぶき", "5q9FhzMD_D0")],
+    "16": [("富富富が給食に", "u0ttC5_YsaU")],
+    "17": [("加賀れんこんの食育動画", "gPvSvOaCLjM")],
+    "18": [("福井の越前がに", "EwpYby3EqoI")],
+    "19": [("シャインマスカットの収穫", "FuEvSy6Ntbs"), ("ぶどうの房を育てる", "tJ3DnlCzTpo")],
+    "20": [("川上村の高原レタス", "gEGANfer6fg")],
+    "21": [("清流長良川の鮎", "tJ6nMbDqzNg")],
+    "22": [("牧之原茶ができるまで", "fJHBf0V90mQ")],
+    "23": [("渥美半島のメロン", "q9T_XFSWD1U")],
+    "24": [("志摩の真珠", "fgP8u_wflY4"), ("真珠を育てる作業", "YFXPpk5r74U")],
+    "25": [("滋賀のふなずし", "x3QeHi3Gbtw")],
+    "26": [("宇治茶の産地", "S59adOVOBiU")],
+    "27": [("八尾若ごぼうと料理", "CyjkZa1AxYE")],
+    "28": [("淡路島たまねぎの収穫", "Q5DbJFmCcRY")],
+    "29": [("五條市西吉野の富有柿", "jfYOv3UtbL4")],
+    "30": [("有田市認定みかん", "MVIe2JgIW6Q")],
+    "31": [("鳥取砂丘らっきょうの収穫", "yXcXvaIjbBs")],
+    "33": [("清水白桃の収穫", "86ew0PS4-9E")],
+    "35": [("下関のふく", "qqayhtge77M")],
+    "36": [("徳島のなると金時", "lfS4Q7tSe68")],
+    "37": [("香川米おいでまい", "U65vzJSqI9c")],
+    "38": [("愛媛・宇和島の真珠", "lsFr6L9DyaE")],
+    "39": [("高知野菜 なす", "oX0umyUP3P0")],
+    "40": [("あまおうの食育動画", "gTiCQ-ygc3I"), ("あまおうの紹介", "FoTDJdGbbAU")],
+    "41": [("有明海と佐賀海苔", "U1fwDJhsoPQ")],
+    "42": [("九十九島かき", "_WIQiXdHLwM")],
+    "43": [("くまもとあか牛の紹介", "4oD0PMrXDXs")],
+    "44": [("大分の原木しいたけ", "NXmHsDa7EJY")],
+    "46": [("指宿のさつまいも", "wn_cV3UnM5U")],
+}
+
+
+def short_discovery_questions(pid):
+    info, product = PREFECTURE_INFO[pid], LOCAL_PRODUCTS[pid]
+    region = region_of(pid)[0]
+    nearby = LAND_NEIGHBORS.get(pid, []) + SEA_NEIGHBORS.get(pid, [])
+    others = [key for key in PREFECTURE_INFO if key != pid]
+
+    def question(code, prompt, label, reading, candidates, explanation, skill):
+        # Closely match the answer's visible length within the relevant category.
+        variants = sorted(candidates, key=lambda option: (option[2], abs(len(option[0])-len(label))))
+        unique = {label: reading}
+        for name, kana, _ in variants:
+            unique.setdefault(name, kana)
+            if len(unique) == 3:
+                break
+        return dict(id=f"geography.discovery.{pid}.{code}", prompt=prompt, explanation=explanation,
+                    options=[f"{name}（{kana}）" if kana and kana != name else name for name, kana in unique.items()],
+                    correct="0", skill=skill, reasoning=False)
+
+    geography = {key: value for key, value in PREFECTURE_INFO.items() if key != pid}
+    group = next((kinds for kinds in [
+        {"川"}, {"平野", "盆地", "台地", "高原", "丘陵"}, {"湖"}, {"湾", "海", "海峡", "海岸", "島", "半島"}, {"山"}
+    ] if info["kind"] in kinds), set())
+    geography_options = [
+        (v["land"], v["land_reading"],
+         (v["kind"] != info["kind"], v["kind"] not in group, key not in nearby, region_of(key)[0] != region))
+        for key, v in geography.items()
+    ]
+    # Group distractors by product type so the options are comparable.
+    families = ("rice:03 04 05 15 16 37", "fruit:02 06 07 19 23 29 30 33 40",
+                "vegetable:08 10 11 17 20 27 28 31 39 45", "sea:12 14 18 21 25 32 34 35 41 42",
+                "tea:13 22 26", "milk:01 09", "pearl:24 38", "root:36 44 46 47", "meat:43")
+    family = next(set(group.split(":")[1].split()) for group in families if pid in group.split(":")[1].split())
+    brand_options = [
+        (LOCAL_PRODUCTS[key]["name"], LOCAL_PRODUCTS[key]["reading"],
+         (key not in family, region_of(key)[0] != region, key not in nearby))
+        for key in others
+    ]
+    return [
+        question("land", f"{info['name']}の地図でたしかめた地形は？", info["land"], info["land_reading"],
+                 geography_options, f"{info['name']}で見つけたのは{info['land']}です。", "map"),
+        question("product", f"{info['name']}の名産として紹介したのは？", product["name"], product["reading"],
+                 brand_options, f"{info['name']}の名産として紹介したのは{product['name']}です。{product['pitch']}", "industry"),
+    ]
+
+
 DISCOVERY = {
     pid: {**info, "capital_point": project(pid, CAPITAL_POINTS[pid]),
-          "land_point": project(pid, info["place"]), "questions": discovery_questions(pid),
+          "land_point": project(pid, info["place"]), "questions": short_discovery_questions(pid),
+          "previous_questions": previous_discovery_questions(pid), "seas": SEA_LABELS.get(pid, []),
+          "product_previews": [
+              dict(caption="写真："+label, image=image, url=url, credit=credit)
+              for label, image, url, credit in PRODUCT_PHOTOS.get(pid, [])
+          ] + [
+              dict(caption="動画："+label, image=f"https://i.ytimg.com/vi/{key}/mqdefault.jpg",
+                   url=f"https://www.youtube.com/watch?v={key}", credit="YouTube")
+              for label, key in PRODUCT_PREVIEWS.get(pid, [])
+          ],
+          "core_rivers": [feature["name"] for feature in VERIFIED_MAP[pid]["rivers"]
+                          if feature["name"] in CORE_RIVERS or feature["name"] == info["land"]],
+          "core_peaks": [feature["name"] for feature in VERIFIED_MAP[pid]["peaks"]
+                         if re.split("[（＜]", feature["name"])[0] in CORE_PEAKS
+                         or feature["name"].startswith(info["land"])],
           "industry_icon": INDUSTRY_MAP[pid][0], "industry_points": INDUSTRY_MAP[pid][1],
           "land_neighbors": LAND_NEIGHBORS.get(pid, []),
           "sea_neighbors": SEA_NEIGHBORS.get(pid, []), "local_product": LOCAL_PRODUCTS[pid],
@@ -2207,7 +2393,11 @@ def build_records(raw, profile, assignment=None, now=None):
     if raw.get("menu") in LEGACY_MENUS:
         return build_legacy_records(raw, profile, assignment, now)
     attempt = UUID(raw["id"])
-    menu = MENUS[raw["menu"]]
+    content_version = raw.get("content_version", PREVIOUS_VERSION)
+    if content_version not in (VERSION, PREVIOUS_VERSION):
+        raise ValueError("unknown quiz version")
+    current_quiz = content_version == VERSION
+    menu = (MENUS if current_quiz else PREVIOUS_MENUS)[raw["menu"]]
     pid = raw["pref"]
     status = raw["status"]
     lo, hi = parse(raw["started"]), parse(raw["ended"])
@@ -2226,7 +2416,7 @@ def build_records(raw, profile, assignment=None, now=None):
                  planned_question_count=total, mode="challenge", prefecture_id=pid,
                  settings_snapshot={"activity": "prefecture_discovery", "question_count": total, "explored_before_quiz": True})
     if (assignment and raw.get("assignment") == assignment["plan_item_id"]
-            and menu["menu_id"] == assignment["menu_id"] and assignment["content_version"] == VERSION):
+            and menu["menu_id"] == assignment["menu_id"] and assignment["content_version"] == content_version):
         start["plan_item_id"] = assignment["plan_item_id"]
     add("session_started", lo, start)
     opened = set()
@@ -2260,11 +2450,11 @@ def build_records(raw, profile, assignment=None, now=None):
                 add("learning_activity", at, {**data, "activity": "prefecture_feature_opened", "feature": feature})
         else:
             raise ValueError("invalid activity")
-    if items and (not placed or not {"capital", "land", "industry"} <= opened):
+    if items and (not placed or (not current_quiz and not {"capital", "land", "industry"} <= opened)):
         raise ValueError("exploration missing")
 
     correct = answered = 0
-    sources = DISCOVERY[pid]["questions"]
+    sources = DISCOVERY[pid]["questions" if current_quiz else "previous_questions"]
     for index, item in enumerate(items):
         question = sources[index]
         at = parse(item["shown"])
@@ -2315,7 +2505,8 @@ def build_records(raw, profile, assignment=None, now=None):
     for sequence, (when, kind, payload, question, occurrence, segment) in enumerate(
             sorted(events, key=lambda e:e[0]), 1):
         event = dict(schema_version=1, source_app=SOURCE, profile_id=profile, attempt_id=str(attempt),
-            event_id=str(uuid5(attempt, f"event:{sequence}")), app_version="2.0.0", content_version=VERSION,
+            event_id=str(uuid5(attempt, f"event:{sequence}")),
+            app_version="3.0.0" if current_quiz else "2.0.0", content_version=content_version,
             event_type=kind, occurred_at=iso(when), sequence=sequence, question_id=question,
             occurrence_id=occurrence, segment_id=segment, payload=payload)
         event["event_hash"] = hashlib.sha256(json.dumps(event, sort_keys=True, ensure_ascii=False,
@@ -2419,8 +2610,24 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
 #fact-shape{fill:#e8eed8;stroke:#427266;stroke-width:1.3;vector-effect:non-scaling-stroke}
 .capital-point circle,.production-pin circle{fill:#fffdf3;stroke:#496358;stroke-width:1.3}
 .capital-point text{fill:#254f43}
+.capital-point .capital-name{font-size:16px;font-weight:850;paint-order:stroke;stroke:#fffef4;stroke-width:3.5;stroke-linejoin:round}
+.sea-name{fill:#17677e;font-size:16px;font-weight:800;paint-order:stroke;stroke:#dff4f3;stroke-width:3;pointer-events:none}
+.sea-name.bay-name{font-size:12px}
+.product-previews{display:grid;gap:5px}
+.product-previews a{display:block;min-width:0;padding:3px;border-radius:6px;background:#fffef5;
+  color:#255649;font-weight:700;font-size:11px;line-height:1.2;text-decoration:none}
+.product-previews a:focus-visible{outline:2px solid #195b48;outline-offset:-2px}
+.product-previews img{display:block;width:100%;height:49px;object-fit:contain;background:#f1f1e7;border-radius:4px}
+.product-previews span{display:block;padding:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#product-previews-below{grid-template-columns:repeat(2,minmax(0,130px));margin:6px 0}
+#product-previews-below a{font-size:.74rem}
+#product-previews-below.mobile-only{display:none}
+@media(max-width:520px){
+  #map-product-box{display:none}
+  #product-previews-below.mobile-only{display:grid}
+}
 .production-pin circle{fill:#fff1d0;stroke:#98603b}
-.capital-point,.production-pin,.map-peak,.river-hit{cursor:pointer}
+.production-pin,.map-peak,.river-hit{cursor:pointer}
 .production-region{fill:#e6ad65;fill-opacity:.72;stroke:#9a6738;stroke-width:1.7;vector-effect:non-scaling-stroke}
 .map-river{fill:none;stroke:#2d77ab;stroke-width:2.15;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
 .map-river.selected{stroke:#024774;stroke-width:3.65}
@@ -2518,7 +2725,6 @@ body:has(#medal-dialog[open]){min-height:365px}
     <div id="phase-explore" hidden>
       <h2 id="pref-name" tabindex="-1"></h2>
       <p id="pref-capital"></p>
-      <p class="instruction">地図のしるしを タップして 発見しよう。</p>
       <div class="discovery-map">
         <svg id="fact-map" viewBox="0 0 560 330" role="group" aria-label="都道府県と周辺の地図。県庁、地形、産業・特産品のしるし。">
           <defs>
@@ -2527,14 +2733,19 @@ body:has(#medal-dialog[open]){min-height:365px}
           <g id="fact-neighbors" aria-hidden="true"></g>
           <path id="fact-shape" fill-rule="evenodd" clip-rule="evenodd"/>
           <g id="fact-neighbor-names" aria-hidden="true"></g>
+          <g id="fact-water" aria-hidden="true"></g>
+          <foreignObject id="map-product-box" hidden>
+            <div xmlns="http://www.w3.org/1999/xhtml" id="map-product-previews" class="product-previews"></div>
+          </foreignObject>
           <g id="fact-industry-area" clip-path="url(#fact-clip)" aria-hidden="true"></g>
           <g id="fact-rivers" clip-path="url(#fact-clip)"></g>
           <g id="fact-peaks"></g>
           <g id="fact-pins"></g>
         </svg>
       </div>
+      <div id="product-previews-below" class="product-previews" hidden></div>
       <div class="map-key">
-        <span id="capital-key-group">県庁所在地</span>
+        <span id="capital-key-group" hidden>★ 県庁所在地</span>
         <span id="terrain-key-group" hidden>川・山と地形</span>
         <span id="industry-key-group" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><g id="industry-key-symbol" class="industry-icon"></g></svg><span id="industry-name"></span></span>
       </div>
@@ -2713,7 +2924,7 @@ function shuffled(values) {
 }
 function init() {
   prefectures = new Map(args.map.map(p => [p.id, p]));
-  menus = new Map(args.menus.map(menu => [menu.menu_id, menu]));
+  menus = new Map([...args.previous_menus,...args.menus].map(menu => [menu.menu_id, menu]));
   for (const pref of prefectures.values()) {
     const path = document.createElementNS(SVG, "path");
     path.setAttribute("d", pref.path);
@@ -2759,13 +2970,14 @@ function courseAreas(menu) {
   ];
   return menu.region === "all" ? [] : [{key:menu.region, ids:menu.prefectures}];
 }
-function beginCourse(menu, area, assignment = null) {
+function beginCourse(menu, area, assignment = null, contentVersion = args.version) {
   if (!menu || cmCourseIsGraduated(menu)) return;
   if (attempt) finish("abandoned");
   const ids = area?.ids || menu.prefectures;
   const learned = new Set(cache.history.filter(a => a.status === "completed").map(a => a.pref));
   const fresh = ids.filter(id => !learned.has(id));
   attempt = {id:uuid(), menu:menu.menu_id, pref:shuffled(fresh.length ? fresh : ids)[0], started:time(),
+    content_version:contentVersion,
     area:area?.key || null, mapZoomed:menu.region !== "all", phase:"map",
     actions:[], intervals:[], questions:[], assignment};
   medalResult = null;
@@ -2805,15 +3017,15 @@ function showMenu() {
   $("age").value = String(Math.min(age,11));
   $("age").disabled = Boolean(args.age);
   $("resume").hidden = !attempt;
-  const assigned = args.assignment?.content_version === args.version ? args.assignment : null;
+  const assigned = [args.version,args.previous_version].includes(args.assignment?.content_version) ? args.assignment : null;
   const assignmentMenu = menus.get(assigned?.menu_id);
   $("assigned-course").hidden = !assignmentMenu;
   if (assignmentMenu) {
     $("assigned-course").replaceChildren(cmCourseButton(assignmentMenu, "きょうの課題　"+assignmentMenu.region_label,
       `1つの都道府県・${assignmentMenu.planned_question_count}問`,
-      () => beginCourse(assignmentMenu, null, assigned.plan_item_id)));
+      () => beginCourse(assignmentMenu, null, assigned.plan_item_id, assigned.content_version)));
   }
-  const list = [...menus.values()].filter(menu => menu.age_min <= age && age <= menu.age_max);
+  const list = args.menus.filter(menu => menu.age_min <= age && age <= menu.age_max);
   const national = list.find(menu => menu.region === "all");
   $("national-course").onclick = () => beginCourse(national, null);
   $("national-course").disabled = !national || cmCourseIsGraduated(national);
@@ -2858,6 +3070,9 @@ function current() { return attempt; }
 function placed() { return attempt.actions.some(a => a.type === "placement" && a.target === attempt.pref); }
 function containsHint() { return attempt.actions.some(a => a.type === "hint"); }
 function info() { return args.discovery[attempt.pref]; }
+function currentQuiz() { return attempt.content_version === args.version; }
+function quizQuestions() { return currentQuiz() ? info().questions : info().previous_questions; }
+function canStartQuiz() { return currentQuiz() || (didOpen("land") && didOpen("industry")); }
 function didOpen(key) { return attempt.actions.some(a => a.type === "explore" && a.feature === key); }
 function showQuestion() {
   const pref = prefectures.get(attempt.pref);
@@ -2867,6 +3082,7 @@ function showQuestion() {
   })[attempt.phase];
   const total = menus.get(attempt.menu).planned_question_count;
   $("count").textContent = attempt.phase === "quiz" ? `${attempt.questions.length} / ${total}` : "";
+  display("game");
   if (attempt.phase === "map") {
     armed = false;
     drag = null;
@@ -2887,7 +3103,6 @@ function showQuestion() {
   } else {
     drawQuiz();
   }
-  display("game");
   wake();
   persist();
 }
@@ -3035,6 +3250,89 @@ function renderFactNeighbors(pref, item, transform, toMap, scale, tx, ty) {
   }
 }
 
+function mapWater(pref, item, toMap, scale, tx, ty) {
+  const water = $("fact-water");
+  if (water.dataset.prefecture === pref.id) return;
+  water.dataset.prefecture = pref.id;
+  water.replaceChildren();
+  const paths = [$("fact-shape"), ...$("fact-neighbors").children];
+  const point = new DOMPoint();
+  const onLand = (x,y) => {
+    point.x = (x-tx)/scale;
+    point.y = (y-ty)/scale;
+    return paths.some(path => path.isPointInFill(point));
+  };
+  const labels = [];
+  for (const sea of item.seas) {
+    const [nearX,nearY] = toMap(sea.point);
+    const narrow = sea.name.endsWith("湾");
+    const step = narrow ? 4 : 8;
+    const half = (narrow ? 6 : 8)*sea.name.length;
+    const x0 = Math.min(FACT_WIDTH-half-8,Math.max(half+8,nearX));
+    const y0 = Math.min(FACT_HEIGHT-18,Math.max(18,nearY));
+    let nearest = Infinity, location;
+    for (let y = Math.max(18,y0-48); y <= Math.min(FACT_HEIGHT-18,y0+48); y += step) {
+      for (let x = Math.max(half+8,x0-64); x <= Math.min(FACT_WIDTH-half-8,x0+64); x += step) {
+        if ([-half,0,half].some(dx => [-7,7].some(dy => onLand(x+dx,y+dy)))) continue;
+        if (labels.some(label => Math.abs(x-label.x)<half+label.half+10 && Math.abs(y-label.y)<23)) continue;
+        const distance = Math.hypot(x-x0,y-y0);
+        if (distance < nearest) { nearest = distance; location = {x,y,half}; }
+      }
+    }
+    if (!location) continue;
+    labels.push(location);
+    const label = svgNode("text",{x:location.x,y:location.y,class:narrow?"sea-name bay-name":"sea-name",
+      "text-anchor":"middle","dominant-baseline":"central"});
+    label.textContent = sea.name;
+    water.append(label);
+  }
+  if (!item.product_previews.length) return;
+  // Use empty space to the right first, then the left. A separate row is used when neither fits.
+  const photoBox = $("map-product-box"), width = 126, height = 153;
+  for (const x of [FACT_WIDTH-width-13,13]) {
+    for (const y of [FACT_HEIGHT-height-12,16,94]) {
+      if (labels.some(l => l.x+l.half>x && l.x-l.half<x+width && l.y+13>y && l.y-13<y+height)) continue;
+      const blocked = [0,.25,.5,.75,1].some(u =>
+        [0,.25,.5,.75,1].some(v => onLand(x+u*width,y+v*height)));
+      if (blocked) continue;
+      photoBox.setAttribute("x",x);
+      photoBox.setAttribute("y",y);
+      photoBox.setAttribute("width",width);
+      photoBox.setAttribute("height",height);
+      photoBox.dataset.fits = "yes";
+      return;
+    }
+  }
+  photoBox.dataset.fits = "no";
+}
+function renderProductPreviews(pref, item, selected) {
+  const box = $("map-product-box"), below = $("product-previews-below");
+  const previews = item.product_previews;
+  box.toggleAttribute("hidden", selected !== "industry" || !previews.length || box.dataset.fits !== "yes");
+  below.hidden = selected !== "industry" || !previews.length;
+  below.classList.toggle("mobile-only",box.dataset.fits === "yes");
+  if (!previews.length || selected !== "industry" || below.dataset.prefecture === pref.id) return;
+  below.dataset.prefecture = pref.id;
+  for (const parent of [$("map-product-previews"),below]) {
+    parent.replaceChildren(...previews.map(({caption,image,url,credit}) => {
+      const link = document.createElement("a");
+      link.href = url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      const picture = document.createElement("img");
+      picture.loading = "lazy";
+      picture.referrerPolicy = "no-referrer";
+      picture.alt = "";
+      picture.onerror = () => { picture.hidden = true; };
+      picture.src = image;
+      const label = document.createElement("span");
+      label.textContent = caption+" · "+credit;
+      link.append(picture,label);
+      return link;
+    }));
+  }
+}
+
 function renderFactMap(pref, item, selected) {
   const [x,y,w,h] = pref.bounds;
   const scale = Math.min((FACT_WIDTH-144)/w,(FACT_HEIGHT-92)/h);
@@ -3044,6 +3342,8 @@ function renderFactMap(pref, item, selected) {
   $("fact-shape").setAttribute("d",pref.path);
   $("fact-shape").setAttribute("transform",transform);
   renderFactNeighbors(pref,item,transform,toMap,scale,tx,ty);
+  mapWater(pref,item,toMap,scale,tx,ty);
+  renderProductPreviews(pref,item,selected);
   for (const id of ["fact-rivers","fact-peaks","fact-industry-area","fact-pins","relief-controls"]) $(id).replaceChildren();
   $("fact-industry-area").hidden = selected !== "industry";
   $("relief-controls").hidden = selected !== "land";
@@ -3051,11 +3351,17 @@ function renderFactMap(pref, item, selected) {
   $("industry-key-group").hidden = selected !== "industry";
   $("capital-key-group").hidden = selected !== "capital";
   if (selected === "capital") {
-    $("map-caption").textContent = "★ 都道府県庁の位置";
+    $("map-caption").textContent = "";
     const pin = svgNode("g",{class:"capital-point",transform:`translate(${toMap(item.capital_point).join(" ")})`});
     pin.append(svgNode("circle",{r:10}),Object.assign(svgNode("text",
       {"font-size":13,"dominant-baseline":"central","text-anchor":"middle"}),{textContent:"★"}));
-    $("fact-pins").append(featureControl(pin,item.capital+"をみる",()=>openFeature("capital")));
+    const [capitalX] = toMap(item.capital_point);
+    const left = capitalX+18+16*item.capital.length > FACT_WIDTH;
+    const name = svgNode("text",{class:"capital-name",x:left?-14:14,y:0,
+      "dominant-baseline":"central","text-anchor":left?"end":"start"});
+    name.textContent = item.capital;
+    pin.append(name);
+    $("fact-pins").append(pin);
     return;
   }
   if (selected === "industry") {
@@ -3075,16 +3381,21 @@ function renderFactMap(pref, item, selected) {
     $("industry-name").textContent = item.industry;
     return;
   }
-  $("map-caption").textContent = "青い線は川の流路、山のマークは山頂の位置です。全体を見渡せるよう、流路は簡略化しています。";
-  if (!item.rivers.some(r=>r.name===item.land) && !item.peaks.some(m=>m.name.includes(item.land))) {
+  const rivers = [...item.rivers.entries()].filter(([,river]) => item.core_rivers.includes(river.name));
+  const peaks = [...item.peaks.entries()].filter(([,peak]) => item.core_peaks.includes(peak.name));
+  $("relief-controls").hidden = !rivers.length && !peaks.length;
+  $("terrain-key-group").textContent = rivers.length && peaks.length ? "川・山と地形" : "地形";
+  $("map-caption").textContent = [rivers.length ? "青い線は川の流路です。" : "",
+    peaks.length ? "山のマークは山頂の位置です。" : ""].join("");
+  if (!rivers.some(([,r])=>r.name===item.land) && !peaks.some(([,m])=>m.name.includes(item.land))) {
     const [lx,ly] = toMap(item.land_point);
     const label = svgNode("text",{x:lx,y:ly-7,class:"place-reference","text-anchor":"middle"});
     label.textContent = item.land+" 付近";
     $("fact-pins").append(label);
   }
   const selectedRelief = attempt.relief;
-  const detail = selectedRelief?.kind==="river" ? item.rivers[selectedRelief.index] :
-    selectedRelief?.kind==="peak" ? item.peaks[selectedRelief.index] : null;
+  const detail = selectedRelief?.kind==="river" ? rivers.find(([index])=>index===selectedRelief.index)?.[1] :
+    selectedRelief?.kind==="peak" ? peaks.find(([index])=>index===selectedRelief.index)?.[1] : null;
   if (detail) {
     const [px,py] = toMap(detail.point);
     const label = svgNode("text",{x:Math.max(58,Math.min(FACT_WIDTH-58,px)),y:Math.max(17,py-18),
@@ -3092,7 +3403,7 @@ function renderFactMap(pref, item, selected) {
     label.textContent = detail.name;
     $("fact-pins").append(label);
   }
-  for (const [index, river] of item.rivers.entries()) {
+  for (const [index, river] of rivers) {
     const path = svgNode("path",{d:river.path,transform,
       class:"map-river"+(selectedRelief?.kind==="river" && selectedRelief.index===index?" selected":"")});
     const hit = svgNode("path",{d:river.path,transform,class:"river-hit"});
@@ -3100,7 +3411,7 @@ function renderFactMap(pref, item, selected) {
     wrapper.append(path,hit);
     $("fact-rivers").append(featureControl(wrapper,river.name+"をみる",()=>openRelief("river",index)));
   }
-  for (const [index, peak] of item.peaks.entries()) {
+  for (const [index, peak] of peaks) {
     const pin = svgNode("g",{class:"map-peak"+(selectedRelief?.kind==="peak" && selectedRelief.index===index?" selected":""),
       transform:`translate(${toMap(peak.point).join(" ")})`});
     pin.append(svgNode("circle",{r:13}),
@@ -3110,8 +3421,8 @@ function renderFactMap(pref, item, selected) {
     $("fact-peaks").append(featureControl(pin,peak.name+"をみる",()=>openRelief("peak",index)));
   }
   const controls = [
-    ...item.rivers.map((f,i)=>["river",i,"川",f.name]),
-    ...item.peaks.map((f,i)=>["peak",i,"山",f.name]),
+    ...rivers.map(([i,f])=>["river",i,"川",f.name]),
+    ...peaks.map(([i,f])=>["peak",i,"山",f.name]),
   ];
   for (const [kind,index,icon,name] of controls) {
     const button = document.createElement("button");
@@ -3206,7 +3517,7 @@ function readCurrent() {
       speakText(`${$("fact-title").textContent}。${$("fact-text").textContent}${pitch}${place}`,item);
     }
   } else if (stage === "game" && attempt?.phase === "quiz") {
-    const entry = attempt.questions.at(-1), q = info().questions[attempt.questions.length-1];
+    const entry = attempt.questions.at(-1), q = quizQuestions()[attempt.questions.length-1];
     const text = entry.choice !== undefined ? $("quiz-feedback").textContent :
       [$("quiz-prompt").textContent,!$("think").hidden ? $("think").textContent : "",
        ...entry.options.map((key,i)=>`${i+1}ばん、${q.options[Number(key)]}`)].filter(Boolean).join("。");
@@ -3279,7 +3590,7 @@ function drawExplore(pref) {
     control.setAttribute("aria-pressed", String(selected === key));
     control.querySelector("span").hidden = !didOpen(key);
   }
-  $("start-quiz").disabled = !didOpen("land") || !didOpen("industry");
+  $("start-quiz").disabled = !canStartQuiz();
 }
 function renderLocalProduct(product) {
   $("local-product").hidden = !product;
@@ -3304,7 +3615,7 @@ function openFeature(key) {
   persist();
 }
 function startQuiz() {
-  if (!didOpen("land") || !didOpen("industry")) return;
+  if (!canStartQuiz()) return;
   attempt.phase = "quiz";
   nextQuestion();
 }
@@ -3312,14 +3623,14 @@ function nextQuestion() {
   if (!attempt || attempt.phase !== "quiz") return;
   const total = menus.get(attempt.menu).planned_question_count;
   if (attempt.questions.length >= total) { finish("completed"); return; }
-  const q = info().questions[attempt.questions.length];
+  const q = quizQuestions()[attempt.questions.length];
   attempt.questions.push({id:q.id, shown:time(), options:shuffled(["0","1","2"])});
   showQuestion();
   $("quiz-prompt").focus({preventScroll:true});
   readCurrent();
 }
 function drawQuiz() {
-  const question = info().questions[attempt.questions.length-1], recorded = attempt.questions.at(-1);
+  const question = quizQuestions()[attempt.questions.length-1], recorded = attempt.questions.at(-1);
   const answered = recorded.choice !== undefined;
   $("quiz-name").textContent = info().name;
   $("quiz-prompt").textContent = question.prompt;
@@ -3529,7 +3840,7 @@ def request(path, body, prefer=None):
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
-def publish_catalog(base):
+def publish_catalog(base, version):
     rows = list(catalog())
     for start in range(0, len(rows), 200):
         request("chokomana_learning_catalog?on_conflict=source_app,entry_type,entry_id,content_version",
@@ -3694,7 +4005,7 @@ def main():
         start = perf_counter()
         outcome, code = "saved", None
         try:
-            publish_catalog(base)
+            publish_catalog(base, VERSION)
         except HTTPError as error:
             outcome, code = "retry", error.code
         except (ValueError, OSError):
@@ -3721,7 +4032,9 @@ def main():
     def check_graduation():
         cm_poll_graduation(st, state, profile, 'geography', lambda: cm_geography_graduation_rows(profile))
     check_graduation()
-    message = component(graduated_units=state.get('_cm_graduation_units', []), map=MAP, discovery=DISCOVERY, menus=list(MENUS.values()), version=VERSION, build=build, age=state.get("age"),
+    message = component(graduated_units=state.get('_cm_graduation_units', []), map=MAP, discovery=DISCOVERY, menus=list(MENUS.values()),
+        previous_menus=list(PREVIOUS_MENUS.values()), previous_version=PREVIOUS_VERSION,
+        version=VERSION, build=build, age=state.get("age"),
         configured=configured, profile=state.get("profile"),
         assignment=state.get("assignment"), ack=state.get("ack"), catalog_status=state.get("catalog_status"),
         key="geography_" + state.get("launch", "standalone")[:16], default=None)
