@@ -2999,6 +2999,11 @@ button:disabled{cursor:default}
 .region-heading{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:9px}
 .region-heading h2{margin:0 0 12px}
 #board-label{font-weight:750;font-size:.85rem;color:var(--muted)}
+#placement-recall{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;margin:6px 0 10px}
+#placement-recall h2{margin:0;font-size:clamp(1.1rem,3vw,1.45rem)}
+#placement-map.is-placed{grid-template-columns:1fr}
+#placement-map.is-placed #map{cursor:default}
+#placement-map.is-placed #inset text{display:none}
 .menu-extra{display:flex;gap:8px;flex-wrap:wrap}
 #courses button{text-align:left}
 
@@ -3179,8 +3184,12 @@ body:has(#medal-dialog[open]){min-height:365px}
     <div class="progress"><strong id="course"></strong><span id="count" aria-live="polite"></span></div>
     <div id="phase-map">
     <p class="instruction" id="prompt">ピースを 地図の ぴったりの場所へ <span id="board-label"></span></p>
-    <div class="play">
-      <div class="tray">
+    <div id="placement-recall" hidden>
+      <h2 id="recall-prompt" tabindex="-1">ぴったり！ どの都道府県かな？</h2>
+      <button type="button" id="reveal-prefecture">名前を たしかめる</button>
+    </div>
+    <div id="placement-map" class="play">
+      <div id="placement-tray" class="tray">
         <button type="button" id="piece" aria-label="ピースをつかむ" aria-pressed="false">
           <svg id="pieceImage" viewBox="0 0 120 90" aria-hidden="true" focusable="false">
             <g id="pieceLayer">
@@ -3601,9 +3610,18 @@ function updateMap() {
   $("zoom").textContent = zoomed ? "全国の地図" : "地方の地図";
 }
 function drawQuestion() {
-  const hint = containsHint();
-  const highlight = keyboard >= 0 ? [...paths.keys()][keyboard] : null;
+  const solved = placed();
+  const hint = !solved && containsHint();
+  const highlight = !solved && keyboard >= 0 ? [...paths.keys()][keyboard] : null;
+  $("placement-recall").hidden = !solved;
+  $("prompt").hidden = $("placement-tray").hidden = $("feedback").hidden = solved;
+  $("placement-map").classList.toggle("is-placed",solved);
+  $("map").setAttribute("tabindex",solved ? "-1" : "0");
+  $("map").setAttribute("aria-label",solved
+    ? "日本地図。正しくはめた都道府県が色で示されています。"
+    : "日本地図。地図にピースをはめる。矢印キーで候補を移動し、Enterでおく。");
   for (const [id,path] of paths) {
+    path.classList.toggle("found", solved && id === attempt.pref);
     path.classList.toggle("hinted", hint && id === attempt.pref);
     path.classList.toggle("keyboard", id === highlight);
   }
@@ -3612,7 +3630,7 @@ function drawQuestion() {
   $("zoom").disabled = attempt.actions.length >= 195;
 }
 function put(target) {
-  if (attempt.phase !== "map") return;
+  if (attempt?.phase !== "map" || placed()) return;
   wake();
   const actions = attempt.actions;
   if (actions.length >= 195 && target !== attempt.pref) {
@@ -3623,11 +3641,8 @@ function put(target) {
   armed = false;
   diagnostic("piece_placement",{onMapLand:target!==null});
   if (target === attempt.pref) {
-    attempt.phase = "explore";
-    attempt.view = "capital";
-    attempt.actions.push({type:"explore",feature:"capital",at:time()});
-    showQuestion();
-    $("pref-name").focus({preventScroll:true});
+    drawQuestion();
+    $("recall-prompt").focus();
     readCurrent();
   } else {
     drawQuestion();
@@ -3635,6 +3650,16 @@ function put(target) {
     speakText($("feedback").textContent);
   }
   persist();
+}
+function revealPrefecture() {
+  if (attempt?.phase !== "map" || !placed()) return;
+  attempt.phase = "explore";
+  attempt.view = "capital";
+  attempt.actions.push({type:"explore",feature:"capital",at:time()});
+  showQuestion();
+  $("pref-name").focus();
+  const item = info();
+  speakText(`${item.reading || item.name}です。`,item);
 }
 const INDUSTRY_ICONS = {
   cow:'<path fill="#fffaf0" d="M5 9 2 5l6 1 2-3h4l2 3 6-1-3 5v6a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4Z"/><path fill="#bf7651" d="M5 9l3-2 2 4-3 3H5Zm10-2 3 1 1 3-4 2-2-3Z"/><rect x="7" y="13" width="10" height="6" rx="3" fill="#f4b6ae"/><path d="M10 16h.1m3.9 0h.1"/>',
@@ -4150,7 +4175,8 @@ function updateVoiceControl() {
 }
 function readCurrent() {
   if (stage === "game" && attempt?.phase === "map") {
-    speakText($("board-label").textContent+"。ピースを、地図のぴったりの場所へ。ドラッグするか、ピースと置く場所を順にタップ。");
+    speakText(placed() ? $("recall-prompt").textContent :
+      $("board-label").textContent+"。ピースを、地図のぴったりの場所へ。ドラッグするか、ピースと置く場所を順にタップ。");
   } else if (stage === "game" && attempt?.phase === "explore") {
     const item = info();
     if (attempt.view === "capital") {
@@ -4381,7 +4407,7 @@ function finish(status) {
 
 const piece = $("piece");
 piece.addEventListener("click", event => {
-  if (event.detail !== 0) return;
+  if (event.detail !== 0 || placed()) return;
   armed = !armed;
   drawQuestion();
   if (armed) $("map").focus();
@@ -4431,12 +4457,14 @@ $("map").addEventListener("keydown", event => {
   }
 });
 $("hint").onclick = () => {
+  if (placed()) return;
   wake();
   current().actions.push({type:"hint",at:time()});
   drawQuestion();
   persist();
 };
 $("zoom").onclick = () => {
+  if (placed()) return;
   wake();
   zoomed = !zoomed;
   attempt.mapZoomed = zoomed;
@@ -4445,6 +4473,7 @@ $("zoom").onclick = () => {
 };
 $("age").onchange = () => { cache.age = Number($("age").value); persist(); showMenu(); };
 for (const key of ["capital","land","industry"]) $("discover-"+key).onclick = () => openFeature(key);
+$("reveal-prefecture").onclick = revealPrefecture;
 $("start-quiz").onclick = startQuiz;
 $("next").onclick = nextQuestion;
 $("quit").onclick = () => {
