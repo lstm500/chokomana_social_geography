@@ -3052,11 +3052,10 @@ body:has(#medal-dialog[open]){min-height:365px}
 .feature-keys{display:flex;flex-wrap:wrap;gap:6px;padding:8px 0}
 .feature-keys button[aria-pressed=true]{background:#e5f2e9;border-color:var(--dark)}
 .fact,#quiz-feedback{background:#fffef5;border:1px solid var(--edge);padding:9px 13px;margin:4px 0 12px;border-radius:11px}
-#local-stories,#regional-industry-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(230px,100%),1fr));gap:8px;margin-top:10px}
-#regional-industries{margin-top:12px}
-#regional-industries-title{font-size:.92rem;margin:0}
+#industry-stories{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(230px,100%),1fr));gap:8px;margin-top:10px}
 #relief-list-title{margin-top:8px;font-weight:700}
 .local-story{padding:9px 11px;background:#edf5e9;border-radius:9px}
+.local-story.active{background:#fff4de;box-shadow:inset 0 0 0 2px #a15a29}
 .local-story h4{margin:0;color:#214f41;font-size:1.05rem}
 .local-story .story-pick{min-height:0;padding:2px 0;border:0;background:none;color:inherit;
   font:inherit;text-align:left;text-decoration:underline;text-underline-offset:3px}
@@ -3162,24 +3161,7 @@ body:has(#medal-dialog[open]){min-height:365px}
       <article class="fact" aria-live="polite">
         <h3 id="fact-title"></h3>
         <p id="fact-text"></p>
-        <div id="local-stories" hidden>
-          <section class="local-story" aria-labelledby="local-product-name">
-            <p class="story-category">特産品・ブランド</p>
-            <h4><button type="button" id="local-product-name" class="story-pick"></button></h4>
-            <p id="local-product-pitch"></p>
-            <a id="local-product-source" target="_blank" rel="noopener noreferrer">特産品の出典</a>
-          </section>
-          <section class="local-story" aria-labelledby="local-dish-name">
-            <p class="story-category">有名な食べ物</p>
-            <h4><button type="button" id="local-dish-name" class="story-pick"></button></h4>
-            <p id="local-dish-pitch"></p>
-            <a id="local-dish-source" target="_blank" rel="noopener noreferrer">料理の出典</a>
-          </section>
-        </div>
-        <section id="regional-industries" aria-labelledby="regional-industries-title" hidden>
-          <h4 id="regional-industries-title">ほかの産業・名産</h4>
-          <div id="regional-industry-cards"></div>
-        </section>
+        <div id="industry-stories" hidden></div>
       </article>
       <button id="start-quiz" disabled>特徴クイズに すすむ</button>
     </div>
@@ -3714,15 +3696,21 @@ function mapStories(item) {
   const product = item.local_product, dish = item.local_dish;
   const stories = [
     {key:"product", name:product.name, reading:product.reading, intro:item.product_intro,
+      category:"特産品・ブランド · "+item.industry, source:product.source,
       photos:item.product_story_photos.filter(p=>!item.wheat_place || p.caption!=="さぬきの夢の小麦畑")},
     ...item.regional_industries.map((story,index)=>({key:"regional-"+index, name:story.name,
-      reading:story.reading, intro:shortIndustryPitch(story.pitch), photos:[story.photo], place:story.place})),
+      reading:story.reading, intro:shortIndustryPitch(story.pitch), photos:[story.photo],
+      category:story.category, source:story.source, place:story.place})),
   ];
-  if (item.wheat_place) stories.push({key:"wheat", name:"さぬきの夢", place:item.wheat_place,
-    intro:"香川で生まれた小麦。粉にして、コシのある讃岐うどんを作るよ。", photos:[item.product_previews[1]]});
+  if (item.wheat_place) {
+    const photo = item.product_previews[1];
+    stories.push({key:"wheat", name:"さぬきの夢", place:item.wheat_place, category:"特産品・ブランド",
+      intro:"香川で生まれた小麦。粉にして、コシのある讃岐うどんを作るよ。", photos:[photo], source:photo.source});
+  }
   stories.push({key:"dish", name:dish.name, reading:dish.reading, intro:item.dish_intro,
+    category:"有名な食べ物", source:dish.source,
     photos:item.product_previews.slice(0,1), place:item.dish_place});
-  return stories;
+  return stories.map((story,index)=>({...story, number:index+1}));
 }
 function selectedMapStory(stories) {
   return stories.find(story=>story.key===attempt.mapStory) || stories[0];
@@ -3738,17 +3726,15 @@ function selectMapStory(key, focusPhoto = true) {
   readCurrent();
   persist();
 }
-function renderProductPreviews(pref, item, selected) {
+function renderProductPreviews(pref, stories, active) {
   const gallery = $("map-product-previews");
-  const visible = selected === "industry";
+  const visible = Boolean(active);
   $("fact-map-panel").classList.toggle("has-products",visible);
   gallery.hidden = !visible;
   if (!visible) return;
-  const stories = mapStories(item);
-  const active = selectedMapStory(stories).key;
   if (gallery.dataset.prefecture !== pref.id) {
     gallery.dataset.prefecture = pref.id;
-    gallery.replaceChildren(...stories.flatMap((story,index)=>story.photos.map(media=>{
+    gallery.replaceChildren(...stories.flatMap(story=>story.photos.map(media=>{
       const card = document.createElement("figure");
       card.dataset.story = story.key;
       const pick = document.createElement("button");
@@ -3761,7 +3747,7 @@ function renderProductPreviews(pref, item, selected) {
       image.src = media.image;
       image.onerror = () => {image.hidden = true;};
       const label = document.createElement("span");
-      label.textContent = (index+1)+". "+media.caption;
+      label.textContent = story.number+". "+media.caption;
       const source = document.createElement("a");
       source.href = media.image;
       source.className = "photo-credit";
@@ -3775,7 +3761,7 @@ function renderProductPreviews(pref, item, selected) {
     })));
   }
   for (const card of gallery.children) {
-    const on = active === card.dataset.story;
+    const on = active.key === card.dataset.story;
     card.classList.toggle("active",on);
     card.querySelector("button").setAttribute("aria-pressed",String(on));
   }
@@ -3793,7 +3779,8 @@ function renderIndustryMap(pref,item) {
   const {transform,toMap} = factMapProjection(pref);
   const stories = mapStories(item);
   const active = selectedMapStory(stories);
-  renderProductPreviews(pref,item,"industry");
+  renderProductPreviews(pref,stories,active);
+  renderIndustryStories(pref,stories,active);
   $("fact-industry-area").replaceChildren(svgNode("path",{
     d:item.production_area,transform,class:"production-region"+(active.key==="product"?"":" quiet"),
     "fill-rule":"evenodd",
@@ -3808,12 +3795,12 @@ function renderIndustryMap(pref,item) {
     symbol.innerHTML = INDUSTRY_ICONS[item.industry_icon];
     pin.append(svgNode("circle",{r:15}),symbol, Object.assign(svgNode("text",{x:9,y:-8,
       "font-size":9,"font-weight":800,fill:"#70421c",stroke:"#fffdf4","stroke-width":2,
-      "paint-order":"stroke"}),{textContent:"1"}));
+      "paint-order":"stroke"}),{textContent:String(stories[0].number)}));
     pins.append(featureControl(pin,site.name+"の"+item.industry+"をみる",()=>selectMapStory("product")));
   }
-  const pending = stories.map((story,index)=>({story,index})).filter(({story})=>story.place);
-  pending.sort((a,b)=>Number(a.story===active)-Number(b.story===active));
-  for (const {story,index} of pending) {
+  const pending = stories.filter(story=>story.place);
+  pending.sort((a,b)=>Number(a===active)-Number(b===active));
+  for (const story of pending) {
     const selected = story===active;
     const [x,y] = toMap(story.place.point);
     regions.append(svgNode("circle",{cx:x,cy:y,r:selected?16:10,
@@ -3822,13 +3809,13 @@ function renderIndustryMap(pref,item) {
       transform:`translate(${x} ${y})`});
     marker.append(svgNode("circle",{r:selected?7.5:6}),Object.assign(svgNode("text",{
       "font-size":selected?10:8,"text-anchor":"middle","dominant-baseline":"central",
-    }),{textContent:String(index+1)}));
+    }),{textContent:String(story.number)}));
     pins.append(featureControl(marker,story.name+"："+story.place.label,()=>selectMapStory(story.key)));
   }
   $("industry-key-symbol").innerHTML = active.key === "product" ? INDUSTRY_ICONS[item.industry_icon] : "";
   $("industry-name").textContent = active.name;
   const localities = active.place?.label || item.production_cities.join("・");
-  $("map-caption").textContent = (stories.indexOf(active)+1)+". "+active.name+"："+localities+
+  $("map-caption").textContent = active.number+". "+active.name+"："+localities+
     (active.place ? "（代表地の周辺）" : "（産地を含む市町村）");
 }
 
@@ -3838,7 +3825,7 @@ function renderFactMap(pref, item, selected) {
   $("fact-shape").setAttribute("transform",transform);
   renderFactNeighbors(pref,item,transform,toMap,scale,tx,ty);
   mapWater(pref,item,toMap,scale,tx,ty);
-  if (selected !== "industry") renderProductPreviews(pref,item,selected);
+  if (selected !== "industry") renderProductPreviews(pref);
   const extent = $("fact-land-extent");
   extent.setAttribute("hidden","");
   const overlay = item.land_overlay;
@@ -4073,7 +4060,7 @@ function drawExplore(pref) {
   const facts = {
     capital: [item.capital+"（"+item.capital_reading+"）", "ここに都道府県庁があります。"],
     land: [item.land+"（"+item.land_reading+"）", `${item.kind}を地図で見つけよう。 ${item.climate}。`],
-    industry: [item.industry+"（"+item.industry_reading+"）", ""],
+    industry: ["産業・特産品", ""],
   };
   const relief = attempt.relief;
   if (selected === "land" && relief?.kind === "river" && item.rivers[relief.index]) {
@@ -4093,12 +4080,7 @@ function drawExplore(pref) {
   $("fact-title").textContent = title;
   $("fact-text").textContent = text;
   $("fact-text").hidden = !text;
-  $("local-stories").hidden = $("regional-industries").hidden = selected !== "industry";
-  if (selected === "industry") {
-    renderLocalStory("product",item.local_product,item.product_intro);
-    renderLocalStory("dish",item.local_dish,item.dish_intro);
-    renderRegionalIndustries(pref.id,item.regional_industries);
-  }
+  $("industry-stories").hidden = selected !== "industry";
   for (const key of ["capital","land","industry"]) {
     const control = $("discover-"+key);
     control.setAttribute("aria-pressed", String(selected === key));
@@ -4106,43 +4088,41 @@ function drawExplore(pref) {
   }
   $("start-quiz").disabled = !canStartQuiz();
 }
-function renderLocalStory(key, story, intro) {
-  const id = "local-"+key;
-  const {name, reading, source} = story;
-  const pick = $(id+"-name");
-  pick.textContent = reading && reading !== name ? `${name}（${reading}）` : name;
-  pick.onclick = () => selectMapStory(key, false);
-  $(id+"-pitch").textContent = intro;
-  $(id+"-source").href = source;
-
-}
-function renderRegionalIndustries(prefecture, stories) {
-  const cards = $("regional-industry-cards");
-  if (cards.dataset.prefecture === prefecture) return;
-  cards.dataset.prefecture = prefecture;
-  cards.replaceChildren(...stories.map((story,index) => {
-    const card = document.createElement("article");
-    card.className = "local-story";
-    const category = document.createElement("p");
-    category.className = "story-category";
-    category.textContent = story.category;
-    const name = document.createElement("h4");
-    const pick = document.createElement("button");
-    pick.type = "button";
-    pick.className = "story-pick";
-    pick.textContent = story.name + (story.reading ? "（"+story.reading+"）" : "");
-    pick.onclick = () => selectMapStory("regional-"+index, false);
-    name.append(pick);
-    const pitch = document.createElement("p");
-    pitch.textContent = shortIndustryPitch(story.pitch);
-    const source = document.createElement("a");
-    source.href = story.source;
-    source.target = "_blank";
-    source.rel = "noopener noreferrer";
-    source.textContent = "出典を見る";
-    card.append(category,name,pitch,source);
-    return card;
-  }));
+function renderIndustryStories(pref, stories, active) {
+  const cards = $("industry-stories");
+  if (cards.dataset.prefecture !== pref.id) {
+    cards.dataset.prefecture = pref.id;
+    cards.replaceChildren(...stories.map(story => {
+      const card = document.createElement("section");
+      card.className = "local-story";
+      card.dataset.story = story.key;
+      const category = document.createElement("p");
+      category.className = "story-category";
+      category.textContent = story.category;
+      const heading = document.createElement("h4");
+      const pick = document.createElement("button");
+      pick.type = "button";
+      pick.className = "story-pick";
+      const reading = story.reading && story.reading !== story.name ? `（${story.reading}）` : "";
+      pick.textContent = `${story.number}. ${story.name}${reading}`;
+      pick.onclick = () => selectMapStory(story.key, false);
+      heading.append(pick);
+      const pitch = document.createElement("p");
+      pitch.textContent = story.intro;
+      const source = document.createElement("a");
+      source.href = story.source;
+      source.target = "_blank";
+      source.rel = "noopener noreferrer";
+      source.textContent = "出典を見る";
+      card.append(category,heading,pitch,source);
+      return card;
+    }));
+  }
+  for (const card of cards.children) {
+    const selected = card.dataset.story === active.key;
+    card.classList.toggle("active",selected);
+    card.querySelector("button").setAttribute("aria-pressed",String(selected));
+  }
 }
 function openFeature(key) {
   if (attempt.phase !== "explore") return;
