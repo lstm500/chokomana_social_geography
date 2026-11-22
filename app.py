@@ -2691,6 +2691,25 @@ INDUSTRY_PLACES["30"].extend([
 KAGAWA_WHEAT_PLACE = {"label":"綾川町", "point":project("37","34.25,133.92")}
 
 
+MANUFACTURING_ROWS = """
+06|米沢のパソコンづくり|よねざわのパソコンづくり|薄いノートパソコンに、小さな部品がぎっしり。米沢の工場で組み立てるよ。|米沢市|37.91,140.12|https://www.nec-lavie.jp/company/|https://tk.ismcdn.jp/mwimgs/4/f/1200w/img_4f742bbde7da0900ae7f30af7654fda6535602.jpg|https://toyokeizai.net/articles/-/914597?display=b|東洋経済オンライン
+08|日立建機の油圧ショベル|ひたちけんきのゆあつショベル|ひたちなかの工場で作る大きなショベル。大きな腕で岩や土をすくうよ。|ひたちなか市|36.397,140.58|https://jcmanet.or.jp/jcm/wp-content/uploads/2024/09/1d8fcd7d276fd653712197401a5de635.pdf|https://hitachikenki.scene7.com/is/image/hitachikenki/EX5600-7-8|https://www.hitachicm.com/global/ja/news/topics/2024/24-10-07/|日立建機
+09|宇都宮のヘリコプターづくり|うつのみやのヘリコプターづくり|羽をくるくる回して飛ぶヘリコプター。宇都宮には、機体を組み立てる工場があるよ。|宇都宮市|36.526,139.865|https://www.subaru.co.jp/outline/about/aerospace/|https://cdn.autoc-one.jp/images/article/201801/19131304303_o.jpg|https://autoc-one.jp/news/5001257/|MOTA
+10|太田のスバル車|おおたのスバルしゃ|太田では、スバルの車を作るよ。写真で、組み立て中の車を見つけよう。|太田市|36.292,139.373|https://www.subaru.co.jp/outline/office.html|https://news.mynavi.jp/premium/article/20260618-subaru-flexibility/images/014.jpg|https://news.mynavi.jp/premium/article/20260618-subaru-flexibility/|マイナビニュース
+25|長浜のヤンマーエンジン|ながはまのヤンマーエンジン|長浜で作る小さなエンジン。田んぼや畑で働く機械を動かすよ。|長浜市|35.43,136.23|https://www.yanmar.com/jp/about/company/power_technology/company.html|https://i.gzn.jp/img/2016/06/10/yanmar-biwa-plant/p3750092.jpg|https://gigazine.net/gsc_news/en/20160610-yanmar-biwa-plant/|GIGAZINE
+28|明石のカワサキバイク|あかしのカワサキバイク|明石で作るオートバイ。タイヤやエンジンをつけて、走れる形にしていくよ。|明石市|34.680,134.920|https://www.gizmodo.jp/2018/03/kawasaki_machine-factory.html|https://media.loom-app.com/gizmodo/dist/images/2018/03/23/kawasaki_AGV.jpg?w=640|https://www.gizmodo.jp/2018/03/kawasaki_machine-factory.html|ギズモード・ジャパン
+34|広島のマツダ車|ひろしまのマツダしゃ|府中町の工場では、車がラインを流れながら、少しずつ組み上がるよ。|府中町|34.380,132.507|https://www.mazda.com/ja/about/facilities/|https://www.hiroshimacvb.jp/unique-experience/mazdamuseum08_zone9_assembly_s.jpg|https://www.hiroshimacvb.jp/en/unique-experience/industrial-tours/1299.html|広島観光コンベンションビューロー
+40|苅田の日産車|かんだのにっさんしゃ|苅田の工場では、ロボットと人が車を作るよ。写真でロボットの腕を探そう。|苅田町|33.77,130.985|https://www.nissankyushu.co.jp/COMPANY/gaiyou.html|https://kbc.co.jp/up/content/15/52/af0f553689619619c16a0ddaedf161a8ca5fdd4a.jpg|https://kbc.co.jp/wish/article/37272/|九州朝日放送
+45|延岡のベンベルグ|のべおかのベンベルグ|綿の種に残る短い毛から、さらっとした糸を作るよ。服の裏地にも使われるんだ。|延岡市|32.58,131.65|https://www.asahi-kasei.co.jp/fibers/bemberg/facility/|https://www.asahi-kasei.cn/group/AKF/fibers/bemberg/img/bemberg-world/facility/sec02_img01.jpg|https://www.asahi-kasei.cn/group/AKF/fibers/bemberg/facility/|旭化成
+"""
+for row in MANUFACTURING_ROWS.strip().splitlines():
+    pid, name, reading, pitch, locality, location, source, image, photo_source, credit = row.split("|")
+    REGIONAL_INDUSTRIES[pid].append(
+        dict(category="ものづくり", name=name, reading=reading, pitch=pitch, source=source))
+    REGIONAL_PHOTOS[name] = dict(caption=name, image=image, source=photo_source, credit=credit)
+    INDUSTRY_PLACES[pid].append(dict(label=locality, point=project(pid, location)))
+
+
 DISCOVERY = {
     pid: {**info, "capital_point": project(pid, CAPITAL_POINTS[pid]),
           "land_point": project(pid, info["place"]), "questions": short_discovery_questions(pid),
@@ -3039,6 +3058,9 @@ body:has(#medal-dialog[open]){min-height:365px}
 #relief-list-title{margin-top:8px;font-weight:700}
 .local-story{padding:9px 11px;background:#edf5e9;border-radius:9px}
 .local-story h4{margin:0;color:#214f41;font-size:1.05rem}
+.local-story .story-pick{min-height:0;padding:2px 0;border:0;background:none;color:inherit;
+  font:inherit;text-align:left;text-decoration:underline;text-underline-offset:3px}
+.local-story .story-pick:hover{color:var(--explanation-accent)}
 .local-story p{margin:4px 0}
 .local-story .story-category,#pref-capital.supplement,
   #map-caption,#nearby-prefectures,.map-key{color:#526f66;font-size:.82rem}
@@ -3143,13 +3165,13 @@ body:has(#medal-dialog[open]){min-height:365px}
         <div id="local-stories" hidden>
           <section class="local-story" aria-labelledby="local-product-name">
             <p class="story-category">特産品・ブランド</p>
-            <h4 id="local-product-name"></h4>
+            <h4><button type="button" id="local-product-name" class="story-pick"></button></h4>
             <p id="local-product-pitch"></p>
             <a id="local-product-source" target="_blank" rel="noopener noreferrer">特産品の出典</a>
           </section>
           <section class="local-story" aria-labelledby="local-dish-name">
             <p class="story-category">有名な食べ物</p>
-            <h4 id="local-dish-name"></h4>
+            <h4><button type="button" id="local-dish-name" class="story-pick"></button></h4>
             <p id="local-dish-pitch"></p>
             <a id="local-dish-source" target="_blank" rel="noopener noreferrer">料理の出典</a>
           </section>
@@ -3683,24 +3705,38 @@ function mapWater(pref, item, toMap, scale, tx, ty) {
   }
 }
 
+function shortIndustryPitch(pitch) {
+  const sentences = pitch.match(/[^。？！]+[。？！]?/g) || [];
+  return sentences.length > 1 && sentences[0].length < 22 &&
+    sentences[0].length + sentences[1].length <= 62 ? sentences.slice(0,2).join("") : sentences[0] || pitch;
+}
 function mapStories(item) {
+  const product = item.local_product, dish = item.local_dish;
   const stories = [
-    {key:"product", name:item.local_product.name, photos:item.product_story_photos.filter(p=>
-      !item.wheat_place || p.caption!=="さぬきの夢の小麦畑")},
-    {key:"dish", name:item.local_dish.name, photos:item.product_previews.slice(0,1), place:item.dish_place},
+    {key:"product", name:product.name, reading:product.reading, intro:item.product_intro,
+      photos:item.product_story_photos.filter(p=>!item.wheat_place || p.caption!=="さぬきの夢の小麦畑")},
     ...item.regional_industries.map((story,index)=>({key:"regional-"+index, name:story.name,
-      photos:[story.photo], place:story.place})),
+      reading:story.reading, intro:shortIndustryPitch(story.pitch), photos:[story.photo], place:story.place})),
   ];
-  if (item.wheat_place) stories.push({key:"wheat",name:"さぬきの夢",place:item.wheat_place,
-    photos:[item.product_previews[1]]});
+  if (item.wheat_place) stories.push({key:"wheat", name:"さぬきの夢", place:item.wheat_place,
+    intro:"香川で生まれた小麦。粉にして、コシのある讃岐うどんを作るよ。", photos:[item.product_previews[1]]});
+  stories.push({key:"dish", name:dish.name, reading:dish.reading, intro:item.dish_intro,
+    photos:item.product_previews.slice(0,1), place:item.dish_place});
   return stories;
 }
-function selectMapStory(key) {
+function selectedMapStory(stories) {
+  return stories.find(story=>story.key===attempt.mapStory) || stories[0];
+}
+function selectMapStory(key, focusPhoto = true) {
   if (attempt?.phase !== "explore" || attempt.view !== "industry") return;
-  attempt.mapStory = key;
   const item = info();
+  if (!mapStories(item).some(story=>story.key===key)) return;
+  wake();
+  attempt.mapStory = key;
   renderIndustryMap(prefectures.get(attempt.pref),item);
-  $("map-product-previews").querySelector(`button[data-story="${key}"]`)?.focus({preventScroll:true});
+  if (focusPhoto) $("map-product-previews").querySelector(`button[data-story="${key}"]`)?.focus({preventScroll:true});
+  readCurrent();
+  persist();
 }
 function renderProductPreviews(pref, item, selected) {
   const gallery = $("map-product-previews");
@@ -3708,10 +3744,11 @@ function renderProductPreviews(pref, item, selected) {
   $("fact-map-panel").classList.toggle("has-products",visible);
   gallery.hidden = !visible;
   if (!visible) return;
-  const active = attempt.mapStory || "product";
+  const stories = mapStories(item);
+  const active = selectedMapStory(stories).key;
   if (gallery.dataset.prefecture !== pref.id) {
     gallery.dataset.prefecture = pref.id;
-    gallery.replaceChildren(...mapStories(item).flatMap((story,index)=>story.photos.map(media=>{
+    gallery.replaceChildren(...stories.flatMap((story,index)=>story.photos.map(media=>{
       const card = document.createElement("figure");
       card.dataset.story = story.key;
       const pick = document.createElement("button");
@@ -3754,9 +3791,8 @@ function factMapProjection(pref) {
 }
 function renderIndustryMap(pref,item) {
   const {transform,toMap} = factMapProjection(pref);
-  const key = attempt.mapStory || "product";
   const stories = mapStories(item);
-  const active = stories.find(story=>story.key===key) || stories[0];
+  const active = selectedMapStory(stories);
   renderProductPreviews(pref,item,"industry");
   $("fact-industry-area").replaceChildren(svgNode("path",{
     d:item.production_area,transform,class:"production-region"+(active.key==="product"?"":" quiet"),
@@ -3789,7 +3825,7 @@ function renderIndustryMap(pref,item) {
     }),{textContent:String(index+1)}));
     pins.append(featureControl(marker,story.name+"："+story.place.label,()=>selectMapStory(story.key)));
   }
-  $("industry-key-symbol").innerHTML = INDUSTRY_ICONS[item.industry_icon];
+  $("industry-key-symbol").innerHTML = active.key === "product" ? INDUSTRY_ICONS[item.industry_icon] : "";
   $("industry-name").textContent = active.name;
   const localities = active.place?.label || item.production_cities.join("・");
   $("map-caption").textContent = (stories.indexOf(active)+1)+". "+active.name+"："+localities+
@@ -3982,8 +4018,8 @@ function readCurrent() {
     if (attempt.view === "capital") {
       speakText(`${item.name}の都道府県庁は、${item.capital}にあります。地形や産業も、地図で見てみましょう。`,item);
     } else if (attempt.view === "industry") {
-      const product = item.local_product;
-      speakText(`${product.reading || product.name}。${item.product_intro}`,item);
+      const {name, reading, intro} = selectedMapStory(mapStories(item));
+      speakText(`${reading || name}。${intro}`,item);
     } else {
       speakText(`${$("fact-title").textContent}。${$("fact-text").textContent}`,item);
     }
@@ -4059,8 +4095,8 @@ function drawExplore(pref) {
   $("fact-text").hidden = !text;
   $("local-stories").hidden = $("regional-industries").hidden = selected !== "industry";
   if (selected === "industry") {
-    renderLocalStory("local-product",item.local_product,item.product_intro);
-    renderLocalStory("local-dish",item.local_dish,item.dish_intro);
+    renderLocalStory("product",item.local_product,item.product_intro);
+    renderLocalStory("dish",item.local_dish,item.dish_intro);
     renderRegionalIndustries(pref.id,item.regional_industries);
   }
   for (const key of ["capital","land","industry"]) {
@@ -4070,9 +4106,12 @@ function drawExplore(pref) {
   }
   $("start-quiz").disabled = !canStartQuiz();
 }
-function renderLocalStory(id, story, intro) {
+function renderLocalStory(key, story, intro) {
+  const id = "local-"+key;
   const {name, reading, source} = story;
-  $(id+"-name").textContent = reading && reading !== name ? `${name}（${reading}）` : name;
+  const pick = $(id+"-name");
+  pick.textContent = reading && reading !== name ? `${name}（${reading}）` : name;
+  pick.onclick = () => selectMapStory(key, false);
   $(id+"-pitch").textContent = intro;
   $(id+"-source").href = source;
 
@@ -4081,18 +4120,21 @@ function renderRegionalIndustries(prefecture, stories) {
   const cards = $("regional-industry-cards");
   if (cards.dataset.prefecture === prefecture) return;
   cards.dataset.prefecture = prefecture;
-  cards.replaceChildren(...stories.map(story => {
+  cards.replaceChildren(...stories.map((story,index) => {
     const card = document.createElement("article");
     card.className = "local-story";
     const category = document.createElement("p");
     category.className = "story-category";
     category.textContent = story.category;
     const name = document.createElement("h4");
-    name.textContent = story.name+ (story.reading ? "（"+story.reading+"）" : "");
+    const pick = document.createElement("button");
+    pick.type = "button";
+    pick.className = "story-pick";
+    pick.textContent = story.name + (story.reading ? "（"+story.reading+"）" : "");
+    pick.onclick = () => selectMapStory("regional-"+index, false);
+    name.append(pick);
     const pitch = document.createElement("p");
-    const sentences = story.pitch.match(/[^。？！]+[。？！]?/g) || [];
-    pitch.textContent = sentences.length > 1 && sentences[0].length < 22 &&
-      sentences[0].length+sentences[1].length <= 62 ? sentences.slice(0,2).join("") : sentences[0] || story.pitch;
+    pitch.textContent = shortIndustryPitch(story.pitch);
     const source = document.createElement("a");
     source.href = story.source;
     source.target = "_blank";
