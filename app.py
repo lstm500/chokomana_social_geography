@@ -3679,7 +3679,7 @@ function revealPrefecture() {
   attempt.actions.push({type:"explore",feature:"capital",at:time()});
   showQuestion();
   $("pref-name").focus();
-  readCurrent();
+  readCurrent({announcePrefecture:true});
 }
 const INDUSTRY_ICONS = {
   cow:'<path fill="#fffaf0" d="M5 9 2 5l6 1 2-3h4l2 3 6-1-3 5v6a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4Z"/><path fill="#bf7651" d="M5 9l3-2 2 4-3 3H5Zm10-2 3 1 1 3-4 2-2-3Z"/><rect x="7" y="13" width="10" height="6" rx="3" fill="#f4b6ae"/><path d="M10 16h.1m3.9 0h.1"/>',
@@ -4193,14 +4193,17 @@ function updateVoiceControl() {
   $("voice-label").textContent = !available ? "読み上げ未対応" :
     voices.length && !japaneseVoice(voices) ? "日本語音声なし" : "自動読み上げ";
 }
-function readCurrent() {
+function readCurrent({announcePrefecture = false} = {}) {
   if (stage === "game" && attempt?.phase === "map") {
     speakText(placed() ? $("recall-prompt").textContent :
       $("board-label").textContent+"。ピースを、地図のぴったりの場所へ。ドラッグするか、ピースと置く場所を順にタップ。");
   } else if (stage === "game" && attempt?.phase === "explore") {
     const item = info();
     if (attempt.view === "capital") {
-      speakText(`${item.reading || item.name}の県庁所在地は、${item.capital_reading || item.capital}です。`,item);
+      const prefecture = item.reading || item.name;
+      const capital = item.capital_reading || item.capital;
+      const introduction = announcePrefecture ? `これは${prefecture}です。` : "";
+      speakText(`${introduction}${prefecture}の県庁所在地は、${capital}です。`,item);
     } else if (attempt.view === "industry") {
       const {name, reading, intro} = selectedMapStory(mapStories(item));
       speakText(`${reading || name}。${intro}`,item);
