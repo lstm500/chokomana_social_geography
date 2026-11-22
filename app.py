@@ -2462,6 +2462,128 @@ for row in REGIONAL_INDUSTRY_ROWS.strip().splitlines():
         dict(category=category, name=name, reading=reading, pitch=pitch, source=source))
 
 
+SHORT_STORIES = """
+01|中標津で作る北海道の牛乳。冷たい一口で、ミルクの風味を味わおう。|さけと野菜をみそで煮こんだ、北海道のあったかい鍋。
+02|ぱりっとかむと、甘い果汁がじゅわっと広がるりんご。|南部せんべいを鍋へ。汁を吸うともっちりするよ。
+03|つやつやのお米。かむほど甘みが広がるよ。|小さなおわんに一口ずつ。食べるたびにおわんが積み上がるよ。
+04|もちもちのお米。おにぎりにして食感を楽しもう。|緑の枝豆あんを、お餅にたっぷりからめるよ。
+05|冷めてもおいしい秋田のお米。おべんとうのおにぎりにも。|棒に巻いて焼いたごはんが、鍋のだしをぎゅっと吸うよ。
+06|甘さの中に少しすっぱさがある、赤いさくらんぼ。|さといもを肉や野菜と煮るよ。秋には河原で大鍋を囲むことも。
+07|切ると果汁がじゅわっと広がる、福島の甘い桃。|会津のお祝いの汁物。貝柱のだしに小さな豆麩が浮かぶよ。
+08|輪切りの穴を数えてみよう。炒めるとシャキッとするよ。|あんこうの身や皮が入った、茨城の冬の鍋。
+09|那須でガーンジィという牛からしぼる、濃い味わいの牛乳。|おろした野菜と大豆などを煮る、栃木の冬の料理。
+10|すずしい高原で育つキャベツ。葉をかむとパリッ、ほんのり甘い。|幅広いめんと野菜をいっしょに煮こむ群馬の料理。
+11|白い部分が長いねぎ。焼くと中がとろりと甘くなるよ。|ごまが香る冷たいみそ仕立ての汁で、うどんをつるっと。
+12|九十九里のいわしをお酢とごまで味つけ。すっぱくて香ばしいよ。|魚にみそやねぎを加え、包丁でたたく漁師料理。
+13|東京の西で作るお茶。お湯を注ぐと、ふわっと香りが立つよ。|あさりのうまみをごはんと味わう、東京・深川の名物。
+14|相模湾の小さな魚。ゆでるとふんわり、ごはんにも合うよ。|大根・ごぼう・豆腐など、具ごとの歯ごたえを比べてみよう。
+15|炊くと粒がつやつや。冷めてもおいしい新潟のお米。|笹の葉をほどくと、よもぎ団子の香りがふわっ。
+16|富山生まれのお米。何ものせず、かんで甘みを探そう。|丸い押しずしを切ると、ますと酢めしの層が見えるよ。
+17|すりおろすと粘りが出る金沢のれんこん。輪切りと食感を比べよう。|肉や麩をとろみのある汁で煮る、石川の郷土料理。
+18|黄色いタグが目印。殻の中に甘いかにの身がつまっているよ。|冷たいそばに大根おろしを合わせる、福井のさっぱりした名物。
+19|皮はパリッ、中は甘くてさわやかな香りのぶどう。|幅広いめんをかぼちゃなどとみそ味で煮こむ、山梨の料理。
+20|すずしい高原のレタス。ちぎってかむと、シャキッといい音。|半分に割ると野沢菜やあん。長野の具入りのおやつ。
+21|長良川で育つあゆ。焼きたては香りがふわっと立つよ。|大きなほおの葉にみそをのせて焼く飛騨の料理。
+22|葉を長めに蒸すお茶。濃い緑色の一杯は、まろやかな味。|駿河湾の小さな桜えびを、香ばしいかき揚げにするよ。
+23|あみ目模様を切ると、甘い香りとやわらかな果肉が出てくるよ。|うなぎとごはん。そのまま、薬味、だしで味が変わるよ。
+24|貝の中で育つつやつやの粒。光の下で回すと輝き方が変わるよ。|やわらかな太めんに、色の濃いたれをからめる伊勢のうどん。
+25|湖の魚を塩とごはんで発酵。薄い一切れに独特の香りと酸味。|焼きさばの煮汁がそうめんにしみる、滋賀・湖北の味。
+26|抹茶をたてたら、緑の色と小さな泡、香りに注目。|甘辛く煮たにしんを、温かいそばにのせる京都の味。
+27|葉や長い軸も食べるごぼう。軸を炒めると歯ごたえが楽しい。|キャベツ入りの生地を鉄板でじゅうっと焼く、大阪の名物。
+28|輪切りをじっくり焼くと、真ん中まで甘くやわらかくなるよ。|丸いたこ入りの玉子焼を、温かいだしにつけて食べるよ。
+29|切るとオレンジ色。奈良で育つ甘がきの歯ごたえに注目。|さばなどをのせた酢めしを、香りのある柿の葉で包むよ。
+30|有田川ぞいの段々畑で育つみかん。皮をむくと甘い香り。|ごはんを高菜の葉でまるごと包む、熊野地方のおすし。
+31|砂地で育つ白いらっきょう。甘酢漬けをかむとポリッ。|三角の油揚げの中に米や具をつめて炊く鳥取の料理。
+32|海と川の水が混じる宍道湖の貝。みそ汁にうまみが出るよ。|そばの丸い器を重ねて出すよ。上の段からつゆをかけて味わおう。
+33|白っぽい桃を切ると、ふわっと甘い香りが広がるよ。|魚介や野菜を色あざやかに盛る、岡山のお祝いのすし。
+34|火を通すとぷっくり。カキフライのサクサクの衣も楽しもう。|生地・キャベツ・めん・卵。切ると重なった層が見えるよ。
+35|下関ではふぐを「ふく」とも呼ぶよ。花びらみたいな盛りつけに注目。|熱い瓦に茶そばを盛る下関の名物。瓦に当たるめんはパリッ。
+36|焼いて割ると黄色い中身がほくほくの、徳島のさつまいも。|そばをめんにせず、粒のまま汁に入れる徳島の料理。
+37|つやのある粒が目印。かんで食感をたしかめよう。|讃岐平野の小麦づくりが育てた、コシのあるうどん。「さぬきの夢」を使う店もあるよ。
+38|宇和海の貝が育てるつやのある粒。光にかざしてみよう。|たいの切り身を、たれや卵と合わせてごはんにのせる宇和島の味。
+39|つやつやの紫色。焼くと中がとろっとやわらかくなるよ。|表面だけをさっと焼くよ。切ると外と中の色がちがうね。
+40|福岡生まれの大きないちご。甘さとすっぱさを味わおう。|鶏肉と根菜の煮物。れんこんやごぼうの歯ごたえを比べよう。
+41|有明海で育つのり。焼くとパリッ、口の中でほどけるよ。|いかのすり身を細い皮で包んだ、呼子のふんわりした名物。
+42|小さめの殻にぷりっとした身。焼くと濃いうまみが広がるよ。|野菜や魚介のうまみがスープに出る、長崎のめん料理。
+43|阿蘇などの草原とつながる牛。赤身はかむほどうまみが広がるよ。|小麦粉の生地をちぎって汁へ。もちっとした「だご」を探そう。
+44|木で育てたしいたけを乾かしたもの。水でもどすと、だしにもなるよ。|鶏肉を衣で包んで揚げる、大分のサクッとした名物。
+45|とりながら箱に詰めるきゅうり。冷やしてかむとパリッ。|魚やみその冷たい汁をごはんにかける宮崎の夏の味。
+46|焼いて割ると、湯気とほくほくの甘い中身が出てくるよ。|魚のすり身を揚げると、外はこんがり、中はふわっとするよ。
+47|さとうきびの汁を煮つめた、香りのある砂糖。|小麦粉の太めのめん。豚肉をのせる食べ方もあるよ。
+"""
+STORY_INTROS = {pid: (product, dish) for pid, product, dish in
+                (row.split("|") for row in SHORT_STORIES.strip().splitlines())}
+
+REGIONAL_PHOTO_ROWS = """
+二風谷イタ|https://furusato.jreast.co.jp/html/upload/save_image/shop/17786/product/391997/0307175602_65e9812274687.jpg|https://furusato.jreast.co.jp/furusato/products/detail/F579/F579-BRTA011|JR東日本ふるさと納税
+津軽塗|https://aomori-tourism.com/lsc/upfile/spot/0000/9355/9355_105_l.jpg|https://aomori-tourism.com/tw/gourmet/detail_9355.html|青森県観光情報サイト
+南部鉄器|https://www.tohoku.meti.go.jp/s_densan/assets/img/item02.jpg|https://www.tohoku.meti.go.jp/s_densan/iwate_01.html|東北経済産業局
+宮城伝統こけし|https://www.tohoku.meti.go.jp/s_densan/assets/img/item10.jpg|https://www.tohoku.meti.go.jp/s_densan/miyagi_01.html|東北経済産業局
+大館曲げわっぱ|https://kougeihin.jp/system-manager/wp-content/uploads/20180626_b01-600x400.jpg|https://kougeihin.jp/info/20180626_oodate/|伝統工芸 青山スクエア
+山形鋳物|https://cdn.shopify.com/s/files/1/0058/4817/0560/files/YG-CK-2_4_6_0432_8b13accb-3659-47a0-bd58-11b96c0ef2fa_600x600.jpg?v=1653471521|https://japanesecrafts.com/collections/yamagata-imono?srsltid=AfmBOorrGXljX6H4kcivuF72Whx7iR6vQ3CPnohKS_ZJTykaCCXCiUhr|日本工芸堂
+会津塗|https://www.aizukanko.com/image/rendering/attraction_image/978/trim.1180/3/2?v=3e2a9e3771cee1ea9570286774b524c940d7e504|https://www.aizukanko.com/souvenir/401|会津若松観光ナビ
+笠間焼|https://exports.pref.ibaraki.jp/tw/resource/img/20210105173701075874145.jpg|https://exports.pref.ibaraki.jp/tw/product/detail?id=714906|茨城県
+益子焼|https://www.pref.tochigi.lg.jp/150th/miryoku/images/20221226170813.jpg|https://www.pref.tochigi.lg.jp/150th/miryoku/index.html|栃木県
+高崎だるま|https://image1.shopserve.jp/daruma-takasaki.jp/pic-labo/llimg/fuku_200_3.jpg?t=20231122152517|https://www.daruma-takasaki.jp/SHOP/daruma-fuku-200.html|高崎だるま
+岩槻人形|https://ningyo-muse.jp/modules/xelfinder/index.php?file=1309&page=view&%E9%A3%9B%E9%B3%A5%E9%9B%9B_%E6%96%9C%E3%82%81.jpg=|https://ningyo-muse.jp/modules/exhibition/index.php?action=PageView&page_id=53|さいたま市岩槻人形博物館
+房州うちわ|https://kaeru-kogei.com/wp-content/uploads/%E6%88%BF%E5%B7%9E%E3%81%86%E3%81%A1%E3%82%8F-1024x1024.jpg|https://kaeru-kogei.com/ver_chiba/|かえる工芸
+江戸切子|https://saihou.net/cdn/shop/products/M-7571-2BP.jpg?v=1668947686|https://saihou.net/products/m-7571-2bp|彩鳳
+箱根寄木細工|https://store.kyotohandicraftcenter.com/cdn/shop/products/2105805_1.jpg?v=1623471652&width=1024|https://store.kyotohandicraftcenter.com/products/2105805|京都ハンディクラフトセンター
+燕三条の金属洋食器|https://www.city.tsubame.niigata.jp/material/images/group/15/omotenashi5.jpg|https://www.city.tsubame.niigata.jp/monodukuri/tokuchou.html|燕市
+高岡銅器|https://japanesecrafts.com/cdn/shop/files/TD-KS-25_1.jpg?v=1732173634&width=2048|https://japanesecrafts.com/products/td-ks-25|日本工芸堂
+九谷焼|https://www.gov-online.go.jp/en/assets/hj_2026_03_02_01.webp|https://www.gov-online.go.jp/hlj/en/march_2026/march_2026-02.html|政府広報オンライン
+越前漆器|https://static.wixstatic.com/media/f5e8f7_0152aba158d244659d37bab9c3471e0a.jpg/v1/fill/w_980%2Ch_653%2Cal_c%2Cq_85%2Cusm_0.66_1.00_0.01%2Cenc_avif%2Cquality_auto/f5e8f7_0152aba158d244659d37bab9c3471e0a.jpg|https://www.echizen.or.jp/en/shikki-galier6|越前漆器協同組合
+甲州印伝|https://www.yamamoto-inden.com/mrmm/media/1125x0_slides_901080_915766.jpg|https://www.yamamoto-inden.com/|山本印伝
+木曽漆器|https://navi.chinotabi.jp/assets/uploads/2026/02/%E6%9C%A8%E6%9B%BD%E6%BC%86%E5%99%A8-1280x855.jpg|https://navi.chinotabi.jp/spot/14935/|茅野観光ナビ
+美濃和紙|https://images.squarespace-cdn.com/content/v1/53b3d458e4b001dd36b270ee/1498706916493-IXRMAJWOC9RY46H58N7M/washi.jpg|https://www.toki.tokyo/blogt/2015/8/30/the-elegant-and-refined-world-of-washi|TOKI
+浜松の楽器づくり|https://exploreshizuoka.jp/wp-content/uploads/2024/12/%E3%83%94%E3%82%A2%E3%83%8E%E8%A3%BD%E9%80%A0-1.jpg|https://exploreshizuoka.jp/en/inspirations/stories/spotlight/hamamatsu-city-a-city-of-craftsmen-and-music/|Explore Shizuoka
+愛知の自動車づくり|https://aichinow.pref.aichi.jp/upload/site/features/large/314c375c70593dd151c284ea58b39607.jpg|https://aichinow.pref.aichi.jp/en/stories/detail/352/|愛知県観光協会
+伊賀くみひも|https://jtcw.jp/2015/images/shop/main-photo/35.jpg|https://jtcw.jp/2015/35_igakumihimo/index.html|JTCW
+信楽焼|https://www.gov-online.go.jp/en/assets/hj_2026_03_03_01.webp|https://www.gov-online.go.jp/hlj/en/march_2026/march_2026-03.html|政府広報オンライン
+西陣織|https://coto-mono-michi.heteml.net/coto-mono-michi.jp/store/pc/detail/2021_10_morisan/1600px-20170828-Morisan-1189_DxO.jpg|https://store.coto-mono-michi.jp/?mode=f38|コトモノミチ
+堺打刃物|https://kougei-expo.com/mrmm/media/960x0_event34_791758_791823.jpg|https://kougei-expo.com/34/article/791758.html|伝統的工芸品展
+播州そろばん|https://web.pref.hyogo.lg.jp/sr09/jibasan/images/soroban4.jpg|https://web.pref.hyogo.lg.jp/sr09/jibasan/21.html|兵庫県
+高山茶筌|https://japan-sui-collection.go.jp/assets/images/recommendation/takayama-chasen-tea-whisk/sp/img-01.png?v=sha384-YchKDGIijLeLXBpVBrL2wwZeOvakeGcQv0qBTminsvfo3O%2Fln5EsMJ94uVHPPABm|https://japan-sui-collection.go.jp/ja/collection/takayamachasenteawhisk/|JAPAN SUI COLLECTION
+紀州漆器|https://static.wixstatic.com/media/13bf68_37fba03985264c018d742c321431bc02~mv2.jpg/v1/crop/x_278%2Cy_0%2Cw_1363%2Ch_1080/fill/w_491%2Ch_389%2Cal_c%2Cq_80%2Cusm_0.66_1.00_0.01%2Cenc_avif%2Cquality_auto/kisyushikki2.jpg|https://madeinjp.wixsite.com/info/%E8%A4%87%E8%A3%BD-%E8%81%B7%E4%BA%BA-%E4%BA%AC%E7%84%BC-12|掲載元
+因州和紙|https://kogeijapan.com/element/shared/images/kj/tottori/title/tottori-01.jpg|https://kogeijapan.com/locale/en_US/inshuwashi/|KOGEI JAPAN
+石見焼|https://www.iimono-shimane.jp/webtool/wp-content/uploads/2023/03/95eada56a02be1696e9ddeb05f1061ea.jpg|https://www.iimono-shimane.jp/traditional-crafts/309/|いいものしまね
+備前焼|https://fs.nihonkogeikai.or.jp/view/?fid=%2Fwww_v2%2Fimages%2F1%2F62%2FA010.jpg|https://www.nihonkogeikai.or.jp/works/405/1241/|日本工芸会
+熊野筆|https://japanshopping.org/files/itemimg/6e426f753289d3b7588588b18d1d9868.jpg|https://japanshopping.org/ja/search/items/detail/36149|Japan Shopping Now
+萩焼|https://www.hagishi.com/img/1000007.jpg|https://www.hagishi.com/search/detail.php?d=1000007|萩市観光協会
+阿波和紙|https://www.east-tokushima.jp/img_data/fe_i_24_536.jpg|https://www.east-tokushima.jp/feature/detail.php?id=24|イーストとくしま観光推進機構
+丸亀うちわ|https://dentou.pref.kagawa.lg.jp/artisans/images/marugameuchiwa/img_6935.png|https://dentou.pref.kagawa.lg.jp/|香川県
+今治タオル|https://jbpress.ismcdn.jp/mwimgs/8/c/1200mw/img_8cff71e0c33e51872530dc68453dcb3f4106864.jpg|https://jbpress.ismedia.jp/articles/-/71072|JBpress
+土佐和紙|https://www.jb-honshi.co.jp/kanko/seto_mare/se_travel/se_travel16_01/images/large/03/PJP130125_0363.jpg|https://www.jb-honshi.co.jp/kanko/seto_mare/se_travel/se_travel16_01/photo.html|JB本四高速
+博多織|https://orism.co.jp/cdn/shop/articles/DSC_6598.jpg?v=1769248033&width=1920|https://orism.co.jp/en/blogs/column/%E5%8D%9A%E5%A4%9A%E7%B9%94%E3%81%A3%E3%81%A6%E3%81%AA%E3%81%AB|オリシム
+伊万里・有田焼|https://www.zck.or.jp/uploaded/image/6821.jpg|https://www.zck.or.jp/site/sumika/8993.html|全国町村会
+波佐見焼|https://www.gov-online.go.jp/en/assets/hj_2026_03_06_01.webp|https://www.gov-online.go.jp/hlj/en/march_2026/march_2026-06.html|政府広報オンライン
+肥後象がん|https://cdn.wowu.travel/image_store/172bf56da0b96e3931656f4ab337af8f.jpg|https://www.wowu.travel/spots/kumamoto-prefectural-traditional-crafts-center|WOW U
+別府竹細工|https://japanesecrafts.com/cdn/shop/collections/toppageicon2.jpg?v=1699248666&width=2048|https://japanesecrafts.com/collections/beppu-bamboo-work|日本工芸堂
+宮崎牛|https://www.kirishima.co.jp/news/upload/20260129_4.png|https://www.kirishima.co.jp/news/2026012901.html|霧島酒造
+薩摩焼|https://www.k-p-a.jp/cms/wp-content/uploads/2016/07/12d9a02ef49140f117505f8f51efbd93.jpg|https://www.k-p-a.jp/products/pro-craft/|鹿児島県特産品協会
+琉球びんがた|https://www.kyuhaku.jp/exhibition/img/s_65/p10.jpg|https://www.kyuhaku.jp/exhibition/exhibition_s65.html|九州国立博物館
+紀州南高梅|https://furusato.jreast.co.jp/html/upload/save_image/shop/17914/product/558429/1017123238_67108556849d0.jpg|https://furusato.jreast.co.jp/furusato/products/detail/F653/F653-r30381001734|JR東日本ふるさと納税
+湯浅のしょうゆ|https://makeshop-multi-images.akamaized.net/sano2022/itemimages/000000000461_g76hsNm.jpg|https://shop.sanomiso.com/view/item/000000000461|佐野みそ
+"""
+REGIONAL_PHOTOS = {}
+for row in REGIONAL_PHOTO_ROWS.strip().splitlines():
+    name, image, source, credit = row.split("|")
+    REGIONAL_PHOTOS[name] = dict(caption=name, image=image, source=source, credit=credit)
+
+ADDITIONAL_PRODUCT_PHOTO_ROWS = """
+45|きゅうりのキムチ和え|https://www.pref.miyazaki.lg.jp/parts/000049632.jpg|https://www.pref.miyazaki.lg.jp/contents/org/honbu/hisho/komiya/local_0602.htm|宮崎県
+04|炊く前のだて正夢|https://datemasayume.pref.miyagi.jp/datemasayume-anniversary/common/images/recipe-a-01-image-02.jpg|https://datemasayume.pref.miyagi.jp/datemasayume-anniversary/|だて正夢公式
+"""
+ADDITIONAL_PRODUCT_PHOTOS = {}
+for row in ADDITIONAL_PRODUCT_PHOTO_ROWS.strip().splitlines():
+    pid, caption, image, source, credit = row.split("|")
+    ADDITIONAL_PRODUCT_PHOTOS.setdefault(pid, []).append(
+        dict(caption=caption, image=image, source=source, credit=credit))
+
+KAGAWA_RICE_PHOTO = dict(caption='さぬき米おいでまい', image='https://oomoriya.com/cdn/shop/products/az410-5.jpg?v=1634020801',
+                         source='https://oomoriya.com/products/410-5', credit='大森屋')
+
+
 def short_discovery_questions(pid):
     info, product = PREFECTURE_INFO[pid], LOCAL_PRODUCTS[pid]
     region = region_of(pid)[0]
@@ -2512,7 +2634,11 @@ DISCOVERY = {
           "land_point": project(pid, info["place"]), "questions": short_discovery_questions(pid),
           "previous_questions": previous_discovery_questions(pid), "seas": SEA_LABELS.get(pid, []),
           "local_dish": LOCAL_DISHES[pid], "land_overlay": LAND_OVERLAYS.get(pid),
-          "regional_industries": REGIONAL_INDUSTRIES[pid],
+          "product_intro": STORY_INTROS[pid][0], "dish_intro": STORY_INTROS[pid][1],
+          "product_story_photos": ([KAGAWA_RICE_PHOTO, PRODUCT_PHOTOS[pid]] if pid == "37"
+                                   else [PRODUCT_PHOTOS[pid], *ADDITIONAL_PRODUCT_PHOTOS.get(pid, [])]),
+          "regional_industries": [{**story, "photo":REGIONAL_PHOTOS[story["name"]]}
+                                  for story in REGIONAL_INDUSTRIES[pid]],
           "product_previews": [
               {"caption":LOCAL_DISHES[pid]["name"], **{key:LOCAL_DISHES[pid][key] for key in ("image", "source", "credit")}},
               PRODUCT_PHOTOS[pid],
@@ -2777,7 +2903,7 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
 #fact-land-extent{pointer-events:none;stroke-width:1.4;stroke-linejoin:round;stroke-linecap:round;
   vector-effect:non-scaling-stroke}
 #fact-land-extent.land-area{fill:#f4b65b;fill-opacity:.62;stroke:#a66629}
-#fact-land-extent.land-water{fill:#84c4de;fill-opacity:.68;stroke:#327b99}
+#fact-land-extent.land-water{fill:#efa04b;fill-opacity:.88;stroke:#974d20;stroke-width:2}
 #fact-land-extent.land-coast{fill:none;stroke:#a66629;stroke-width:4}
 #fact-land-extent.map-river{stroke:#2d77ab;stroke-width:2.15}
 #fact-land-extent.map-river.selected{stroke:#024774;stroke-width:3.65}
@@ -2792,14 +2918,10 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
   text-overflow:ellipsis;white-space:nowrap;font-size:10px;line-height:1.2}
 .product-previews span{font-weight:800}
 .product-previews .photo-credit{font-size:8px;color:#5a746b}
-#product-previews-below{grid-template-columns:repeat(2,minmax(0,160px));margin:6px 0}
-#product-previews-below img{height:64px}
-#product-previews-below span,#product-previews-below .photo-credit{font-size:.72rem}
-#product-previews-below.mobile-only{display:none}
-@media(max-width:520px){
-  #map-product-box{display:none}
-  #product-previews-below.mobile-only{display:grid}
-}
+@media(max-width:520px){#map-product-box{display:none}}
+.story-photos{grid-template-columns:repeat(auto-fit,minmax(min(124px,100%),1fr));margin-top:6px}
+.story-photos img{height:clamp(94px,17vw,145px)}
+.story-photos span,.story-photos .photo-credit{font-size:.73rem;text-overflow:clip;white-space:normal}
 .production-pin circle{fill:#fff1d0;stroke:#98603b}
 .production-pin,.map-peak,.river-hit{cursor:pointer}
 .production-region{fill:#e6ad65;fill-opacity:.72;stroke:#9a6738;stroke-width:1.7;vector-effect:non-scaling-stroke}
@@ -2841,7 +2963,7 @@ body:has(#medal-dialog[open]){min-height:365px}
 .local-story{padding:9px 11px;background:#edf5e9;border-radius:9px}
 .local-story h4{margin:0;color:#214f41;font-size:1.05rem}
 .local-story p{margin:4px 0}
-.local-story .story-category,#fact-area,#fact-use,#pref-capital.supplement,
+.local-story .story-category,#pref-capital.supplement,
   #map-caption,#nearby-prefectures,.map-key{color:#526f66;font-size:.82rem}
 .local-story a{display:inline-block;padding:3px 0;color:#47685e;font-size:.82rem}
 .fact h3,.fact p{margin:0 0 6px}
@@ -2924,7 +3046,6 @@ body:has(#medal-dialog[open]){min-height:365px}
           <g id="fact-pins"></g>
         </svg>
       </div>
-      <div id="product-previews-below" class="product-previews" hidden></div>
       <div class="map-key">
         <span id="capital-key-group" hidden>★ 県庁所在地</span>
         <span id="terrain-key-group" hidden>川・山と地形</span>
@@ -2941,18 +3062,20 @@ body:has(#medal-dialog[open]){min-height:365px}
       </div>
       <article class="fact" aria-live="polite">
         <h3 id="fact-title"></h3>
-        <p id="fact-text"></p><p id="fact-area" hidden></p><p id="fact-use" hidden></p>
+        <p id="fact-text"></p>
         <div id="local-stories" hidden>
           <section class="local-story" aria-labelledby="local-product-name">
             <p class="story-category">特産品・ブランド</p>
             <h4 id="local-product-name"></h4>
             <p id="local-product-pitch"></p>
+            <div id="local-product-photos" class="product-previews story-photos"></div>
             <a id="local-product-source" target="_blank" rel="noopener noreferrer">特産品の出典</a>
           </section>
           <section class="local-story" aria-labelledby="local-dish-name">
             <p class="story-category">有名な食べ物</p>
             <h4 id="local-dish-name"></h4>
             <p id="local-dish-pitch"></p>
+            <div id="local-dish-photos" class="product-previews story-photos"></div>
             <a id="local-dish-source" target="_blank" rel="noopener noreferrer">料理の出典</a>
           </section>
         </div>
@@ -3484,7 +3607,7 @@ function mapWater(pref, item, toMap, scale, tx, ty) {
     water.append(label);
   }
   if (!item.product_previews.length) return;
-  // Use empty space to the right first, then the left. A separate row is used when neither fits.
+  // The complete photo set sits with the stories, so map thumbnails are optional.
   const photoBox = $("map-product-box"), width = 126, height = 153;
   for (const x of [FACT_WIDTH-width-13,13]) {
     for (const y of [FACT_HEIGHT-height-12,16,94]) {
@@ -3502,42 +3625,40 @@ function mapWater(pref, item, toMap, scale, tx, ty) {
   }
   photoBox.dataset.fits = "no";
 }
+function photoCard({caption,image,source,credit}) {
+  const card = document.createElement("figure");
+  const link = document.createElement("a");
+  link.href = image;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  link.title = caption+"の写真を開く";
+  const picture = document.createElement("img");
+  picture.loading = "lazy";
+  picture.referrerPolicy = "no-referrer";
+  picture.alt = "";
+  picture.onerror = () => { picture.hidden = true; };
+  picture.src = image;
+  const label = document.createElement("span");
+  label.textContent = caption;
+  link.append(picture,label);
+  const attribution = document.createElement("a");
+  attribution.className = "photo-credit";
+  attribution.href = source;
+  attribution.target = "_blank";
+  attribution.rel = "noopener noreferrer";
+  attribution.textContent = "写真："+credit;
+  attribution.title = attribution.textContent;
+  card.append(link,attribution);
+  return card;
+}
 function renderProductPreviews(pref, item, selected) {
-  const box = $("map-product-box"), below = $("product-previews-below");
+  const box = $("map-product-box");
   const previews = item.product_previews;
   box.toggleAttribute("hidden", selected !== "industry" || !previews.length || box.dataset.fits !== "yes");
-  below.hidden = selected !== "industry" || !previews.length;
-  below.classList.toggle("mobile-only",box.dataset.fits === "yes");
-  if (!previews.length || selected !== "industry" || below.dataset.prefecture === pref.id) return;
-  below.dataset.prefecture = pref.id;
-  for (const parent of [$("map-product-previews"),below]) {
-    parent.replaceChildren(...previews.map(({caption,image,source,credit}) => {
-      const card = document.createElement("figure");
-      const link = document.createElement("a");
-      link.href = image;
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      link.title = caption+"の写真を開く";
-      const picture = document.createElement("img");
-      picture.loading = "lazy";
-      picture.referrerPolicy = "no-referrer";
-      picture.alt = "";
-      picture.onerror = () => { picture.hidden = true; };
-      picture.src = image;
-      const label = document.createElement("span");
-      label.textContent = caption;
-      link.append(picture,label);
-      const attribution = document.createElement("a");
-      attribution.className = "photo-credit";
-      attribution.href = source;
-      attribution.target = "_blank";
-      attribution.rel = "noopener noreferrer";
-      attribution.textContent = "出典："+credit;
-      attribution.title = attribution.textContent;
-      card.append(link,attribution);
-      return card;
-    }));
-  }
+  const gallery = $("map-product-previews");
+  if (selected !== "industry" || gallery.dataset.prefecture === pref.id) return;
+  gallery.dataset.prefecture = pref.id;
+  gallery.replaceChildren(...previews.map(photoCard));
 }
 
 function renderFactMap(pref, item, selected) {
@@ -3739,12 +3860,11 @@ function readCurrent() {
     const item = info();
     if (attempt.view === "capital") {
       speakText(`${item.name}の都道府県庁は、${item.capital}にあります。地形や産業も、地図で見てみましょう。`,item);
+    } else if (attempt.view === "industry") {
+      const product = item.local_product;
+      speakText(`${product.reading || product.name}。${item.product_intro}`,item);
     } else {
-      const place = attempt.view === "industry" ? `地図で色をつけた自治体は、${item.production_cities.join("、")}です。` : "";
-      const product = attempt.view === "industry" ? item.local_product : null;
-      const dish = item.local_dish;
-      const pitch = product ? `この土地の名産、${product.reading || product.name}。${product.pitch}。有名な食べ物、${dish.reading || dish.name}。${dish.pitch}` : "";
-      speakText(`${$("fact-title").textContent}。${$("fact-text").textContent}${pitch}${place}`,item);
+      speakText(`${$("fact-title").textContent}。${$("fact-text").textContent}`,item);
     }
   } else if (stage === "game" && attempt?.phase === "quiz") {
     const entry = attempt.questions.at(-1), q = quizQuestions()[attempt.questions.length-1];
@@ -3796,7 +3916,7 @@ function drawExplore(pref) {
   const facts = {
     capital: [item.capital+"（"+item.capital_reading+"）", "ここに都道府県庁があります。"],
     land: [item.land+"（"+item.land_reading+"）", `${item.kind}を地図で見つけよう。 ${item.climate}。`],
-    industry: [item.industry+"（"+item.industry_reading+"）", item.link],
+    industry: [item.industry+"（"+item.industry_reading+"）", ""],
   };
   const relief = attempt.relief;
   if (selected === "land" && relief?.kind === "river" && item.rivers[relief.index]) {
@@ -3815,14 +3935,11 @@ function drawExplore(pref) {
   const [title, text] = facts[selected];
   $("fact-title").textContent = title;
   $("fact-text").textContent = text;
-  $("fact-area").hidden = selected !== "industry";
-  $("fact-area").textContent = "色を付けた自治体　"+item.production_cities.join("・");
-  $("fact-use").hidden = selected !== "industry";
-  $("fact-use").textContent = "土地や水の使い方　"+item.use;
+  $("fact-text").hidden = !text;
   $("local-stories").hidden = $("regional-industries").hidden = selected !== "industry";
   if (selected === "industry") {
-    renderLocalStory("local-product",item.local_product);
-    renderLocalStory("local-dish",item.local_dish);
+    renderLocalStory("local-product",pref.id,item.local_product,item.product_intro,item.product_story_photos);
+    renderLocalStory("local-dish",pref.id,item.local_dish,item.dish_intro,item.product_previews.slice(0,1));
     renderRegionalIndustries(pref.id,item.regional_industries);
   }
   for (const key of ["capital","land","industry"]) {
@@ -3832,11 +3949,15 @@ function drawExplore(pref) {
   }
   $("start-quiz").disabled = !canStartQuiz();
 }
-function renderLocalStory(id, story) {
-  const {name, reading, pitch, source} = story;
+function renderLocalStory(id, prefecture, story, intro, photos) {
+  const gallery = $(id+"-photos");
+  if (gallery.dataset.prefecture === prefecture) return;
+  gallery.dataset.prefecture = prefecture;
+  const {name, reading, source} = story;
   $(id+"-name").textContent = reading && reading !== name ? `${name}（${reading}）` : name;
-  $(id+"-pitch").textContent = pitch;
+  $(id+"-pitch").textContent = intro;
   $(id+"-source").href = source;
+  gallery.replaceChildren(...photos.map(photoCard));
 }
 function renderRegionalIndustries(prefecture, stories) {
   const cards = $("regional-industry-cards");
@@ -3851,13 +3972,18 @@ function renderRegionalIndustries(prefecture, stories) {
     const name = document.createElement("h4");
     name.textContent = story.name+ (story.reading ? "（"+story.reading+"）" : "");
     const pitch = document.createElement("p");
-    pitch.textContent = story.pitch;
+    const sentences = story.pitch.match(/[^。？！]+[。？！]?/g) || [];
+    pitch.textContent = sentences.length > 1 && sentences[0].length < 22 &&
+      sentences[0].length+sentences[1].length <= 62 ? sentences.slice(0,2).join("") : sentences[0] || story.pitch;
+    const gallery = document.createElement("div");
+    gallery.className = "product-previews story-photos";
+    gallery.append(photoCard(story.photo));
     const source = document.createElement("a");
     source.href = story.source;
     source.target = "_blank";
     source.rel = "noopener noreferrer";
     source.textContent = "出典を見る";
-    card.append(category,name,pitch,source);
+    card.append(category,name,pitch,gallery,source);
     return card;
   }));
 }
