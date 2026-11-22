@@ -2055,10 +2055,131 @@ VERIFIED_MAP_DATA = (
     "as9XaEVxWJzDnMfFf/mX/wPAMMp/"
 )
 VERIFIED_MAP = json.loads(decompress(b64decode(VERIFIED_MAP_DATA)))
+
+# Shared land boundaries in the app's prefecture geometry.
+LAND_NEIGHBORS = {
+    row[:2]: row.split()[1:] for row in """
+02 03 05
+03 02 04 05
+04 03 05 06 07
+05 02 03 04 06
+06 04 05 07 15
+07 04 06 08 09 10 15
+08 07 09 11 12
+09 07 08 10
+10 07 09 11 15 20
+11 08 10 12 13 19 20
+12 08 11 13
+13 11 12 14 19
+14 13 19 22
+15 06 07 10 16 20
+16 15 17 20 21
+17 16 18 21
+18 17 21 25 26
+19 11 13 14 20 22
+20 10 11 15 16 19 21 22 23
+21 16 17 18 20 23 24 25
+22 14 19 20 23
+23 20 21 22 24
+24 21 23 25 26 29 30
+25 18 21 24 26
+26 18 24 25 27 28 29
+27 26 28 29 30
+28 26 27 31 33
+29 24 26 27 30
+30 24 27 29
+31 28 32 33 34
+32 31 34 35
+33 28 31 34
+34 31 32 33 35
+35 32 34
+36 37 38 39
+37 36 38
+38 36 37 39
+39 36 38
+40 41 43 44
+41 40 42
+42 41
+43 40 44 45 46
+44 40 43 45
+45 43 44 46
+46 43 45
+""".strip().splitlines()
+}
+# Nearby coasts across straits and bays. Okinawa uses an inset in MAP.
+SEA_NEIGHBORS = {}
+for first, second in (
+    ("01", "02"), ("12", "14"), ("28", "36"), ("33", "37"),
+    ("34", "38"), ("35", "40"), ("41", "43"), ("42", "43"),
+):
+    SEA_NEIGHBORS.setdefault(first, []).append(second)
+    SEA_NEIGHBORS.setdefault(second, []).append(first)
+
+
+# One documented example tied to the industry taught for each prefecture.
+# Examples may be regional products, named varieties, individual products or local dishes.
+PRODUCT_DATA = """
+01|なかしべつ牛乳|なかしべつぎゅうにゅう|北海道の東にある中標津の牛乳。朝ごはんに一口、そのまま飲んで、牛乳の風味をたしかめてみよう。|https://www.rakunou.org/nyuseihin_syokai/nyuseihin_syokai01.html
+02|青森のサンふじ|あおもりのさんふじ|パリッとかむと、甘い果汁がじゅわっ。切ったりんごの断面にも注目してみよう。|https://www.aomori-ringo.or.jp/wp-content/uploads/2023/04/pop_sanfuji.pdf
+03|銀河のしずく|ぎんがのしずく|炊くと白くつやつや。ほどよいねばりがあって、かむほどお米の甘みがわかるよ。|https://iwate-kome.jp/ginganoshizuku/
+04|だて正夢|だてまさゆめ|もちもちした食感が自慢のお米。おにぎりにして、ひと口ずつゆっくりかんでみよう。|https://datemasayume.pref.miyagi.jp/
+05|あきたこまち|あきたこまち|冷めてもおいしい秋田のお米。あつあつのごはんと、おべんとうのおにぎり。どちらの食感が好きかな？|https://www.ja-town.com/shop/contents3/farmerinterview12.aspx|https://www.youtube.com/watch?v=3El8HSwv-1M
+06|佐藤錦|さとうにしき|赤く色づくさくらんぼ。甘さの中にほどよいすっぱさがあるよ。はじけるような一粒を味わってみよう。|https://www.pref.yamagata.jp/140032/sangyo/nourinsuisangyou/nogyo/nousambutsu/sakurambo/sakuranbohinsyu.html
+07|あかつき|あかつき|福島の甘くて果汁たっぷりの桃。切りたてをひと口食べると、口いっぱいに果汁が広がるよ。|https://ja-f-mirai.or.jp/topics/?id=6304
+08|霞ヶ浦のれんこん|かすみがうらのれんこん|輪切りにすると穴がずらり。炒めてシャキッ、煮てほくっ。同じれんこんの食感をくらべてみよう。|https://www.ibaraki-shokusai.net/brand/lotus-root
+09|ガーンジィゴールデンミルク||那須高原の牧場で、ガーンジィという牛からしぼる牛乳。冷たい一杯で、濃いミルクの味を楽しもう。|https://www.minamigaoka.co.jp/smt/shopping/store.html
+10|嬬恋高原キャベツ|つまごいこうげんきゃべつ|すずしい高原で育つキャベツ。葉を一枚はがして、パリッとかんだときの甘さをさがそう。|https://jatsumagoi.jp/agriinfo_about.html
+11|深谷ねぎ|ふかやねぎ|白いところが長いねぎ。焼くと甘みが出て、とろりとした中身が出てくるよ。|https://www.city.fukaya.saitama.jp/soshiki/sangyoshinko/nougyoshinkou/tanto/tokusan/fukayanegi/1391490851596.html
+12|せぐろいわしのごま漬け|せぐろいわしのごまづけ|九十九里の小さないわしを、お酢とごまで味つけした郷土料理。すっぱい香りとごまの香ばしさに注目。|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/seguro_iwashi_no_gomazuke_chiba.html
+13|東京狭山茶|とうきょうさやまちゃ|東京の西のほうで作るお茶。お湯を入れたとき、ふわっと立ちのぼる香りをかいでみよう。|https://www.chiikishigen.metro.tokyo.lg.jp/introduction/details/introduction_116.html
+14|湘南しらす|しょうなんしらす|相模湾でとれる小さな魚。ゆでた釜揚げしらすはふんわり。ごはんにのせて小さな目をさがしてみよう。|https://shonan-shirasu.org/
+15|こしいぶき||新潟生まれのお米。炊くと粒がつやつやして、冷めてもおいしい。おにぎりと炊きたてをくらべてみよう。|https://www.pref.niigata.lg.jp/sec/syokuhin/shun09-koshiibuki.html
+16|富富富|ふふふ|富山生まれのお米。ひと口かむと、うまみと甘みが広がるよ。まずは何ものせずにひと口。|https://shoku-toyama.jp/fufufu/about/
+17|加賀れんこん|かがれんこん|粘りが強い金沢のれんこん。すりおろして焼いたら、輪切りのときとどんな食感の違いが出るかな？|https://www.maff.go.jp/j/shokusan/gi_act/register/0178/index.html
+18|越前がに|えちぜんがに|黄色いタグが目印の福井のかに。殻から出した身には、どんな甘みがあるか味わってみよう。|https://www.city.fukui-sakai.lg.jp/kankou/kanko-bunka/kanko/shoku/echizengani.html
+19|山梨のシャインマスカット|やまなしのしゃいんますかっと|緑のぶどうを皮ごとぱくっ。パリッとした皮の中から、さわやかな甘さと香りが出てくるよ。|https://www.zfc-shop.jp/Form/Product/ProductDetail.aspx?cat=sea&pid=GR19041000&shop=0&swrd=&vid=
+20|川上村の高原レタス|かわかみむらのこうげんれたす|山あいのすずしい畑で育つレタス。葉をちぎってサンドイッチに入れたら、シャキッと音がするかな？|https://www.vill.kawakami.nagano.jp/www/contents/1001000000041/index.html
+21|長良川の鮎|ながらがわのあゆ|岐阜の清流で育つ魚。焼いたあゆを見つけたら、まず香りをかいでから、ふっくらした身を味わおう。|https://nagaragawa.gifu.jp/about/ayu/
+22|牧之原の深蒸し茶|まきのはらのふかむしちゃ|茶の葉を長めに蒸すから、いれたお茶は濃い緑。まろやかな一口を、色も見ながら楽しもう。|https://www.city.makinohara.shizuoka.jp/site/tea/470.html
+23|渥美半島のマスクメロン|あつみはんとうのますくめろん|外はあみ目模様、中はとろけるような甘さ。切る前と切ったあとで、香りをくらべてみよう。|https://www.taharakankou.gr.jp/news/news_detail.php?news_id=181
+24|伊勢志摩のアコヤ真珠|いせしまのあこやしんじゅ|アコヤ貝の中で育つ宝物。つやつやの粒を光の下でくるっと回すと、光り方はどう変わるかな？|https://www.pref.mie.lg.jp/common/content/000784169.pdf
+25|びわ湖のふなずし|びわこのふなずし|湖の魚を塩とごはんでじっくり発酵させた郷土料理。薄く切った一切れは、どんな香りとすっぱさかな？|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/funa_zushi_shiga.html
+26|宇治茶|うじちゃ|京都の山あいのお茶づくりとつながる名前。抹茶なら、お茶をたてたときの泡や香りにも注目してみよう。|https://www.kyotocha.or.jp/ujicha.html
+27|八尾若ごぼう|やおわかごぼう|葉や長い軸も食べられるごぼう。軸を炒めると、歯ごたえとごぼうの香りが楽しめるよ。|https://www.pref.osaka.lg.jp/o120160/chubunm/chubu_nm/fq-wakagobo.html
+28|淡路島たまねぎ|あわじしまたまねぎ|火を通すと甘い、淡路島のたまねぎ。輪切りをじっくり焼いたら、真ん中はどんな食感になるかな？|https://www.brand-awajishima.com/syokuzai_detail.php?c=1&sid=1
+29|奈良の富有柿|ならのふゆうがき|奈良の五條などで育つ甘がき。オレンジ色の果肉を切って、かたさや甘さをたしかめよう。|https://www.pref.nara.lg.jp/n116/58599.html
+30|有田市認定みかん|ありだしにんていみかん|和歌山の有田市が認めたみかん。皮をむいて香りをかいでから、果汁たっぷりの一ふさを食べてみよう。|https://www.city.arida.lg.jp/sangyoshigoto/gensanchi/1002053/1001170.html
+31|鳥取砂丘らっきょう|とっとりさきゅうらっきょう|海の近くの砂地で育つ白いらっきょう。甘酢漬けをかむと、ポリッとどんな音がするかな？|https://www.maff.go.jp/j/shokusan/gi_act/register/0011/index.html
+32|宍道湖産ヤマトシジミ|しんじこさんやまとしじみ|海の水と川の水がまじる湖で育つ貝。おみそ汁で、小さな貝から出るだしを味わってみよう。|https://www.maff.go.jp/j/shokusan/gi_act/register/0171/index.html
+33|清水白桃|しみずはくとう|岡山で生まれた白っぽい桃。皮の色を見てから切ると、ふわっと甘い香りが広がるよ。|https://www.okayama-kanko.jp/spot/detail_12003.html
+34|米田海産の広島かき|よねだかいさんのひろしまかき|火を通してもぷっくり。カキフライを割って、サクサクの衣と中の身の違いを見てみよう。|https://www.city.hiroshima.lg.jp/hiroshima-brand/tokusan/1026502/1026503/1014677.html
+35|下関ふく|しものせきふく|下関ではふぐを「ふく」とも呼ぶよ。お店で薄く切った身が花びらのように並ぶ盛りつけを見てみよう。|https://www.maff.go.jp/j/shokusan/gi_act/register/0019/index.html
+36|なると金時|なるときんとき|外は赤紫、中は黄色のさつまいも。焼きいもを半分に割ると、ほくほくの中身が出てくるよ。|https://www.naruto-bussan.jp/specialties/kintoki/
+37|さぬき米おいでまい|さぬきまいおいでまい|香川で生まれたお米。炊いたごはんを見て、つやのある粒を見つけたら、かんで食感をたしかめよう。|https://www.pref.kagawa.lg.jp/seiryu/oidemai/index2.html
+38|宇和島のアコヤ真珠|うわじまのあこやしんじゅ|宇和海の貝が育てる、つやのある粒。宇和島には真珠を選んで小物を作れる体験もあるよ。|https://www.iyokannet.jp/spot/6650/
+39|高知なす|こうちなす|つやつやの紫色のなす。焼いたなすを切って、やわらかくなった中身の食感を楽しもう。|https://ja-kochi.or.jp/agriculture/products/vegetable/839/
+40|あまおう||福岡生まれのいちご。大きくて赤い一粒をぱくっ。甘さとすっぱさをじっくり味わおう。|https://zennoh-fukuren.jp/consumer/fruit/ichigo
+41|佐賀海苔|さがのり|有明海で育つのり。焼いた一枚を割るとパリッ。手巻きごはんにして、香りと口どけを楽しもう。|https://www.jf-sariake.or.jp/page/feature.html
+42|九十九島かき|くじゅうくしまかき|殻は小さめでも、中はぷりぷり。よく焼いたかきをひと口食べると、濃いうまみが広がるよ。|https://www.sasebo99.com/event/51728
+43|くまもとあか牛|くまもとあかうし|阿蘇などの草原とつながる牛。赤身のうまみが自慢で、焼いたお肉をかむと味がじんわり広がるよ。|https://www.maff.go.jp/j/shokusan/gi_act/register/0067/index.html
+44|大分の原木乾しいたけ|おおいたのげんぼくほししいたけ|木で育てたしいたけを乾かしたもの。水でもどすとどうなるかな？ もどし汁は料理のだしにもなるよ。|https://www.oita-shiitake.info/faq.html
+45|みやざきワンタッチきゅうり||とりながら箱に詰めるからワンタッチ。冷やして切って、かんだときの音を聞いてみよう。|https://www.pref.miyazaki.lg.jp/contents/org/honbu/hisho/komiya/local_0602.htm
+46|紅さつま|べにさつま|鹿児島の甘いさつまいも。焼いて割ったときの湯気と、ほくほくの食感を楽しもう。|https://ja-ibusuki.or.jp/tokusan
+47|沖縄黒糖|おきなわこくとう|さとうきびのしぼり汁を煮つめて作る砂糖。小さなかけらを口に入れると、独特の香りと甘みが広がるよ。|https://www.maff.go.jp/j/shokusan/gi_act/register/0172/index.html
+"""
+LOCAL_PRODUCTS = {}
+for row in PRODUCT_DATA.strip().splitlines():
+    pid, name, reading, pitch, source_url, *videos = row.split("|")
+    LOCAL_PRODUCTS[pid] = dict(name=name, reading=reading, pitch=pitch, source=source_url,
+                               video=videos[0] if videos else "")
+
+
 DISCOVERY = {
     pid: {**info, "capital_point": project(pid, CAPITAL_POINTS[pid]),
           "land_point": project(pid, info["place"]), "questions": discovery_questions(pid),
           "industry_icon": INDUSTRY_MAP[pid][0], "industry_points": INDUSTRY_MAP[pid][1],
+          "land_neighbors": LAND_NEIGHBORS.get(pid, []),
+          "sea_neighbors": SEA_NEIGHBORS.get(pid, []), "local_product": LOCAL_PRODUCTS[pid],
           **VERIFIED_MAP[pid]}
     for pid, info in PREFECTURE_INFO.items()
 }
@@ -2289,6 +2410,12 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
 .voice-tools input{width:18px;height:18px;accent-color:var(--dark)}
 .discovery-map{background:linear-gradient(#d0ecea,#e4f4f0);border:1px solid #94bcbb;border-radius:13px;overflow:hidden}
 #fact-map{display:block;width:100%;height:auto;max-height:428px}
+.neighbor-shape{fill:#f3f4e8;stroke:#9ab8ae;stroke-width:.85;vector-effect:non-scaling-stroke}
+.neighbor-name{font-size:17px;font-weight:750;fill:#345b51;paint-order:stroke;
+  stroke:#f8fbef;stroke-width:3;stroke-linejoin:round}
+#fact-neighbors,#fact-neighbor-names{pointer-events:none}
+#nearby-prefectures{margin:5px 0 2px;color:#365e54;font-size:.78rem}
+#nearby-prefectures span{display:inline-block;margin-right:.85em}
 #fact-shape{fill:#e8eed8;stroke:#427266;stroke-width:1.3;vector-effect:non-scaling-stroke}
 .capital-point circle,.production-pin circle{fill:#fffdf3;stroke:#496358;stroke-width:1.3}
 .capital-point text{fill:#254f43}
@@ -2299,8 +2426,10 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
 .map-river.selected{stroke:#024774;stroke-width:3.65}
 .river-hit{fill:none;stroke:transparent;stroke-width:16;pointer-events:stroke;vector-effect:non-scaling-stroke}
 .map-peak circle{fill:#fff9ec;stroke:none;opacity:.82}
-.map-peak path{fill:#6d4875;stroke:#51305d;stroke-width:1}
-.map-peak.selected circle{fill:#f2d4a7;stroke:#6d4875;stroke-width:1.5}
+.map-peak .peak-back{fill:#77958c;stroke:#355b53;stroke-width:.8}
+.map-peak .peak-front{fill:#427d65;stroke:#264f40;stroke-width:1;stroke-linejoin:round}
+.map-peak .peak-snow{fill:#fffdf4}
+.map-peak.selected circle{fill:#f2d4a7;stroke:#785b36;stroke-width:1.5}
 #fact-map [tabindex]:focus-visible{outline:2px solid #aa6522;outline-offset:2px}
 #relief-controls{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
 #relief-controls button{font-size:.83rem;min-height:38px}
@@ -2324,6 +2453,10 @@ body:has(#medal-dialog[open]){min-height:365px}
 .feature-keys{display:flex;flex-wrap:wrap;gap:6px;padding:8px 0}
 .feature-keys button[aria-pressed=true]{background:#e5f2e9;border-color:var(--dark)}
 .fact,#quiz-feedback{background:#fffef5;border:1px solid var(--edge);padding:9px 13px;margin:4px 0 12px;border-radius:11px}
+#local-product{margin-top:10px;padding:9px 11px;background:#edf5e9;border-radius:9px}
+#local-product h4{margin:0;color:#214f41;font-size:1.03rem}
+#local-product p{margin:5px 0}
+#local-product a{display:inline-block;padding:4px 10px 4px 0;color:#235f54;font-size:.87rem}
 .fact h3,.fact p{margin:0 0 6px}
 #think{margin:5px 0 9px;color:var(--muted)}
 #choices{grid-template-columns:1fr}
@@ -2387,11 +2520,13 @@ body:has(#medal-dialog[open]){min-height:365px}
       <p id="pref-capital"></p>
       <p class="instruction">地図のしるしを タップして 発見しよう。</p>
       <div class="discovery-map">
-        <svg id="fact-map" viewBox="0 0 560 330" role="group" aria-label="都道府県の拡大地図。県庁、地形、産業・特産品のしるし。">
+        <svg id="fact-map" viewBox="0 0 560 330" role="group" aria-label="都道府県と周辺の地図。県庁、地形、産業・特産品のしるし。">
           <defs>
             <clipPath id="fact-clip"><use href="#fact-shape"/></clipPath>
           </defs>
+          <g id="fact-neighbors" aria-hidden="true"></g>
           <path id="fact-shape" fill-rule="evenodd" clip-rule="evenodd"/>
+          <g id="fact-neighbor-names" aria-hidden="true"></g>
           <g id="fact-industry-area" clip-path="url(#fact-clip)" aria-hidden="true"></g>
           <g id="fact-rivers" clip-path="url(#fact-clip)"></g>
           <g id="fact-peaks"></g>
@@ -2404,6 +2539,7 @@ body:has(#medal-dialog[open]){min-height:365px}
         <span id="industry-key-group" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><g id="industry-key-symbol" class="industry-icon"></g></svg><span id="industry-name"></span></span>
       </div>
       <p class="map-note" id="map-caption"></p>
+      <p id="nearby-prefectures" hidden><span id="land-neighbor-list"></span><span id="sea-neighbor-list"></span></p>
       <div id="relief-controls" hidden aria-label="川と山を選ぶ"></div>
       <div class="feature-keys">
         <button id="discover-capital" aria-pressed="false" class="secondary">★ 県庁 <span hidden>✓</span></button>
@@ -2413,6 +2549,12 @@ body:has(#medal-dialog[open]){min-height:365px}
       <article class="fact" aria-live="polite">
         <h3 id="fact-title"></h3>
         <p id="fact-text"></p><p id="fact-area" hidden></p><p id="fact-use" hidden></p>
+        <section id="local-product" aria-labelledby="local-product-name" hidden>
+          <h4 id="local-product-name"></h4>
+          <p id="local-product-pitch"></p>
+          <a id="local-product-source" target="_blank" rel="noopener noreferrer">くわしく見る</a>
+          <a id="local-product-video" target="_blank" rel="noopener noreferrer" hidden>動画を見る（YouTube）</a>
+        </section>
       </article>
       <button id="start-quiz" disabled>特徴クイズに すすむ</button>
     </div>
@@ -2838,14 +2980,70 @@ function featureControl(node, label, action) {
   };
   return node;
 }
+function renderFactNeighbors(pref, item, transform, toMap, scale, tx, ty) {
+  const shapes = $("fact-neighbors"), labels = $("fact-neighbor-names");
+  if (shapes.dataset.prefecture === pref.id) return;
+  shapes.dataset.prefecture = pref.id;
+  shapes.replaceChildren();
+  labels.replaceChildren();
+  const land = item.land_neighbors.map(id => prefectures.get(id));
+  const sea = item.sea_neighbors.map(id => prefectures.get(id));
+  $("nearby-prefectures").hidden = !land.length && !sea.length;
+  $("land-neighbor-list").hidden = !land.length;
+  $("sea-neighbor-list").hidden = !sea.length;
+  $("land-neighbor-list").textContent = "県境を接する："+land.map(p => p.name).join("・");
+  $("sea-neighbor-list").textContent = "海をはさんで近い："+sea.map(p => p.name).join("・");
+  const focus = $("fact-shape");
+  const used = [];
+  const point = new DOMPoint();
+  const contains = (path, x, y) => {
+    point.x = (x-tx)/scale;
+    point.y = (y-ty)/scale;
+    return path.isPointInFill(point);
+  };
+  const paths = [...land,...sea].map(neighbor => {
+    const path = svgNode("path",{d:neighbor.path,transform,class:"neighbor-shape","fill-rule":"evenodd"});
+    shapes.append(path);
+    return [neighbor,path];
+  });
+  for (const [neighbor,path] of paths) {
+    const [bx,by,bw,bh] = neighbor.bounds;
+    const [x0,y0] = toMap([bx,by]), [x1,y1] = toMap([bx+bw,by+bh]);
+    const half = neighbor.name.length*8.5;
+    const left = Math.max(x0,half+4), right = Math.min(x1,FACT_WIDTH-half-4);
+    const top = Math.max(y0,12), bottom = Math.min(y1,FACT_HEIGHT-12);
+    const centerX = (left+right)/2, centerY = (top+bottom)/2;
+    let best = null;
+    // Prefer a position fully inside the visible neighbor, away from the selected prefecture.
+    for (let y=top; y<=bottom; y+=8) {
+      for (let x=left; x<=right; x+=8) {
+        if (!contains(path,x,y) || contains(focus,x,y)) continue;
+        if (used.some(p => Math.abs(p.x-x) < p.half+half+4 && Math.abs(p.y-y)<20)) continue;
+        const sides = [x-half,x+half];
+        const covered = sides.filter(edge => contains(path,edge,y)).length;
+        const crossed = sides.filter(edge => contains(focus,edge,y)).length;
+        const score = covered*40-crossed*65-Math.hypot(x-centerX,y-centerY)*.32;
+        if (!best || score>best.score) best = {x,y,half,score};
+      }
+    }
+    if (!best) continue;
+    used.push(best);
+    const label = svgNode("text",{x:best.x,y:best.y,class:"neighbor-name",
+      "dominant-baseline":"central","text-anchor":"middle"});
+    label.textContent = neighbor.name;
+    labels.append(label);
+  }
+}
+
 function renderFactMap(pref, item, selected) {
   const [x,y,w,h] = pref.bounds;
-  const scale = Math.min((FACT_WIDTH-90)/w,(FACT_HEIGHT-62)/h);
+  const scale = Math.min((FACT_WIDTH-144)/w,(FACT_HEIGHT-92)/h);
   const tx = FACT_WIDTH/2-(x+w/2)*scale, ty = FACT_HEIGHT/2-(y+h/2)*scale;
   const transform = `translate(${tx} ${ty}) scale(${scale})`;
   const toMap = ([px,py]) => [tx+px*scale,ty+py*scale];
   $("fact-shape").setAttribute("d",pref.path);
   $("fact-shape").setAttribute("transform",transform);
+  renderFactNeighbors(pref,item,transform,toMap,scale,tx,ty);
   for (const id of ["fact-rivers","fact-peaks","fact-industry-area","fact-pins","relief-controls"]) $(id).replaceChildren();
   $("fact-industry-area").hidden = selected !== "industry";
   $("relief-controls").hidden = selected !== "land";
@@ -2877,7 +3075,7 @@ function renderFactMap(pref, item, selected) {
     $("industry-name").textContent = item.industry;
     return;
   }
-  $("map-caption").textContent = "青い線は川の流路、三角は山頂の位置です。全体を見渡せるよう、流路は簡略化しています。";
+  $("map-caption").textContent = "青い線は川の流路、山のマークは山頂の位置です。全体を見渡せるよう、流路は簡略化しています。";
   if (!item.rivers.some(r=>r.name===item.land) && !item.peaks.some(m=>m.name.includes(item.land))) {
     const [lx,ly] = toMap(item.land_point);
     const label = svgNode("text",{x:lx,y:ly-7,class:"place-reference","text-anchor":"middle"});
@@ -2905,7 +3103,10 @@ function renderFactMap(pref, item, selected) {
   for (const [index, peak] of item.peaks.entries()) {
     const pin = svgNode("g",{class:"map-peak"+(selectedRelief?.kind==="peak" && selectedRelief.index===index?" selected":""),
       transform:`translate(${toMap(peak.point).join(" ")})`});
-    pin.append(svgNode("circle",{r:13}),svgNode("path",{d:"M-8 6 L0 -8 L8 6Z"}));
+    pin.append(svgNode("circle",{r:13}),
+      svgNode("path",{class:"peak-back",d:"M-2 6 5-5 12 6Z"}),
+      svgNode("path",{class:"peak-front",d:"M-11 7 -3-10 6 7Z"}),
+      svgNode("path",{class:"peak-snow",d:"M-7-1 -3-9 1-1 -2-3 -4 0Z"}));
     $("fact-peaks").append(featureControl(pin,peak.name+"をみる",()=>openRelief("peak",index)));
   }
   const controls = [
@@ -3000,7 +3201,9 @@ function readCurrent() {
       speakText(`${item.name}の都道府県庁は、${item.capital}にあります。地形や産業も、地図で見てみましょう。`,item);
     } else {
       const place = attempt.view === "industry" ? `地図で色をつけた自治体は、${item.production_cities.join("、")}です。` : "";
-      speakText(`${$("fact-title").textContent}。${$("fact-text").textContent}${place}`,item);
+      const product = attempt.view === "industry" ? item.local_product : null;
+      const pitch = product ? `この土地の名産、${product.reading || product.name}。${product.pitch}` : "";
+      speakText(`${$("fact-title").textContent}。${$("fact-text").textContent}${pitch}${place}`,item);
     }
   } else if (stage === "game" && attempt?.phase === "quiz") {
     const entry = attempt.questions.at(-1), q = info().questions[attempt.questions.length-1];
@@ -3070,12 +3273,24 @@ function drawExplore(pref) {
   $("fact-area").textContent = "色を付けた自治体　"+item.production_cities.join("・");
   $("fact-use").hidden = selected !== "industry";
   $("fact-use").textContent = "土地や水の使い方　"+item.use;
+  renderLocalProduct(selected === "industry" ? item.local_product : null);
   for (const key of ["capital","land","industry"]) {
     const control = $("discover-"+key);
     control.setAttribute("aria-pressed", String(selected === key));
     control.querySelector("span").hidden = !didOpen(key);
   }
   $("start-quiz").disabled = !didOpen("land") || !didOpen("industry");
+}
+function renderLocalProduct(product) {
+  $("local-product").hidden = !product;
+  if (!product) return;
+  const {name, reading, pitch, source, video} = product;
+  $("local-product-name").textContent = reading && reading !== name ? `${name}（${reading}）` : name;
+  $("local-product-pitch").textContent = pitch;
+  $("local-product-source").href = source;
+  $("local-product-video").hidden = !video;
+  if (video) $("local-product-video").href = video;
+  else $("local-product-video").removeAttribute("href");
 }
 function openFeature(key) {
   if (attempt.phase !== "explore") return;
