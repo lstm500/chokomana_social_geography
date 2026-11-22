@@ -2427,7 +2427,7 @@ REGIONAL_INDUSTRY_ROWS = """
 20|工芸|木曽漆器|きそしっき|長野の木曽で作る漆塗りの器。木目が透けて見える器もあるよ。|https://www.jtco.or.jp/japanese-crafts/?act=detail&c=17&id=46&p=18
 21|工芸|美濃和紙|みのわし|岐阜で作る手すきの和紙。明かりにかざすと、細い繊維が集まった紙ごしに光がやわらかく見えるよ。|https://www.kankou-gifu.jp/spot/detail_3044.html
 22|ものづくり|浜松の楽器づくり|はままつのがっきづくり|静岡の浜松はピアノなどの楽器づくりがさかん。|https://hamamatsu-mononavi.jp/about/music/
-23|ものづくり|愛知の自動車づくり|あいちのじどうしゃづくり|愛知は自動車産業がさかん。タイヤや窓、座席。別々の部品が少しずつ車の形になるよ。|https://www.pref.aichi.jp/soshiki/ricchitsusho/miryoku-kouzou.html
+23|ものづくり|愛知の自動車づくり|あいちのじどうしゃづくり|豊田市にはトヨタの工場があるよ。車体に窓や座席をつけて、自動車を組み立てるよ。|https://global.toyota/jp/company/profile/facilities/manufacturing-worldwide/japan.html
 24|工芸|伊賀くみひも|いがくみひも|三重の伊賀で作る、何本もの糸を組んだひも。糸が上下に交差して模様になるよ。|https://www.pref.mie.lg.jp/CHISHI/HP/72498045141.htm
 25|工芸|信楽焼|しがらきやき|滋賀の土を焼いて作る器や置物。たぬきの置物でおなじみだよ。|https://kyokai.kougeihin.jp/hall/h019/
 26|工芸|西陣織|にしじんおり|京都で、先に色をつけた糸を組み合わせて織るよ。着物の帯の花模様にも使われるよ。|https://www.pref.kyoto.jp/senshoku/nisijin.html
@@ -2761,22 +2761,43 @@ INDUSTRY_PLACES["30"].extend([
 KAGAWA_WHEAT_PLACE = {"label":"綾川町", "point":project("37","34.25,133.92")}
 
 
-MANUFACTURING_ROWS = """
-06|米沢のパソコンづくり|よねざわのパソコンづくり|薄いノートパソコンに、小さな部品がぎっしり。米沢の工場で組み立てるよ。|米沢市|37.91,140.12|https://www.nec-lavie.jp/company/|https://tk.ismcdn.jp/mwimgs/4/f/1200w/img_4f742bbde7da0900ae7f30af7654fda6535602.jpg|https://toyokeizai.net/articles/-/914597?display=b|東洋経済オンライン
-08|日立建機の油圧ショベル|ひたちけんきのゆあつショベル|ひたちなかの工場で作る大きなショベル。大きな腕で岩や土をすくうよ。|ひたちなか市|36.397,140.58|https://jcmanet.or.jp/jcm/wp-content/uploads/2024/09/1d8fcd7d276fd653712197401a5de635.pdf|https://hitachikenki.scene7.com/is/image/hitachikenki/EX5600-7-8|https://www.hitachicm.com/global/ja/news/topics/2024/24-10-07/|日立建機
-09|宇都宮のヘリコプターづくり|うつのみやのヘリコプターづくり|羽をくるくる回して飛ぶヘリコプター。宇都宮には、機体を組み立てる工場があるよ。|宇都宮市|36.526,139.865|https://www.subaru.co.jp/outline/about/aerospace/|https://cdn.autoc-one.jp/images/article/201801/19131304303_o.jpg|https://autoc-one.jp/news/5001257/|MOTA
-10|太田のスバル車|おおたのスバルしゃ|太田の工場で部品を組み立て、スバルの車を作るよ。|太田市|36.292,139.373|https://www.subaru.co.jp/outline/office.html|https://news.mynavi.jp/premium/article/20260618-subaru-flexibility/images/014.jpg|https://news.mynavi.jp/premium/article/20260618-subaru-flexibility/|マイナビニュース
-25|長浜のヤンマーエンジン|ながはまのヤンマーエンジン|長浜で作る小さなエンジン。田んぼや畑で働く機械を動かすよ。|長浜市|35.43,136.23|https://www.yanmar.com/jp/about/company/power_technology/company.html|https://i.gzn.jp/img/2016/06/10/yanmar-biwa-plant/p3750092.jpg|https://gigazine.net/gsc_news/en/20160610-yanmar-biwa-plant/|GIGAZINE
-28|明石のカワサキバイク|あかしのカワサキバイク|明石で作るオートバイ。タイヤやエンジンをつけて、走れる形にしていくよ。|明石市|34.680,134.920|https://www.gizmodo.jp/2018/03/kawasaki_machine-factory.html|https://media.loom-app.com/gizmodo/dist/images/2018/03/23/kawasaki_AGV.jpg?w=640|https://www.gizmodo.jp/2018/03/kawasaki_machine-factory.html|ギズモード・ジャパン
-34|広島のマツダ車|ひろしまのマツダしゃ|府中町の工場では、車がラインを流れながら、少しずつ組み上がるよ。|府中町|34.380,132.507|https://www.mazda.com/ja/about/facilities/|https://www.hiroshimacvb.jp/unique-experience/mazdamuseum08_zone9_assembly_s.jpg|https://www.hiroshimacvb.jp/en/unique-experience/industrial-tours/1299.html|広島観光コンベンションビューロー
-40|苅田の日産車|かんだのにっさんしゃ|苅田の工場では、ロボットと人が車を作るよ。|苅田町|33.77,130.985|https://www.nissankyushu.co.jp/COMPANY/gaiyou.html|https://kbc.co.jp/up/content/15/52/af0f553689619619c16a0ddaedf161a8ca5fdd4a.jpg|https://kbc.co.jp/wish/article/37272/|九州朝日放送
-45|延岡のベンベルグ|のべおかのベンベルグ|綿の種に残る短い毛から、さらっとした糸を作るよ。服の裏地にも使われるんだ。|延岡市|32.58,131.65|https://www.asahi-kasei.co.jp/fibers/bemberg/facility/|https://www.asahi-kasei.cn/group/AKF/fibers/bemberg/img/bemberg-world/facility/sec02_img01.jpg|https://www.asahi-kasei.cn/group/AKF/fibers/bemberg/facility/|旭化成
+REGIONAL_ADDITIONS = """
+06|ものづくり|米沢のパソコンづくり|よねざわのパソコンづくり|薄いノートパソコンに、小さな部品がぎっしり。米沢の工場で組み立てるよ。|米沢市|37.91,140.12|https://www.nec-lavie.jp/company/|https://tk.ismcdn.jp/mwimgs/4/f/1200w/img_4f742bbde7da0900ae7f30af7654fda6535602.jpg|https://toyokeizai.net/articles/-/914597?display=b|東洋経済オンライン
+08|ものづくり|日立建機の油圧ショベル|ひたちけんきのゆあつショベル|ひたちなかの工場で作る大きなショベル。大きな腕で岩や土をすくうよ。|ひたちなか市|36.397,140.58|https://jcmanet.or.jp/jcm/wp-content/uploads/2024/09/1d8fcd7d276fd653712197401a5de635.pdf|https://hitachikenki.scene7.com/is/image/hitachikenki/EX5600-7-8|https://www.hitachicm.com/global/ja/news/topics/2024/24-10-07/|日立建機
+09|ものづくり|宇都宮のヘリコプターづくり|うつのみやのヘリコプターづくり|羽をくるくる回して飛ぶヘリコプター。宇都宮には、機体を組み立てる工場があるよ。|宇都宮市|36.526,139.865|https://www.subaru.co.jp/outline/about/aerospace/|https://cdn.autoc-one.jp/images/article/201801/19131304303_o.jpg|https://autoc-one.jp/news/5001257/|MOTA
+10|ものづくり|太田のスバル車|おおたのスバルしゃ|太田の工場で部品を組み立て、スバルの車を作るよ。|太田市|36.292,139.373|https://www.subaru.co.jp/outline/office.html|https://news.mynavi.jp/premium/article/20260618-subaru-flexibility/images/014.jpg|https://news.mynavi.jp/premium/article/20260618-subaru-flexibility/|マイナビニュース
+25|ものづくり|長浜のヤンマーエンジン|ながはまのヤンマーエンジン|長浜で作る小さなエンジン。田んぼや畑で働く機械を動かすよ。|長浜市|35.43,136.23|https://www.yanmar.com/jp/about/company/power_technology/company.html|https://i.gzn.jp/img/2016/06/10/yanmar-biwa-plant/p3750092.jpg|https://gigazine.net/gsc_news/en/20160610-yanmar-biwa-plant/|GIGAZINE
+28|ものづくり|明石のカワサキバイク|あかしのカワサキバイク|明石で作るオートバイ。タイヤやエンジンをつけて、走れる形にしていくよ。|明石市|34.680,134.920|https://www.gizmodo.jp/2018/03/kawasaki_machine-factory.html|https://media.loom-app.com/gizmodo/dist/images/2018/03/23/kawasaki_AGV.jpg?w=640|https://www.gizmodo.jp/2018/03/kawasaki_machine-factory.html|ギズモード・ジャパン
+34|ものづくり|広島のマツダ車|ひろしまのマツダしゃ|府中町の工場では、車がラインを流れながら、少しずつ組み上がるよ。|府中町|34.380,132.507|https://www.mazda.com/ja/about/facilities/|https://www.hiroshimacvb.jp/unique-experience/mazdamuseum08_zone9_assembly_s.jpg|https://www.hiroshimacvb.jp/en/unique-experience/industrial-tours/1299.html|広島観光コンベンションビューロー
+40|ものづくり|苅田の日産車|かんだのにっさんしゃ|苅田の工場では、ロボットと人が車を作るよ。|苅田町|33.77,130.985|https://www.nissankyushu.co.jp/COMPANY/gaiyou.html|https://kbc.co.jp/up/content/15/52/af0f553689619619c16a0ddaedf161a8ca5fdd4a.jpg|https://kbc.co.jp/wish/article/37272/|九州朝日放送
+45|ものづくり|延岡のベンベルグ|のべおかのベンベルグ|綿の種に残る短い毛から、さらっとした糸を作るよ。服の裏地にも使われるんだ。|延岡市|32.58,131.65|https://www.asahi-kasei.co.jp/fibers/bemberg/facility/|https://www.asahi-kasei.cn/group/AKF/fibers/bemberg/img/bemberg-world/facility/sec02_img01.jpg|https://www.asahi-kasei.cn/group/AKF/fibers/bemberg/facility/|旭化成
+01|ものづくり|苫小牧の自動車部品|とまこまいのじどうしゃぶひん|苫小牧では、エンジンやモーターの力を車輪に伝える部品を作るよ。|苫小牧市|42.666,141.614|https://www.tmh.co.jp/manufacturing/know.html|https://www.tmh.co.jp/mt-static/themes/toyota/assets/image/step6-img.jpg|https://www.tmh.co.jp/manufacturing/process02.html|トヨタ自動車北海道
+04|ものづくり|大衡のトヨタ車|おおひらのトヨタしゃ|大衡村の工場では、鉄板を車の形にし、色をぬって部品を取りつけるよ。|大衡村|38.470,140.873|https://www.toyota-ej.co.jp/yui/honsya/index.html|https://levolant.jp/wp-content/uploads/2025/08/15d25f9defa4163f3d58cbfc343ee14a.jpg|https://levolant.jp/2025/08/23/397930/|ル・ボラン ウェブ
+08|ものづくり|鹿島臨海工業地帯|かしまりんかいこうぎょうちたい|鹿島港のまわりに、鉄や石油を加工する工場が集まっているよ。|神栖市 鹿島港周辺|35.926,140.682|https://www.city.kamisu.ibaraki.jp/kanko_sports/ss_facility/1002393/1002394/1002397.html|https://www.andtrip.jp/images/017dc8158a8cfb8c9c8e50e2d4c306efba2dafbe.jpg|https://www.andtrip.jp/article/001842.html|and trip. たびびと
+11|ものづくり|寄居のホンダ車|よりいのホンダしゃ|寄居の工場では、機械で車体を組み立てるよ。車は部品がつくたびに完成に近づくよ。|寄居町|36.103,139.238|https://global.honda/jp/topics/2024/c_2024-09-30/image_download.html|https://global.honda/content/dam/site/global-en/topics-new/cq_img/2024/c_2024-09-30eng/c_2024-09-30eng_01.jpg|https://global.honda/en/topics/2024/c_2024-09-30eng.html|Honda
+12|ものづくり|京葉工業地域|けいようこうぎょうちいき|東京湾に面した市原には、石油からプラスチックなどのもとを作る工場が集まるよ。|市原市 五井海岸周辺|35.531,140.064|https://www.chemiway-csr.jp/social/office/|https://prcdn.freetls.fastly.net/release_image/127749/90/127749-90-8de4b80ec6b221f78e5633afda8b393e-3000x2000.jpg?width=640|https://prtimes.jp/main/html/rd/p/000000090.000127749.html|市原市
+14|ものづくり|京浜工業地帯・川崎|けいひんこうぎょうちたい、かわさき|川崎港の近くに工場が集まり、石油などを加工するよ。海から原料を運びこめる場所だよ。|川崎市 臨海部|35.508,139.738|https://www.city.kawasaki.jp/590/cmsfiles/contents/0000055/55849/leafletA4_20250114.pdf|https://download.pakutaso.com/shared/img/thumb/YAT191222001.jpg|https://www.pakutaso.com/20200113016post-25032.html|ぱくたそ
+16|ものづくり|黒部のファスナー|くろべのファスナー|黒部の工場で作るファスナー。小さな歯がかみ合って、服やかばんが閉じるよ。|黒部市|36.887,137.439|https://www.pref.toyama.lg.jp/documents/25021/richiguider7.pdf|https://static.wixstatic.com/media/158015_0ba1dfaa26a44ee2aa5cfefcc6ed47ec~mv2.jpg/v1/fill/w_890%2Ch_593%2Cal_c%2Cq_85%2Cusm_0.66_1.00_0.01%2Cenc_avif%2Cquality_auto/maruyane_14.jpg|https://www.apldw.co.jp/ykkm|APLdw（YKK丸屋根展示館）
+18|ものづくり|鯖江のめがねづくり|さばえのめがねづくり|鯖江では、めがねのフレームを作るよ。顔に合わせて、形も色もいろいろ。|鯖江市|35.944,136.192|https://www.city.sabae.fukui.jp/kanko/playing/museum.html|https://www.nippon.com/en/ncommon/contents/views/43215/43215.jpg|https://www.nippon.com/en/views/b00601/|nippon.com（めがね作りの道具）
+22|ものづくり|湖西のスズキ車|こさいのスズキしゃ|湖西の工場では、車体に窓や座席などをつけて、小さな車を組み立てるよ。|湖西市|34.721,137.499|https://www.suzuki.co.jp/corporate/producingbase/index.html|https://www.suzuki-careers.com/temporary/factory/images/kosai_gallery03.jpg|https://www.suzuki-careers.com/temporary/factory/index.html|スズキ
+24|ものづくり|四日市コンビナート|よっかいちコンビナート|港の近くに工場が集まり、石油を加工するよ。配管が工場どうしをつないでいるよ。|四日市市 臨海部|34.974,136.647|https://www.yokkaichi-port.or.jp/lt_vision/pdf/2-3_3b.pdf|https://i.mie-eetoko.com/DSC1440.jpg|https://mie-eetoko.com/hokusei/207|三重のええとこ巡り
+24|ものづくり|鈴鹿のホンダ車|すずかのホンダしゃ|鈴鹿では、軽自動車などを作るよ。ロボットが金属の部品を組み合わせる工程もあるよ。|鈴鹿市|34.871,136.525|https://global.honda/jp/kengaku/|https://webcg.ismcdn.jp/mwimgs/6/9/1200/img_69c8bfd410f8b6d83ea533e37e8f54ab457684.jpg|https://www.webcg.net/articles/-/40098|webCG
+33|ものづくり|水島コンビナート|みずしまコンビナート|倉敷の海沿いには、鉄を作ったり石油を加工したりする工場が集まっているよ。|倉敷市 水島地区|34.517,133.736|https://citysales.city.kurashiki.okayama.jp/koto/kk61/|https://citysales.city.kurashiki.okayama.jp/city_content/koto/kk6/kk61_2.jpg|https://citysales.city.kurashiki.okayama.jp/koto/kk61/|倉敷市
+35|ものづくり|周南コンビナート|しゅうなんコンビナート|港のそばに化学工場が集まるよ。工場のタンクや配管が、夜には光で浮かび上がるよ。|周南市 徳山港周辺|34.047,131.800|https://www.city.shunan.lg.jp/site/kanko/1446.html|https://www.city.shunan.lg.jp/uploaded/attachment/114023.JPG|https://www.city.shunan.lg.jp/site/kanko/1442.html|周南市
+41|地域の農産物|多久のびわ|たくのびわ|多久市の地域産業資源に指定されている果物。うすい皮の下に、やわらかい果肉があるよ。|多久市|33.286,130.110|https://www.pref.saga.lg.jp/kiji00327251/3_27251_158362_up_vgxcgjtv.pdf|https://thumb.wikimedia.org/wikipedia/commons/thumb/4/48/Eriobotrya_japonica_-_Loquat_07.jpg/330px-Eriobotrya_japonica_-_Loquat_07.jpg|https://commons.wikimedia.org/wiki/File:Eriobotrya_japonica_-_Loquat_07.jpg|Zeynel Cebeci
+41|特産品・ブランド|佐賀牛|さがぎゅう|佐賀の黒毛和牛のうち、基準を満たした牛肉だよ。赤身の間に細かく白い脂が入っているよ。|伊万里市|33.270,129.880|https://jaimari.saga-ja.jp/products/beef/|https://www.ja-town.com/img/goods/8101/1/8101-30051.JPG|https://www.ja-town.com/shop/g/g8101-30051/|JAタウン
+41|ものづくり|鳥栖のタイヤづくり|とすのタイヤづくり|鳥栖の工場では、スポーツカーなどのタイヤを作るよ。車が曲がったり止まったりするときにも活躍するよ。|鳥栖市|33.361,130.535|https://www.bridgestone.co.jp/blog/2019030801.html|https://www.bridgestone.co.jp/blog/images/2019030601_01.jpg|https://www.bridgestone.co.jp/blog/2019030801.html|ブリヂストン
+43|ものづくり|菊陽の半導体づくり|きくようのはんどうたいづくり|菊陽町の工場では、電子機器の計算や制御に使う半導体チップを作るよ。|菊陽町|32.886,130.806|https://www.chisou.go.jp/sousei/about/kouhukin/infuraseibi/pdf/08_inhuraseibi.pdf|https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0f/JASM_Kumamoto.JPG/330px-JASM_Kumamoto.JPG|https://commons.wikimedia.org/wiki/File:JASM_Kumamoto.JPG|hyolee2
+44|ものづくり|大分の臨海工業地帯|おおいたのりんかいこうぎょうちたい|大分市の海沿いに、鉄を作る工場と石油を加工する工場があるよ。|大分市 臨海部|33.266,131.655|https://www.pref.oita.jp/uploaded/attachment/2182704.pdf|https://www.city.oita.oita.jp/o029/photo/documents/008kojo.jpg|https://www.city.oita.oita.jp/o029/photo/landscape2.html|大分市
 """
-for row in MANUFACTURING_ROWS.strip().splitlines():
-    pid, name, reading, pitch, locality, location, source, image, photo_source, credit = row.split("|")
-    REGIONAL_INDUSTRIES[pid].append(
-        dict(category="ものづくり", name=name, reading=reading, pitch=pitch, source=source))
-    REGIONAL_PHOTOS[name] = dict(caption=name, image=image, source=photo_source, credit=credit)
+for row in REGIONAL_ADDITIONS.strip().splitlines():
+    pid, category, name, reading, pitch, locality, location, source, image, photo_source, credit = row.split("|")
+    REGIONAL_INDUSTRIES[pid].append(dict(category=category, name=name, reading=reading, pitch=pitch, source=source))
+    photo = dict(caption="びわ（参考写真）" if name == "多久のびわ" else name,
+                 image=image, source=photo_source, credit=credit)
+    if photo_source.startswith("https://commons.wikimedia.org/wiki/File:"):
+        photo["license"] = "https://creativecommons.org/licenses/by-sa/4.0/"
+    REGIONAL_PHOTOS[name] = photo
     INDUSTRY_PLACES[pid].append(dict(label=locality, point=project(pid, location)))
 
 
@@ -3658,8 +3679,7 @@ function revealPrefecture() {
   attempt.actions.push({type:"explore",feature:"capital",at:time()});
   showQuestion();
   $("pref-name").focus();
-  const item = info();
-  speakText(`${item.reading || item.name}です。`,item);
+  readCurrent();
 }
 const INDUSTRY_ICONS = {
   cow:'<path fill="#fffaf0" d="M5 9 2 5l6 1 2-3h4l2 3 6-1-3 5v6a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4Z"/><path fill="#bf7651" d="M5 9l3-2 2 4-3 3H5Zm10-2 3 1 1 3-4 2-2-3Z"/><rect x="7" y="13" width="10" height="6" rx="3" fill="#f4b6ae"/><path d="M10 16h.1m3.9 0h.1"/>',
@@ -4180,7 +4200,7 @@ function readCurrent() {
   } else if (stage === "game" && attempt?.phase === "explore") {
     const item = info();
     if (attempt.view === "capital") {
-      speakText(`県庁所在地は、${item.capital_reading || item.capital}です。`,item);
+      speakText(`${item.reading || item.name}の県庁所在地は、${item.capital_reading || item.capital}です。`,item);
     } else if (attempt.view === "industry") {
       const {name, reading, intro} = selectedMapStory(mapStories(item));
       speakText(`${reading || name}。${intro}`,item);
@@ -4293,6 +4313,21 @@ function renderIndustryStories(pref, stories, active) {
       source.rel = "noopener noreferrer";
       source.textContent = "出典を見る";
       card.append(category,heading,pitch,source);
+      for (const photo of story.photos.filter(photo=>photo.license)) {
+        const credit = document.createElement("p");
+        credit.className = "story-category";
+        const author = document.createElement("a"), license = document.createElement("a");
+        author.href = photo.source;
+        author.textContent = photo.credit;
+        license.href = photo.license;
+        license.textContent = "CC BY-SA 4.0";
+        for (const link of [author,license]) {
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+        }
+        credit.append("写真：",author,"（",license,"）");
+        card.append(credit);
+      }
       return card;
     }));
   }
