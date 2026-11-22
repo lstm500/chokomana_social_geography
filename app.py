@@ -2405,55 +2405,55 @@ if chikuma:
 
 # Other industries and specialties to discover after the main lesson.
 REGIONAL_INDUSTRY_ROWS = """
-01|工芸|二風谷イタ|にぶたにいた|アイヌの木彫りのお盆。木に彫った模様を近くで見ると、魚のうろこみたいな形が見つかるよ。|https://kougeihin.jp/craft/0601/
-02|工芸|津軽塗|つがるぬり|色のちがう漆を何度も塗ってからみがくと、下の色があらわれるよ。おはし一本に何色あるかな？|https://www.pref.aomori.lg.jp/soshiki/sangyo/chikikigyo/aomori_dento-kogei_tsugarunuri.html
+01|工芸|二風谷イタ|にぶたにいた|アイヌの木彫りのお盆。魚のうろこのような模様が彫られているよ。|https://kougeihin.jp/craft/0601/
+02|工芸|津軽塗|つがるぬり|色のちがう漆を何度も塗ってからみがくと、下の色があらわれるよ。|https://www.pref.aomori.lg.jp/soshiki/sangyo/chikikigyo/aomori_dento-kogei_tsugarunuri.html
 03|工芸|南部鉄器|なんぶてっき|鉄を型に流し込んで作るやかん。表面の小さな丸いでこぼこが、雨つぶみたいに並ぶよ。|https://www.tohoku.meti.go.jp/s_densan/iwate_01.html
-04|工芸|宮城伝統こけし|みやぎでんとうこけし|木を丸くけずって作る人形。産地ごとに顔や模様がちがうよ。どのこけしがいちばんにっこりして見える？|https://www.pref.miyagi.jp/soshiki/shinsan/01kokesi.html
-05|工芸|大館曲げわっぱ|おおだてまげわっぱ|うすい杉の板を曲げて作るおべんとう箱。ふたを開けたら、杉の香りにも気づくかな？|https://www.tohoku.meti.go.jp/s_densan/akita_03.html
-06|工芸|山形鋳物|やまがたいもの|とかした金属を型に流して作るよ。でき上がった鉄びんのふちを見てみて。鉄なのにうすく形を作れるんだ。|https://www.tohoku.meti.go.jp/s_densan/yamagata_01.html
+04|工芸|宮城伝統こけし|みやぎでんとうこけし|木を丸くけずって作る人形。産地ごとに顔や模様がちがうよ。|https://www.pref.miyagi.jp/soshiki/shinsan/01kokesi.html
+05|工芸|大館曲げわっぱ|おおだてまげわっぱ|うすい杉の板を曲げて作るおべんとう箱。ふたを開けると杉が香るよ。|https://www.tohoku.meti.go.jp/s_densan/akita_03.html
+06|工芸|山形鋳物|やまがたいもの|とかした金属を型に流し、ふちのうすい鉄びんなどを作るよ。|https://www.tohoku.meti.go.jp/s_densan/yamagata_01.html
 07|工芸|会津塗|あいづぬり|木のおわんなどに漆を塗る工芸。黒いおわんに金色の模様が光るものもあるよ。|https://www.tohoku.meti.go.jp/s_densan/fukusima_01.html
-08|工芸|笠間焼|かさまやき|茨城の土から生まれる焼き物。ざらっとした器やつるっとした器。手で持つと、どんなちがいがあるかな？|https://www.city.kasama.lg.jp/page/page002072.html
-09|工芸|益子焼|ましこやき|栃木の益子で作る焼き物。器のふちを見てみて。うわぐすりが流れて、色の境目が一つずつちがうよ。|https://www.pref.tochigi.lg.jp/c05/intro/tochigiken/miryoku/kentou/002.html
-10|工芸|高崎だるま|たかさきだるま|まゆは鶴、ひげは亀を思わせる形。だるまの顔の中に、二つの生き物を見つけてみよう。|https://www.pref.gunma.jp/site/kougei/690379.html
-11|工芸|岩槻人形|いわつきにんぎょう|さいたま市の岩槻で作るひな人形など。小さな顔の表情と、着物の重なりを見てみよう。|https://www.jpo.go.jp/system/trademark/gaiyo/chidan/shoukai/ichiran/5028377.html
-12|工芸|房州うちわ|ぼうしゅううちわ|一本の竹の先を細くさき、広げてうちわの骨にするよ。持ち手から骨まで、竹がどうつながるか見てみよう。|https://www.city.minamiboso.chiba.jp/0000001419.html
+08|工芸|笠間焼|かさまやき|茨城の土で作る焼き物。ざらっとした器も、つるっとした器もあるよ。|https://www.city.kasama.lg.jp/page/page002072.html
+09|工芸|益子焼|ましこやき|栃木の益子で作る焼き物。うわぐすりが流れて、色の境目が器ごとにちがうよ。|https://www.pref.tochigi.lg.jp/c05/intro/tochigiken/miryoku/kentou/002.html
+10|工芸|高崎だるま|たかさきだるま|まゆは鶴、ひげは亀を思わせる形。|https://www.pref.gunma.jp/site/kougei/690379.html
+11|工芸|岩槻人形|いわつきにんぎょう|さいたま市の岩槻で作るひな人形など。着物を重ねたひな人形もあるよ。|https://www.jpo.go.jp/system/trademark/gaiyo/chidan/shoukai/ichiran/5028377.html
+12|工芸|房州うちわ|ぼうしゅううちわ|一本の竹の先を細くさき、広げてうちわの骨にするよ。持ち手から骨まで、一本の竹でつながっているよ。|https://www.city.minamiboso.chiba.jp/0000001419.html
 13|工芸|江戸切子|えどきりこ|ガラスに細いみぞをけずって、模様を作るよ。コップを回すと、光り方もくるくる変わるね。|https://www.dento-tokyo.metro.tokyo.lg.jp/items/22.html
-14|工芸|箱根寄木細工|はこねよせぎざいく|色のちがう木を組み合わせて模様を作るよ。三角やひし形が何個かくれているかな？|https://www.jtco.or.jp/kougeihinkan/?act=detail&c=4&id=143&p=14
-15|ものづくり|燕三条の金属洋食器|つばめさんじょうのきんぞくようしょっき|新潟の燕三条で作るスプーンやフォーク。ぴかぴかのスプーンをのぞくと、顔はどんなふうに見えるかな？|https://www.tsjiba.or.jp/michi/store/index.html
-16|工芸|高岡銅器|たかおかどうき|とかした金属を型に流してできる富山の工芸。風鈴にも使われるよ。どんな音がするか想像してみよう。|https://douki-takaoka.jp/about
-17|工芸|九谷焼|くたにやき|石川の色あざやかな焼き物。赤・黄・緑・紫・紺青を使った絵を見て、好きな色を探してみよう。|https://www.pref.ishikawa.lg.jp/kyoiku/bunkazai/mukei/k2.html
-18|工芸|越前漆器|えちぜんしっき|福井の漆塗りの器。光を当てると、つやつやのおわんに周りのものがどう映るかな？|https://fuku-iro.jp/omiyage/detail_10545.html
+14|工芸|箱根寄木細工|はこねよせぎざいく|色のちがう木を組み合わせて模様を作るよ。三角やひし形の模様もあるよ。|https://www.jtco.or.jp/kougeihinkan/?act=detail&c=4&id=143&p=14
+15|ものづくり|燕三条の金属洋食器|つばめさんじょうのきんぞくようしょっき|新潟の燕三条で作るスプーンやフォーク。|https://www.tsjiba.or.jp/michi/store/index.html
+16|工芸|高岡銅器|たかおかどうき|とかした金属を型に流してできる富山の工芸。風鈴にも使われるよ。|https://douki-takaoka.jp/about
+17|工芸|九谷焼|くたにやき|赤・黄・緑・紫・紺青で絵を描く、石川の色あざやかな焼き物。|https://www.pref.ishikawa.lg.jp/kyoiku/bunkazai/mukei/k2.html
+18|工芸|越前漆器|えちぜんしっき|福井の漆塗りの器。漆を塗ったおわんは、光が映り込むほどつややか。|https://fuku-iro.jp/omiyage/detail_10545.html
 19|工芸|甲州印伝|こうしゅういんでん|山梨で作られる工芸。鹿の革に漆で模様をつけるよ。やわらかな革とつやのある模様が目印。|https://www.pref.yamanashi.jp/shouko/kogyo/densan/inden_01.html
-20|工芸|木曽漆器|きそしっき|長野の木曽で作る漆塗りの器。木目が透けて見える器もあるよ。木のもようを目でたどってみよう。|https://www.jtco.or.jp/japanese-crafts/?act=detail&c=17&id=46&p=18
+20|工芸|木曽漆器|きそしっき|長野の木曽で作る漆塗りの器。木目が透けて見える器もあるよ。|https://www.jtco.or.jp/japanese-crafts/?act=detail&c=17&id=46&p=18
 21|工芸|美濃和紙|みのわし|岐阜で作る手すきの和紙。明かりにかざすと、細い繊維が集まった紙ごしに光がやわらかく見えるよ。|https://www.kankou-gifu.jp/spot/detail_3044.html
-22|ものづくり|浜松の楽器づくり|はままつのがっきづくり|静岡の浜松はピアノなどの楽器づくりがさかん。鍵盤を押すと、ピアノの中で何が動いて音が出るかな？|https://hamamatsu-mononavi.jp/about/music/
+22|ものづくり|浜松の楽器づくり|はままつのがっきづくり|静岡の浜松はピアノなどの楽器づくりがさかん。|https://hamamatsu-mononavi.jp/about/music/
 23|ものづくり|愛知の自動車づくり|あいちのじどうしゃづくり|愛知は自動車産業がさかん。タイヤや窓、座席。別々の部品が少しずつ車の形になるよ。|https://www.pref.aichi.jp/soshiki/ricchitsusho/miryoku-kouzou.html
-24|工芸|伊賀くみひも|いがくみひも|三重の伊賀で作る、何本もの糸を組んだひも。どの糸が上に出て、どの糸が下にかくれているかな？|https://www.pref.mie.lg.jp/CHISHI/HP/72498045141.htm
-25|工芸|信楽焼|しがらきやき|滋賀の土を焼いて作る器や置物。たぬきの置物でおなじみだよ。手にどんなものを持っているかな？|https://kyokai.kougeihin.jp/hall/h019/
-26|工芸|西陣織|にしじんおり|京都で、先に色をつけた糸を組み合わせて織るよ。着物の帯の花びらは、どんな色の糸でできているかな？|https://www.pref.kyoto.jp/senshoku/nisijin.html
-27|工芸|堺打刃物|さかいうちはもの|大阪の堺では、熱した金属をたたいて包丁などを作るよ。魚用や野菜用で、刃の形を見くらべてみよう。|https://www.pref.osaka.lg.jp/o110070/mono/dento/dento16.html
-28|工芸|播州そろばん|ばんしゅうそろばん|兵庫の小野市などで作るそろばん。珠をパチッとはじいて、音や指に伝わる感じをたしかめてみよう。|https://web.pref.hyogo.lg.jp/sr09/ie07_000000020.html
+24|工芸|伊賀くみひも|いがくみひも|三重の伊賀で作る、何本もの糸を組んだひも。糸が上下に交差して模様になるよ。|https://www.pref.mie.lg.jp/CHISHI/HP/72498045141.htm
+25|工芸|信楽焼|しがらきやき|滋賀の土を焼いて作る器や置物。たぬきの置物でおなじみだよ。|https://kyokai.kougeihin.jp/hall/h019/
+26|工芸|西陣織|にしじんおり|京都で、先に色をつけた糸を組み合わせて織るよ。着物の帯の花模様にも使われるよ。|https://www.pref.kyoto.jp/senshoku/nisijin.html
+27|工芸|堺打刃物|さかいうちはもの|大阪の堺では、熱した金属をたたいて包丁などを作るよ。魚用や野菜用で刃の形がちがうよ。|https://www.pref.osaka.lg.jp/o110070/mono/dento/dento16.html
+28|工芸|播州そろばん|ばんしゅうそろばん|兵庫の小野市などで作るそろばん。珠をはじくとパチッと音がするよ。|https://web.pref.hyogo.lg.jp/sr09/ie07_000000020.html
 29|工芸|高山茶筌|たかやまちゃせん|奈良の生駒で竹を細かくさいて作る道具。抹茶をかきまぜると、小さな泡がたくさんできるよ。|https://www.pref.nara.lg.jp/n101/1381.html
 30|工芸|紀州漆器|きしゅうしっき|和歌山の海南で育った漆塗り。赤と黒を重ねてみがき、下の黒がところどころのぞく「根来塗」もあるよ。|https://www.kishusikki.com/07_kisyusikki.html
-31|工芸|因州和紙|いんしゅうわし|鳥取の和紙。筆をすべらせると墨が紙にしみこむよ。墨のにじみ方をほかの紙と見くらべてみよう。|https://www.pref.tottori.lg.jp/item/203857.htm
-32|工芸|石見焼|いわみやき|島根の石見では、食べ物などを入れる大きなかめが作られてきたよ。ふたを開けたら、何を入れたくなる？|https://www.iimono-shimane.jp/traditional-crafts/309/
+31|工芸|因州和紙|いんしゅうわし|鳥取の和紙。筆をすべらせると墨が紙にしみこむよ。|https://www.pref.tottori.lg.jp/item/203857.htm
+32|工芸|石見焼|いわみやき|島根の石見では、食べ物などを入れる大きなかめが作られてきたよ。|https://www.iimono-shimane.jp/traditional-crafts/309/
 33|工芸|備前焼|びぜんやき|岡山の焼き物。うわぐすりをかけずに焼くと、火や灰の当たり方で色や模様が変わるよ。|https://www.pref.okayama.lg.jp/site/2859/
-34|工芸|熊野筆|くまのふで|広島の熊野町には筆づくりの技があるよ。文字を書く筆と絵をかく筆。毛先の形を見くらべよう。|https://www.kumanofude.or.jp/traditional-craft/
+34|工芸|熊野筆|くまのふで|広島の熊野町には筆づくりの技があるよ。文字を書く筆や、絵をかく筆があるよ。|https://www.kumanofude.or.jp/traditional-craft/
 35|工芸|萩焼|はぎやき|山口の萩で知られる焼き物。茶わんを使ううちに、細かいひび模様にお茶がしみて色が変わることもあるよ。|https://www.jtco.or.jp/japanese-crafts/?act=detail&id=102
-36|工芸|阿波和紙|あわわし|徳島で作る和紙。明かりにかざしたり、そっと触ったりして、紙の表面の繊維を見つけてみよう。|https://www.pref.tokushima.lg.jp/japanese/specialty/traditional/awawashi
+36|工芸|阿波和紙|あわわし|徳島で作る和紙。明かりにかざすと、細い繊維が見えるよ。|https://www.pref.tokushima.lg.jp/japanese/specialty/traditional/awawashi
 37|工芸|丸亀うちわ|まるがめうちわ|香川の丸亀で作るうちわ。細く分かれた竹の骨が、手を動かすたびにしなって風を送るよ。|https://marugameuchiwa.jp/tradition
-38|ものづくり|今治タオル|いまばりたおる|愛媛の今治はタオルの産地。短い糸の輪がたくさん並ぶ表面に、水を一滴落とすとどうなるかな？|https://www.city.imabari.ehime.jp/sangyou/jibasan/
-39|工芸|土佐和紙|とさわし|高知の手すき和紙には、透けるほど薄い紙もあるよ。紙の向こうの字はどれくらい見えるかな？|https://www.jtco.or.jp/japanese-crafts/?act=detail&id=32
-40|工芸|博多織|はかたおり|福岡の織物。糸をぎゅっと詰めて織る帯が知られているよ。表面を指でなぞるとどんな感じかな？|https://www.crossroadfukuoka.jp/feature/traditionalcrafts/hakataori
-41|工芸|伊万里・有田焼|いまり・ありたやき|佐賀の磁器。白い器に青や赤の絵があるよ。花や鳥の中から、自分のお気に入りの模様を探そう。|https://www.aritayaki.or.jp/business/shokunin-sha
-42|工芸|波佐見焼|はさみやき|長崎の波佐見町で作る焼き物。毎日のごはんで使う器も多いよ。青い絵の入った器には、何を盛りたい？|https://www.jtco.or.jp/japanese-crafts/?act=detail&id=81
-43|工芸|肥後象がん|ひごぞうがん|熊本の工芸。鉄の表面に金や銀をはめこむよ。黒い地の上の小さな金色を見つけられるかな？|https://kumamoto-kougei.jp/craft_making/cat_higozougan/
-44|工芸|別府竹細工|べっぷたけざいく|大分の別府では竹を細くさいて、かごなどを編むよ。竹が上、下、上と通るところを目でたどろう。|https://www.jtco.or.jp/japanese-crafts/?act=detail&id=41
+38|ものづくり|今治タオル|いまばりたおる|愛媛の今治はタオルの産地。表面に並んだ短い糸の輪が水を吸うよ。|https://www.city.imabari.ehime.jp/sangyou/jibasan/
+39|工芸|土佐和紙|とさわし|高知の手すき和紙には、透けるほど薄い紙もあるよ。|https://www.jtco.or.jp/japanese-crafts/?act=detail&id=32
+40|工芸|博多織|はかたおり|福岡の織物。糸をぎゅっと詰めて織る帯が知られているよ。|https://www.crossroadfukuoka.jp/feature/traditionalcrafts/hakataori
+41|工芸|伊万里・有田焼|いまり・ありたやき|佐賀の磁器。白い器に青や赤で花や鳥を描いたものもあるよ。|https://www.aritayaki.or.jp/business/shokunin-sha
+42|工芸|波佐見焼|はさみやき|長崎の波佐見町で作る焼き物。毎日のごはんで使う器も多いよ。青い絵の入った器もあるよ。|https://www.jtco.or.jp/japanese-crafts/?act=detail&id=81
+43|工芸|肥後象がん|ひごぞうがん|熊本の工芸。鉄の表面に金や銀をはめこむよ。黒い鉄の上に、金や銀の模様が浮かび上がるよ。|https://kumamoto-kougei.jp/craft_making/cat_higozougan/
+44|工芸|別府竹細工|べっぷたけざいく|大分の別府では竹を細くさいて、かごなどを編むよ。竹を上、下、上と交差させて編むよ。|https://www.jtco.or.jp/japanese-crafts/?act=detail&id=41
 45|特産品|宮崎牛|みやざきぎゅう|宮崎で育つ黒毛和牛のうち基準を満たした牛肉。赤いお肉の中に、白い脂が細い線のように見えるよ。|https://www.maff.go.jp/j/shokusan/gi_act/register/0055/index.html
-46|工芸|薩摩焼|さつまやき|鹿児島の焼き物には白っぽいものと黒っぽいものがあるよ。色や模様を見て、どちらを使ってみたい？|https://www.pref.kagoshima.jp/kids/sangyou/dentoukougei.html
-47|工芸|琉球びんがた|りゅうきゅうびんがた|沖縄の染め物。布に型を当てて模様をつけるよ。色あざやかな布から、花や鳥を探してみよう。|https://www.kogeikan.jp/history-bingata.html
-30|特産品|紀州南高梅|きしゅうなんこううめ|皮はうすく、中はやわらか。梅干しを思い浮かべただけで、口がきゅっとすっぱくならない？|https://www.maff.go.jp/j/keikaku/syokubunka/traditional-foods/menu/wakayama_no_umeboshi.html
-30|食品づくり|湯浅のしょうゆ|ゆあさのしょうゆ|和歌山の湯浅に伝わるしょうゆづくり。お豆腐に一滴たらしたら、どんな香りが広がるかな？|https://www.maff.go.jp/kinki/keiei/tiiki_syokuhin/wasyoku/100nenfood.html 
+46|工芸|薩摩焼|さつまやき|鹿児島の焼き物には白っぽいものと黒っぽいものがあるよ。|https://www.pref.kagoshima.jp/kids/sangyou/dentoukougei.html
+47|工芸|琉球びんがた|りゅうきゅうびんがた|沖縄の染め物。布に型を当てて模様をつけるよ。花や鳥の色あざやかな模様があるよ。|https://www.kogeikan.jp/history-bingata.html
+30|特産品|紀州南高梅|きしゅうなんこううめ|皮はうすく、中はやわらか。|https://www.maff.go.jp/j/keikaku/syokubunka/traditional-foods/menu/wakayama_no_umeboshi.html
+30|食品づくり|湯浅のしょうゆ|ゆあさのしょうゆ|和歌山の湯浅に伝わるしょうゆづくり。|https://www.maff.go.jp/kinki/keiei/tiiki_syokuhin/wasyoku/100nenfood.html 
 """
 REGIONAL_INDUSTRIES = {}
 for row in REGIONAL_INDUSTRY_ROWS.strip().splitlines():
@@ -2463,23 +2463,23 @@ for row in REGIONAL_INDUSTRY_ROWS.strip().splitlines():
 
 
 SHORT_STORIES = """
-01|中標津で作る北海道の牛乳。冷たい一口で、ミルクの風味を味わおう。|さけと野菜をみそで煮こんだ、北海道のあったかい鍋。
+01|北海道の中標津で作る、ミルクの風味が豊かな牛乳。|さけと野菜をみそで煮こんだ、北海道のあったかい鍋。
 02|ぱりっとかむと、甘い果汁がじゅわっと広がるりんご。|南部せんべいを鍋へ。汁を吸うともっちりするよ。
 03|つやつやのお米。かむほど甘みが広がるよ。|小さなおわんに一口ずつ。食べるたびにおわんが積み上がるよ。
-04|もちもちのお米。おにぎりにして食感を楽しもう。|緑の枝豆あんを、お餅にたっぷりからめるよ。
+04|おにぎりにも合う、もちもちのお米。|緑の枝豆あんを、お餅にたっぷりからめるよ。
 05|冷めてもおいしい秋田のお米。おべんとうのおにぎりにも。|棒に巻いて焼いたごはんが、鍋のだしをぎゅっと吸うよ。
 06|甘さの中に少しすっぱさがある、赤いさくらんぼ。|さといもを肉や野菜と煮るよ。秋には河原で大鍋を囲むことも。
 07|切ると果汁がじゅわっと広がる、福島の甘い桃。|会津のお祝いの汁物。貝柱のだしに小さな豆麩が浮かぶよ。
-08|輪切りの穴を数えてみよう。炒めるとシャキッとするよ。|あんこうの身や皮が入った、茨城の冬の鍋。
+08|輪切りにすると穴が並ぶよ。炒めるとシャキッ。|あんこうの身や皮が入った、茨城の冬の鍋。
 09|那須でガーンジィという牛からしぼる、濃い味わいの牛乳。|おろした野菜と大豆などを煮る、栃木の冬の料理。
 10|すずしい高原で育つキャベツ。葉をかむとパリッ、ほんのり甘い。|幅広いめんと野菜をいっしょに煮こむ群馬の料理。
 11|白い部分が長いねぎ。焼くと中がとろりと甘くなるよ。|ごまが香る冷たいみそ仕立ての汁で、うどんをつるっと。
 12|九十九里のいわしをお酢とごまで味つけ。すっぱくて香ばしいよ。|魚にみそやねぎを加え、包丁でたたく漁師料理。
 13|東京の西で作るお茶。お湯を注ぐと、ふわっと香りが立つよ。|あさりのうまみをごはんと味わう、東京・深川の名物。
-14|相模湾の小さな魚。ゆでるとふんわり、ごはんにも合うよ。|大根・ごぼう・豆腐など、具ごとの歯ごたえを比べてみよう。
+14|相模湾の小さな魚。ゆでるとふんわり、ごはんにも合うよ。|大根やごぼう、豆腐などが入った汁物。具ごとに歯ごたえがちがうよ。
 15|炊くと粒がつやつや。冷めてもおいしい新潟のお米。|笹の葉をほどくと、よもぎ団子の香りがふわっ。
-16|富山生まれのお米。何ものせず、かんで甘みを探そう。|丸い押しずしを切ると、ますと酢めしの層が見えるよ。
-17|すりおろすと粘りが出る金沢のれんこん。輪切りと食感を比べよう。|肉や麩をとろみのある汁で煮る、石川の郷土料理。
+16|かむと甘みが広がる、富山生まれのお米。|丸い押しずしを切ると、ますと酢めしの層が見えるよ。
+17|輪切りは歯ごたえがあり、すりおろすと粘りが出る金沢のれんこん。|肉や麩をとろみのある汁で煮る、石川の郷土料理。
 18|黄色いタグが目印。殻の中に甘いかにの身がつまっているよ。|冷たいそばに大根おろしを合わせる、福井のさっぱりした名物。
 19|皮はパリッ、中は甘くてさわやかな香りのぶどう。|幅広いめんをかぼちゃなどとみそ味で煮こむ、山梨の料理。
 20|すずしい高原のレタス。ちぎってかむと、シャキッといい音。|半分に割ると野沢菜やあん。長野の具入りのおやつ。
@@ -2488,24 +2488,24 @@ SHORT_STORIES = """
 23|あみ目模様を切ると、甘い香りとやわらかな果肉が出てくるよ。|うなぎとごはん。そのまま、薬味、だしで味が変わるよ。
 24|貝の中で育つつやつやの粒。光の下で回すと輝き方が変わるよ。|やわらかな太めんに、色の濃いたれをからめる伊勢のうどん。
 25|湖の魚を塩とごはんで発酵。薄い一切れに独特の香りと酸味。|焼きさばの煮汁がそうめんにしみる、滋賀・湖北の味。
-26|抹茶をたてたら、緑の色と小さな泡、香りに注目。|甘辛く煮たにしんを、温かいそばにのせる京都の味。
+26|抹茶は、たてると細かい泡が立ち、香りがふわっと広がるよ。|甘辛く煮たにしんを、温かいそばにのせる京都の味。
 27|葉や長い軸も食べるごぼう。軸を炒めると歯ごたえが楽しい。|キャベツ入りの生地を鉄板でじゅうっと焼く、大阪の名物。
 28|輪切りをじっくり焼くと、真ん中まで甘くやわらかくなるよ。|丸いたこ入りの玉子焼を、温かいだしにつけて食べるよ。
-29|切るとオレンジ色。奈良で育つ甘がきの歯ごたえに注目。|さばなどをのせた酢めしを、香りのある柿の葉で包むよ。
+29|オレンジ色の果肉に歯ごたえがある、奈良の甘がき。|さばなどをのせた酢めしを、香りのある柿の葉で包むよ。
 30|有田川ぞいの段々畑で育つみかん。皮をむくと甘い香り。|ごはんを高菜の葉でまるごと包む、熊野地方のおすし。
 31|砂地で育つ白いらっきょう。甘酢漬けをかむとポリッ。|三角の油揚げの中に米や具をつめて炊く鳥取の料理。
-32|海と川の水が混じる宍道湖の貝。みそ汁にうまみが出るよ。|そばの丸い器を重ねて出すよ。上の段からつゆをかけて味わおう。
+32|海と川の水が混じる宍道湖の貝。みそ汁にうまみが出るよ。|そばを入れた丸い器を重ね、上の段からつゆをかけて食べるよ。
 33|白っぽい桃を切ると、ふわっと甘い香りが広がるよ。|魚介や野菜を色あざやかに盛る、岡山のお祝いのすし。
-34|火を通すとぷっくり。カキフライのサクサクの衣も楽しもう。|生地・キャベツ・めん・卵。切ると重なった層が見えるよ。
-35|下関ではふぐを「ふく」とも呼ぶよ。花びらみたいな盛りつけに注目。|熱い瓦に茶そばを盛る下関の名物。瓦に当たるめんはパリッ。
+34|火を通すと身がぷっくり。カキフライは衣がサクサク。|生地・キャベツ・めん・卵。切ると重なった層が見えるよ。
+35|下関ではふぐを「ふく」とも呼ぶよ。薄切りの身は花びらのように並ぶよ。|熱い瓦に茶そばを盛る下関の名物。瓦に当たるめんはパリッ。
 36|焼いて割ると黄色い中身がほくほくの、徳島のさつまいも。|そばをめんにせず、粒のまま汁に入れる徳島の料理。
-37|つやのある粒が目印。かんで食感をたしかめよう。|讃岐平野の小麦づくりが育てた、コシのあるうどん。「さぬきの夢」を使う店もあるよ。
-38|宇和海の貝が育てるつやのある粒。光にかざしてみよう。|たいの切り身を、たれや卵と合わせてごはんにのせる宇和島の味。
+37|炊くとつやが出て、粒の食感がしっかりしたお米。|讃岐平野の小麦づくりが育てた、コシのあるうどん。「さぬきの夢」を使う店もあるよ。
+38|宇和海の貝が育てる、光に当たるとつややかに輝く真珠。|たいの切り身を、たれや卵と合わせてごはんにのせる宇和島の味。
 39|つやつやの紫色。焼くと中がとろっとやわらかくなるよ。|表面だけをさっと焼くよ。切ると外と中の色がちがうね。
-40|福岡生まれの大きないちご。甘さとすっぱさを味わおう。|鶏肉と根菜の煮物。れんこんやごぼうの歯ごたえを比べよう。
+40|甘みと酸味のある、福岡生まれの大きないちご。|鶏肉と根菜の煮物。れんこんやごぼうは歯ごたえがあるよ。
 41|有明海で育つのり。焼くとパリッ、口の中でほどけるよ。|いかのすり身を細い皮で包んだ、呼子のふんわりした名物。
 42|小さめの殻にぷりっとした身。焼くと濃いうまみが広がるよ。|野菜や魚介のうまみがスープに出る、長崎のめん料理。
-43|阿蘇などの草原とつながる牛。赤身はかむほどうまみが広がるよ。|小麦粉の生地をちぎって汁へ。もちっとした「だご」を探そう。
+43|阿蘇などの草原とつながる牛。赤身はかむほどうまみが広がるよ。|小麦粉の生地をちぎって汁に入れるよ。「だご」はもちっとした食感。
 44|木で育てたしいたけを乾かしたもの。水でもどすと、だしにもなるよ。|鶏肉を衣で包んで揚げる、大分のサクッとした名物。
 45|とりながら箱に詰めるきゅうり。冷やしてかむとパリッ。|魚やみその冷たい汁をごはんにかける宮崎の夏の味。
 46|焼いて割ると、湯気とほくほくの甘い中身が出てくるよ。|魚のすり身を揚げると、外はこんがり、中はふわっとするよ。
@@ -2765,11 +2765,11 @@ MANUFACTURING_ROWS = """
 06|米沢のパソコンづくり|よねざわのパソコンづくり|薄いノートパソコンに、小さな部品がぎっしり。米沢の工場で組み立てるよ。|米沢市|37.91,140.12|https://www.nec-lavie.jp/company/|https://tk.ismcdn.jp/mwimgs/4/f/1200w/img_4f742bbde7da0900ae7f30af7654fda6535602.jpg|https://toyokeizai.net/articles/-/914597?display=b|東洋経済オンライン
 08|日立建機の油圧ショベル|ひたちけんきのゆあつショベル|ひたちなかの工場で作る大きなショベル。大きな腕で岩や土をすくうよ。|ひたちなか市|36.397,140.58|https://jcmanet.or.jp/jcm/wp-content/uploads/2024/09/1d8fcd7d276fd653712197401a5de635.pdf|https://hitachikenki.scene7.com/is/image/hitachikenki/EX5600-7-8|https://www.hitachicm.com/global/ja/news/topics/2024/24-10-07/|日立建機
 09|宇都宮のヘリコプターづくり|うつのみやのヘリコプターづくり|羽をくるくる回して飛ぶヘリコプター。宇都宮には、機体を組み立てる工場があるよ。|宇都宮市|36.526,139.865|https://www.subaru.co.jp/outline/about/aerospace/|https://cdn.autoc-one.jp/images/article/201801/19131304303_o.jpg|https://autoc-one.jp/news/5001257/|MOTA
-10|太田のスバル車|おおたのスバルしゃ|太田では、スバルの車を作るよ。写真で、組み立て中の車を見つけよう。|太田市|36.292,139.373|https://www.subaru.co.jp/outline/office.html|https://news.mynavi.jp/premium/article/20260618-subaru-flexibility/images/014.jpg|https://news.mynavi.jp/premium/article/20260618-subaru-flexibility/|マイナビニュース
+10|太田のスバル車|おおたのスバルしゃ|太田の工場で部品を組み立て、スバルの車を作るよ。|太田市|36.292,139.373|https://www.subaru.co.jp/outline/office.html|https://news.mynavi.jp/premium/article/20260618-subaru-flexibility/images/014.jpg|https://news.mynavi.jp/premium/article/20260618-subaru-flexibility/|マイナビニュース
 25|長浜のヤンマーエンジン|ながはまのヤンマーエンジン|長浜で作る小さなエンジン。田んぼや畑で働く機械を動かすよ。|長浜市|35.43,136.23|https://www.yanmar.com/jp/about/company/power_technology/company.html|https://i.gzn.jp/img/2016/06/10/yanmar-biwa-plant/p3750092.jpg|https://gigazine.net/gsc_news/en/20160610-yanmar-biwa-plant/|GIGAZINE
 28|明石のカワサキバイク|あかしのカワサキバイク|明石で作るオートバイ。タイヤやエンジンをつけて、走れる形にしていくよ。|明石市|34.680,134.920|https://www.gizmodo.jp/2018/03/kawasaki_machine-factory.html|https://media.loom-app.com/gizmodo/dist/images/2018/03/23/kawasaki_AGV.jpg?w=640|https://www.gizmodo.jp/2018/03/kawasaki_machine-factory.html|ギズモード・ジャパン
 34|広島のマツダ車|ひろしまのマツダしゃ|府中町の工場では、車がラインを流れながら、少しずつ組み上がるよ。|府中町|34.380,132.507|https://www.mazda.com/ja/about/facilities/|https://www.hiroshimacvb.jp/unique-experience/mazdamuseum08_zone9_assembly_s.jpg|https://www.hiroshimacvb.jp/en/unique-experience/industrial-tours/1299.html|広島観光コンベンションビューロー
-40|苅田の日産車|かんだのにっさんしゃ|苅田の工場では、ロボットと人が車を作るよ。写真でロボットの腕を探そう。|苅田町|33.77,130.985|https://www.nissankyushu.co.jp/COMPANY/gaiyou.html|https://kbc.co.jp/up/content/15/52/af0f553689619619c16a0ddaedf161a8ca5fdd4a.jpg|https://kbc.co.jp/wish/article/37272/|九州朝日放送
+40|苅田の日産車|かんだのにっさんしゃ|苅田の工場では、ロボットと人が車を作るよ。|苅田町|33.77,130.985|https://www.nissankyushu.co.jp/COMPANY/gaiyou.html|https://kbc.co.jp/up/content/15/52/af0f553689619619c16a0ddaedf161a8ca5fdd4a.jpg|https://kbc.co.jp/wish/article/37272/|九州朝日放送
 45|延岡のベンベルグ|のべおかのベンベルグ|綿の種に残る短い毛から、さらっとした糸を作るよ。服の裏地にも使われるんだ。|延岡市|32.58,131.65|https://www.asahi-kasei.co.jp/fibers/bemberg/facility/|https://www.asahi-kasei.cn/group/AKF/fibers/bemberg/img/bemberg-world/facility/sec02_img01.jpg|https://www.asahi-kasei.cn/group/AKF/fibers/bemberg/facility/|旭化成
 """
 for row in MANUFACTURING_ROWS.strip().splitlines():
@@ -3046,7 +3046,7 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
 #nearby-prefectures{margin:5px 0 2px;color:#365e54;font-size:.78rem}
 #nearby-prefectures span{display:inline-block;margin-right:.85em}
 #fact-shape{fill:#e8eed8;stroke:#427266;stroke-width:1.3;vector-effect:non-scaling-stroke}
-.capital-point circle,.production-pin circle{fill:#fffdf3;stroke:#496358;stroke-width:1.3}
+.capital-point circle{fill:#fffdf3;stroke:#496358;stroke-width:1.3}
 .capital-point text{fill:#254f43}
 .capital-point .capital-name{fill:var(--explanation-accent);font-size:19px;font-weight:850;paint-order:stroke;stroke:#fffef4;stroke-width:3.5;stroke-linejoin:round}
 .sea-name{fill:#607e85;font-size:15px;font-weight:650;paint-order:stroke;stroke:#dff4f3;stroke-width:3;pointer-events:none}
@@ -3085,11 +3085,19 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
 .map-production-region.active{fill:#f2a346;fill-opacity:.75;stroke:#8e481b;stroke-width:1.9}
 .production-region.quiet{fill-opacity:.20;stroke-opacity:.45}
 .production-marker text{fill:#70421c;font-weight:800;pointer-events:none}
+.production-marker{cursor:pointer}
 .production-marker circle{fill:#fffef4;stroke:#9b632d;stroke-width:1.15}
+.map-leader{stroke:#776650;stroke-width:1.5;pointer-events:none;vector-effect:non-scaling-stroke}
+.map-leader-dot{fill:#776650;pointer-events:none}
+.terrain-context #fact-land-extent.land-area,.terrain-context #fact-land-extent.land-water{fill:#93bc99;fill-opacity:.56;stroke:#567c62}
+.terrain-context #fact-land-extent.land-coast{stroke:#567c62}
+.terrain-context .place-reference{fill:#285844}
+.terrain-context .place-reference.river-name{fill:#174f79}
+.terrain-context .place-reference.peak-name{fill:#34584a}
+.terrain-context .production-region{fill-opacity:.34;stroke-dasharray:4 3}
+.terrain-context .production-region.quiet{fill-opacity:.13}
 .production-marker.active circle{fill:#f9d08d;stroke:#8d461c;stroke-width:2}
-.production-pin.quiet{opacity:.65}
-.production-pin circle{fill:#fff1d0;stroke:#98603b}
-.production-pin,.map-peak,.river-hit{cursor:pointer}
+.map-peak[role=button],.river-hit{cursor:pointer}
 .production-region{fill:#e6ad65;fill-opacity:.72;stroke:#9a6738;stroke-width:1.7;vector-effect:non-scaling-stroke}
 .map-river{fill:none;stroke:#2d77ab;stroke-width:2.15;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
 .map-river.selected{stroke:#024774;stroke-width:3.65}
@@ -3133,6 +3141,7 @@ body:has(#medal-dialog[open]){min-height:365px}
 .local-story p{margin:4px 0}
 .local-story .story-category,#pref-capital.supplement,
   #map-caption,#nearby-prefectures,.map-key{color:#526f66;font-size:.82rem}
+#map-caption:empty{display:none}
 .local-story a{display:inline-block;padding:3px 0;color:#47685e;font-size:.82rem}
 .fact h3,.fact p{margin:0 0 6px}
 #think{margin:5px 0 9px;color:var(--muted)}
@@ -3210,6 +3219,8 @@ body:has(#medal-dialog[open]){min-height:365px}
           <g id="fact-product-regions" clip-path="url(#fact-clip)" aria-hidden="true"></g>
           <g id="fact-rivers" clip-path="url(#fact-clip)"></g>
           <g id="fact-peaks"></g>
+          <g id="fact-leaders" aria-hidden="true"></g>
+          <g id="fact-terrain-labels" aria-hidden="true"></g>
           <g id="fact-pins"></g>
         </svg>
         <div id="map-product-previews" class="product-previews" role="group" aria-label="写真から産地を選ぶ" hidden></div>
@@ -3228,7 +3239,7 @@ body:has(#medal-dialog[open]){min-height:365px}
         <button id="discover-land" aria-pressed="false" class="secondary">● 地形 <span hidden>✓</span></button>
         <button id="discover-industry" aria-pressed="false" class="secondary">産業・特産品 <span hidden>✓</span></button>
       </div>
-      <article class="fact" aria-live="polite">
+      <article id="explore-fact" class="fact" aria-live="polite">
         <h3 id="fact-title"></h3>
         <p id="fact-text"></p>
         <div id="industry-stories" hidden></div>
@@ -3757,11 +3768,6 @@ function mapWater(pref, item, toMap, scale, tx, ty) {
   }
 }
 
-function shortIndustryPitch(pitch) {
-  const sentences = pitch.match(/[^。？！]+[。？！]?/g) || [];
-  return sentences.length > 1 && sentences[0].length < 22 &&
-    sentences[0].length + sentences[1].length <= 62 ? sentences.slice(0,2).join("") : sentences[0] || pitch;
-}
 function mapStories(item) {
   const product = item.local_product, dish = item.local_dish;
   const stories = [
@@ -3769,7 +3775,7 @@ function mapStories(item) {
       category:"特産品・ブランド · "+item.industry, source:product.source,
       photos:item.product_story_photos.filter(p=>!item.wheat_place || p.caption!=="さぬきの夢の小麦畑")},
     ...item.regional_industries.map((story,index)=>({key:"regional-"+index, name:story.name,
-      reading:story.reading, intro:shortIndustryPitch(story.pitch), photos:[story.photo],
+      reading:story.reading, intro:story.pitch, photos:[story.photo],
       category:story.category, source:story.source, place:story.place})),
   ];
   if (item.wheat_place) {
@@ -3791,7 +3797,7 @@ function selectMapStory(key, focusPhoto = true) {
   if (!mapStories(item).some(story=>story.key===key)) return;
   wake();
   attempt.mapStory = key;
-  renderIndustryMap(prefectures.get(attempt.pref),item);
+  renderFactMap(prefectures.get(attempt.pref),item,"industry");
   if (focusPhoto) $("map-product-previews").querySelector(`button[data-story="${key}"]`)?.focus({preventScroll:true});
   readCurrent();
   persist();
@@ -3845,8 +3851,55 @@ function factMapProjection(pref) {
   return {scale,tx,ty,transform:`translate(${tx} ${ty}) scale(${scale})`,
     toMap:([px,py])=>[tx+px*scale,ty+py*scale]};
 }
-function renderIndustryMap(pref,item) {
-  const {transform,toMap} = factMapProjection(pref);
+// Reserve boxes in viewBox coordinates so the layout scales without introducing collisions.
+function reserveMapPosition(point, width, height, occupied) {
+  const [x,y] = point;
+  const inside = (cx,cy) => cx-width/2 >= 4 && cx+width/2 <= FACT_WIDTH-4 &&
+    cy-height/2 >= 4 && cy+height/2 <= FACT_HEIGHT-4;
+  const free = (cx,cy) => inside(cx,cy) && !occupied.some(box =>
+    Math.abs(cx-box.x)*2 < width+box.width+6 && Math.abs(cy-box.y)*2 < height+box.height+6);
+  let position = free(x,y) ? [x,y] : null;
+  for (let radius=12; !position && radius<=120; radius+=12) {
+    for (let step=0; step<12; step++) {
+      const angle = -Math.PI/2 + step*Math.PI/6;
+      const cx = x+Math.cos(angle)*radius, cy = y+Math.sin(angle)*radius;
+      if (free(cx,cy)) { position=[cx,cy]; break; }
+    }
+  }
+  if (position) occupied.push({x:position[0],y:position[1],width,height});
+  return position;
+}
+
+function addMapLeader(from, to, offset) {
+  const [x1,y1] = from, [x2,y2] = to;
+  const distance = Math.hypot(x2-x1,y2-y1);
+  if (distance <= offset+5) return;
+  const end = 1-offset/distance;
+  $("fact-leaders").append(
+    svgNode("line",{x1,y1,x2:x1+(x2-x1)*end,y2:y1+(y2-y1)*end,class:"map-leader"}),
+    svgNode("circle",{cx:x1,cy:y1,r:2.4,class:"map-leader-dot"}));
+}
+
+function renderTerrainLabels(features, occupied) {
+  for (const {name,point,kind,primary} of features) {
+    const size = primary ? 19 : 17;
+    const width = name.length*size+4;
+    const offset = kind==="peak" ? 28 : 13;
+    const position = reserveMapPosition([point[0],point[1]-offset],width,size+4,occupied);
+    if (!position) continue;
+    const label = svgNode("text",{x:position[0],y:position[1],
+      class:"place-reference "+(primary?"primary-land":"secondary-land")+" "+kind+"-name",
+      style:`font-size:${size}px`,"text-anchor":"middle","dominant-baseline":"central"});
+    label.textContent = name;
+    if (Math.hypot(position[0]-point[0],position[1]-point[1]+offset)>16) {
+      addMapLeader(point,position,12);
+    }
+    $("fact-terrain-labels").append(label);
+  }
+}
+
+function renderIndustryMap(pref,item,projection,occupied) {
+  const {transform,toMap} = projection;
   const stories = mapStories(item);
   const active = selectedMapStory(stories);
   renderProductPreviews(pref,stories,active);
@@ -3856,31 +3909,26 @@ function renderIndustryMap(pref,item) {
     "fill-rule":"evenodd",
   }));
   const regions = $("fact-product-regions"), pins = $("fact-pins");
-  regions.replaceChildren();
-  pins.replaceChildren();
-  for (const site of item.industry_points) {
-    const pin = svgNode("g",{class:"production-pin"+(active.key==="product"?"":" quiet"),
-      transform:`translate(${toMap(site.point).join(" ")})`});
-    const symbol = svgNode("g",{class:"industry-icon",transform:"translate(-10 -10) scale(.83)"});
-    symbol.innerHTML = INDUSTRY_ICONS[item.industry_icon];
-    pin.append(svgNode("circle",{r:15}),symbol, Object.assign(svgNode("text",{x:9,y:-8,
-      "font-size":9,"font-weight":800,fill:"#70421c",stroke:"#fffdf4","stroke-width":2,
-      "paint-order":"stroke"}),{textContent:String(stories[0].number)}));
-    pins.append(featureControl(pin,site.name+"の"+item.industry+"をみる",()=>selectMapStory("product")));
-  }
-  const pending = stories.filter(story=>story.place);
-  pending.sort((a,b)=>Number(a===active)-Number(b===active));
-  for (const story of pending) {
+  // Keep markers in the same positions when the learner changes the selection.
+  const sites = [
+    ...item.industry_points.map(site=>({story:stories[0],label:site.name,point:site.point})),
+    ...stories.filter(story=>story.place).map(story=>({story,label:story.place.label,point:story.place.point})),
+  ];
+  for (const {story,label,point} of sites) {
     const selected = story===active;
-    const [x,y] = toMap(story.place.point);
-    regions.append(svgNode("circle",{cx:x,cy:y,r:selected?16:10,
+    const origin = toMap(point);
+    const [cx,cy] = origin;
+    if (story.place) regions.append(svgNode("circle",{cx,cy,r:selected?16:10,
       class:"map-production-region"+(selected?" active":"")}));
+    const position = reserveMapPosition(origin,28,28,occupied);
+    if (!position) continue;
+    addMapLeader(origin,position,12);
     const marker = svgNode("g",{class:"production-marker"+(selected?" active":""),
-      transform:`translate(${x} ${y})`});
-    marker.append(svgNode("circle",{r:selected?7.5:6}),Object.assign(svgNode("text",{
-      "font-size":selected?10:8,"text-anchor":"middle","dominant-baseline":"central",
+      transform:`translate(${position.join(" ")})`});
+    marker.append(svgNode("circle",{r:selected?13:11}),Object.assign(svgNode("text",{
+      "font-size":selected?17:15,"text-anchor":"middle","dominant-baseline":"central",
     }),{textContent:String(story.number)}));
-    pins.append(featureControl(marker,story.name+"："+story.place.label,()=>selectMapStory(story.key)));
+    pins.append(featureControl(marker,story.name+"："+label,()=>selectMapStory(story.key)));
   }
   $("industry-key-symbol").innerHTML = active.key === "product" ? INDUSTRY_ICONS[item.industry_icon] : "";
   $("industry-name").textContent = active.name;
@@ -3890,7 +3938,10 @@ function renderIndustryMap(pref,item) {
 }
 
 function renderFactMap(pref, item, selected) {
-  const {scale,tx,ty,transform,toMap} = factMapProjection(pref);
+  const projection = factMapProjection(pref);
+  const {scale,tx,ty,transform,toMap} = projection;
+  const industry = selected === "industry";
+  $("fact-map").classList.toggle("terrain-context",industry);
   $("fact-shape").setAttribute("d",pref.path);
   $("fact-shape").setAttribute("transform",transform);
   renderFactNeighbors(pref,item,transform,toMap,scale,tx,ty);
@@ -3898,11 +3949,10 @@ function renderFactMap(pref, item, selected) {
   if (selected !== "industry") renderProductPreviews(pref);
   const extent = $("fact-land-extent");
   extent.setAttribute("hidden","");
-  const overlay = item.land_overlay;
-  for (const id of ["fact-rivers","fact-peaks","fact-industry-area","fact-product-regions","fact-pins","relief-controls"]) $(id).replaceChildren();
+  for (const id of ["fact-rivers","fact-peaks","fact-industry-area","fact-product-regions","fact-leaders","fact-terrain-labels","fact-pins","relief-controls"]) $(id).replaceChildren();
   $("fact-industry-area").hidden = selected !== "industry";
   $("relief-controls").hidden = $("relief-list-title").hidden = selected !== "land";
-  $("terrain-key-group").hidden = selected !== "land";
+  $("terrain-key-group").hidden = selected === "capital";
   $("industry-key-group").hidden = selected !== "industry";
   $("capital-key-group").hidden = selected !== "capital";
   if (selected === "capital") {
@@ -3919,30 +3969,37 @@ function renderFactMap(pref, item, selected) {
     $("fact-pins").append(pin);
     return;
   }
-  if (selected === "industry") {
-    renderIndustryMap(pref,item);
-    return;
+  const terrain = renderTerrain(item,projection,industry);
+  if (industry) {
+    renderIndustryMap(pref,item,projection,terrain.occupied);
+    renderTerrainLabels(terrain.labels,terrain.occupied);
   }
+}
+
+function renderTerrain(item,{transform,toMap},industry) {
+  const extent = $("fact-land-extent"), overlay = item.land_overlay;
   const rivers = [...item.rivers.entries()].filter(([,river]) =>
     item.core_rivers.includes(river.name) && river.name !== overlay?.alias);
   const peaks = [...item.peaks.entries()].filter(([,peak]) => item.core_peaks.includes(peak.name));
-  $("relief-controls").hidden = $("relief-list-title").hidden = !overlay && !rivers.length && !peaks.length;
+  $("relief-controls").hidden = $("relief-list-title").hidden = industry || (!overlay && !rivers.length && !peaks.length);
   $("terrain-key-group").textContent = rivers.length && peaks.length ? "川・山と地形" : "地形";
-  const selectedRelief = attempt.relief;
+  const selectedRelief = industry ? null : attempt.relief;
   const mainRiver = rivers.find(([,feature]) => feature.name === item.land)?.[1];
   const mainPeak = peaks.find(([,feature]) => feature.name.startsWith(item.land))?.[1];
   const detail = selectedRelief?.kind==="river" ? rivers.find(([index])=>index===selectedRelief.index)?.[1] :
     selectedRelief?.kind==="peak" ? peaks.find(([index])=>index===selectedRelief.index)?.[1] : null;
   const hasRiver = Boolean(rivers.length || overlay?.kind === "river");
-  $("map-caption").textContent = [
-    overlay && overlay.kind !== "river" ? "色で示した範囲は学習用の目安です。" : "",
-    hasRiver ? "青い線は川の流路です。" : "",
-    peaks.length ? "山のマークは山頂の位置です。" : "",
-  ].join("");
+  const terrainKey = [
+    overlay && overlay.kind !== "river" ? "色の範囲は目安" : "",
+    hasRiver ? "青線は川" : "",
+    peaks.length ? "山のマークは山頂" : "",
+  ].filter(Boolean).join("・");
+  if (industry) $("terrain-key-group").textContent = terrainKey;
+  else $("map-caption").textContent = terrainKey;
   if (overlay) {
     extent.setAttribute("d",overlay.path);
     extent.setAttribute("transform",transform);
-    const active = !selectedRelief || selectedRelief.kind === "main";
+    const active = !industry && (!selectedRelief || selectedRelief.kind === "main");
     extent.setAttribute("class",overlay.kind === "river" ? "map-river"+(active ? " selected" : "") : "land-"+overlay.kind);
     // This group and the transformed clip share the same viewport coordinate space.
     // Applying the clip to the transformed path would transform the clip a second time.
@@ -3957,7 +4014,7 @@ function renderFactMap(pref, item, selected) {
     class:"place-reference "+(detail && detail !== mainRiver && detail !== mainPeak ? "secondary-land" : "primary-land"),"text-anchor":"middle",
   });
   landLabel.textContent = item.land;
-  $("fact-pins").append(landLabel);
+  if (!industry) $("fact-pins").append(landLabel);
   if (detail && detail !== mainRiver && detail !== mainPeak) {
     const [px,py] = toMap(detail.point);
     const label = svgNode("text",{x:Math.max(58,Math.min(FACT_WIDTH-58,px)),y:Math.max(17,py-18),
@@ -3968,10 +4025,14 @@ function renderFactMap(pref, item, selected) {
   for (const [index, river] of rivers) {
     const path = svgNode("path",{d:river.path,transform,
       class:"map-river"+(detail===river || (!selectedRelief && mainRiver===river)?" selected":"")});
-    const hit = svgNode("path",{d:river.path,transform,class:"river-hit"});
-    const wrapper = svgNode("g");
-    wrapper.append(path,hit);
-    $("fact-rivers").append(featureControl(wrapper,river.name+"をみる",()=>openRelief("river",index)));
+    if (industry) {
+      $("fact-rivers").append(path);
+    } else {
+      const hit = svgNode("path",{d:river.path,transform,class:"river-hit"});
+      const wrapper = svgNode("g");
+      wrapper.append(path,hit);
+      $("fact-rivers").append(featureControl(wrapper,river.name+"をみる",()=>openRelief("river",index)));
+    }
   }
   for (const [index, peak] of peaks) {
     const pin = svgNode("g",{class:"map-peak"+(detail===peak || (!selectedRelief && mainPeak===peak)?" selected":""),
@@ -3980,7 +4041,27 @@ function renderFactMap(pref, item, selected) {
       svgNode("path",{class:"peak-back",d:"M-2 6 5-5 12 6Z"}),
       svgNode("path",{class:"peak-front",d:"M-11 7 -3-10 6 7Z"}),
       svgNode("path",{class:"peak-snow",d:"M-7-1 -3-9 1-1 -2-3 -4 0Z"}));
-    $("fact-peaks").append(featureControl(pin,peak.name+"をみる",()=>openRelief("peak",index)));
+    $("fact-peaks").append(industry ? pin : featureControl(pin,peak.name+"をみる",()=>openRelief("peak",index)));
+  }
+  if (industry) {
+    const occupied = [...$("fact-neighbor-names").children,...$("fact-water").children].map(label=>({
+      x:Number(label.getAttribute("x")),y:Number(label.getAttribute("y")),
+      width:label.textContent.length*16+4,height:20,
+    }));
+    for (const [,peak] of peaks) {
+      const [x,y] = toMap(peak.point);
+      occupied.push({x,y,width:26,height:26});
+    }
+    const labels = [
+      {name:item.land,point:[lx,ly],kind:mainPeak?"peak":mainRiver || overlay?.kind==="river"?"river":"land",primary:true},
+      ...rivers.filter(([,river])=>river!==mainRiver).map(([,river])=>({
+        name:river.name,point:toMap(river.point),kind:"river",
+      })),
+      ...peaks.filter(([,peak])=>peak!==mainPeak).map(([,peak])=>({
+        name:peak.name.split("＜")[0],point:toMap(peak.point),kind:"peak",
+      })),
+    ];
+    return {occupied,labels};
   }
   const controls = [
     ...(overlay ? [["main",0,item.land]] : []),
@@ -4073,12 +4154,12 @@ function readCurrent() {
   } else if (stage === "game" && attempt?.phase === "explore") {
     const item = info();
     if (attempt.view === "capital") {
-      speakText(`${item.name}の都道府県庁は、${item.capital}にあります。地形や産業も、地図で見てみましょう。`,item);
+      speakText(`県庁所在地は、${item.capital_reading || item.capital}です。`,item);
     } else if (attempt.view === "industry") {
       const {name, reading, intro} = selectedMapStory(mapStories(item));
       speakText(`${reading || name}。${intro}`,item);
     } else {
-      speakText(`${$("fact-title").textContent}。${$("fact-text").textContent}`,item);
+      speakText([$("fact-title").textContent,$("fact-text").textContent].filter(Boolean).join("。"),item);
     }
   } else if (stage === "game" && attempt?.phase === "quiz") {
     const entry = attempt.questions.at(-1), q = quizQuestions()[attempt.questions.length-1];
@@ -4128,8 +4209,8 @@ function drawExplore(pref) {
   $("pref-capital").classList.toggle("supplement",selected !== "capital");
   renderFactMap(pref,item,selected);
   const facts = {
-    capital: [item.capital+"（"+item.capital_reading+"）", "ここに都道府県庁があります。"],
-    land: [item.land+"（"+item.land_reading+"）", `${item.kind}を地図で見つけよう。 ${item.climate}。`],
+    capital: [item.capital+"（"+item.capital_reading+"）", ""],
+    land: [item.land+"（"+item.land_reading+"）", item.climate+"。"],
     industry: ["産業・特産品", ""],
   };
   const relief = attempt.relief;
@@ -4137,7 +4218,7 @@ function drawExplore(pref) {
     const river = item.rivers[relief.index];
     const text = pref.id === "30" && river.name === "紀の川" ?
       "奈良県では吉野川と呼ばれ、和歌山県では紀の川と呼ばれます。和歌山市で紀伊水道に注ぎます。" :
-      `太い青い線が、地図に示した${river.name}の流路です。`;
+      river.name === item.land ? facts.land[1] : "";
     facts.land = [river.name,text];
   } else if (selected === "land" && relief?.kind === "peak" && item.peaks[relief.index]) {
     const peak = item.peaks[relief.index];
@@ -4150,6 +4231,7 @@ function drawExplore(pref) {
   $("fact-title").textContent = title;
   $("fact-text").textContent = text;
   $("fact-text").hidden = !text;
+  $("explore-fact").hidden = selected === "capital";
   $("industry-stories").hidden = selected !== "industry";
   for (const key of ["capital","land","industry"]) {
     const control = $("discover-"+key);
