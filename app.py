@@ -2629,16 +2629,79 @@ def short_discovery_questions(pid):
     ]
 
 
+# Representative places for geographical context, not exclusive production or distribution regions.
+STORY_LOCATION_ROWS = """
+01|石狩市|43.17,141.32|平取町 二風谷|42.63,142.16
+02|八戸市|40.51,141.49|弘前市|40.60,140.47
+03|盛岡市|39.70,141.15|盛岡市|39.71,141.13
+04|仙台市|38.27,140.88|蔵王町 遠刈田|38.12,140.58
+05|大館市|40.27,140.56|大館市|40.27,140.57
+06|山形市 馬見ヶ崎川の河川敷|38.265,140.355|山形市 銅町|38.274,140.337
+07|会津若松市|37.50,139.93|会津若松市|37.51,139.94
+08|大洗町|36.31,140.57|笠間市|36.38,140.26
+09|宇都宮市|36.56,139.88|益子町|36.46,140.10
+10|前橋市|36.39,139.06|高崎市|36.34,139.00
+11|川島町|35.98,139.48|さいたま市 岩槻|35.95,139.69
+12|南房総市|35.05,139.90|館山市・南房総市|35.04,139.87
+13|江東区 深川|35.68,139.79|江東区|35.70,139.82
+14|鎌倉市|35.33,139.55|箱根町|35.22,139.06
+15|新潟市|37.91,139.04|燕市・三条市|37.65,138.93
+16|富山市|36.70,137.21|高岡市|36.75,137.02
+17|金沢市|36.56,136.65|能美市・小松市|36.43,136.52
+18|福井市|36.06,136.22|鯖江市 河和田|35.97,136.27
+19|甲府市|35.66,138.57|甲府市|35.66,138.59
+20|長野市|36.65,138.19|塩尻市 木曽平沢|35.97,137.83
+21|高山市 飛騨|36.14,137.25|美濃市|35.54,136.91
+22|静岡市 由比|35.11,138.56|浜松市|34.73,137.73
+23|名古屋市|35.17,136.91|豊田市|35.07,137.16
+24|伊勢市|34.49,136.71|伊賀市|34.77,136.13
+25|長浜市 湖北|35.38,136.27|甲賀市 信楽|34.88,136.06
+26|京都市|35.02,135.77|京都市 西陣|35.032,135.746
+27|大阪市|34.69,135.50|堺市|34.58,135.48
+28|明石市|34.65,134.99|小野市|34.85,134.93
+29|五條市|34.35,135.69|生駒市 高山|34.74,135.71
+30|新宮市 熊野地方|33.73,135.98|海南市 黒江|34.16,135.21
+31|米子市 弓ヶ浜半島|35.465,133.32|鳥取市 青谷|35.51,134.00
+32|出雲市|35.37,132.75|江津市 石見|35.00,132.22
+33|岡山市|34.66,133.93|備前市 伊部|34.74,134.16
+34|広島市|34.39,132.46|熊野町|34.34,132.58
+35|下関市 川棚温泉|34.15,130.94|萩市|34.41,131.41
+36|三好市 祖谷|33.89,133.87|吉野川市 山川町|34.05,134.23
+37|高松市 讃岐平野|34.32,134.04|丸亀市|34.28,133.79
+38|宇和島市|33.22,132.56|今治市|34.06,133.02
+39|高知市|33.56,133.54|いの町|33.55,133.42
+40|福岡市 博多|33.59,130.42|福岡市 博多|33.60,130.42
+41|唐津市 呼子|33.53,129.90|有田町|33.20,129.89
+42|長崎市|32.75,129.88|波佐見町|33.14,129.89
+43|熊本市|32.81,130.71|熊本市|32.80,130.72
+44|大分市|33.24,131.61|別府市|33.28,131.49
+45|宮崎市|31.91,131.42|都城市|31.74,131.07
+46|鹿児島市|31.59,130.55|日置市 美山|31.64,130.36
+47|那覇市|26.22,127.69|那覇市 首里|26.22,127.72
+"""
+DISH_PLACES, INDUSTRY_PLACES = {}, {}
+for row in STORY_LOCATION_ROWS.strip().splitlines():
+    pid, dish_name, dish_point, industry_name, industry_point = row.split("|")
+    DISH_PLACES[pid] = {"label":dish_name, "point":project(pid,dish_point)}
+    INDUSTRY_PLACES[pid] = [{"label":industry_name, "point":project(pid,industry_point)}]
+INDUSTRY_PLACES["30"].extend([
+    {"label":"みなべ町・田辺市", "point":project("30","33.80,135.35")},
+    {"label":"湯浅町", "point":project("30","34.03,135.18")},
+])
+KAGAWA_WHEAT_PLACE = {"label":"綾川町", "point":project("37","34.25,133.92")}
+
+
 DISCOVERY = {
     pid: {**info, "capital_point": project(pid, CAPITAL_POINTS[pid]),
           "land_point": project(pid, info["place"]), "questions": short_discovery_questions(pid),
           "previous_questions": previous_discovery_questions(pid), "seas": SEA_LABELS.get(pid, []),
-          "local_dish": LOCAL_DISHES[pid], "land_overlay": LAND_OVERLAYS.get(pid),
+          "local_dish": LOCAL_DISHES[pid], "dish_place": DISH_PLACES[pid], "land_overlay": LAND_OVERLAYS.get(pid),
+          "wheat_place": KAGAWA_WHEAT_PLACE if pid == "37" else None,
           "product_intro": STORY_INTROS[pid][0], "dish_intro": STORY_INTROS[pid][1],
           "product_story_photos": ([KAGAWA_RICE_PHOTO, PRODUCT_PHOTOS[pid]] if pid == "37"
                                    else [PRODUCT_PHOTOS[pid], *ADDITIONAL_PRODUCT_PHOTOS.get(pid, [])]),
-          "regional_industries": [{**story, "photo":REGIONAL_PHOTOS[story["name"]]}
-                                  for story in REGIONAL_INDUSTRIES[pid]],
+          "regional_industries": [{**story, "photo":REGIONAL_PHOTOS[story["name"]], "place":place}
+                                  for story, place in zip(REGIONAL_INDUSTRIES[pid], INDUSTRY_PLACES[pid], strict=True)],
           "product_previews": [
               {"caption":LOCAL_DISHES[pid]["name"], **{key:LOCAL_DISHES[pid][key] for key in ("image", "source", "credit")}},
               PRODUCT_PHOTOS[pid],
@@ -2918,10 +2981,24 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
   text-overflow:ellipsis;white-space:nowrap;font-size:10px;line-height:1.2}
 .product-previews span{font-weight:800}
 .product-previews .photo-credit{font-size:8px;color:#5a746b}
-@media(max-width:520px){#map-product-box{display:none}}
-.story-photos{grid-template-columns:repeat(auto-fit,minmax(min(124px,100%),1fr));margin-top:6px}
-.story-photos img{height:clamp(94px,17vw,145px)}
-.story-photos span,.story-photos .photo-credit{font-size:.73rem;text-overflow:clip;white-space:normal}
+#fact-map-panel.has-products{display:grid;grid-template-columns:minmax(0,1fr) clamp(108px,29%,280px);
+  gap:3px;align-items:start}
+#fact-map-panel.has-products #fact-map{max-height:none}
+#map-product-previews{padding:5px;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start}
+#map-product-previews figure{padding:2px;background:#fffef5}
+#map-product-previews figure.active{outline:2px solid #a15a29;outline-offset:-2px;background:#fff4de}
+#map-product-previews button{display:block;width:100%;min-height:0;padding:2px;border:0;
+  background:transparent;color:var(--ink);border-radius:4px;text-align:left}
+#map-product-previews img{height:clamp(31px,7vw,76px);object-fit:contain}
+#map-product-previews span{white-space:normal;line-height:1.12;padding:1px 2px}
+#map-product-previews .photo-credit{font-size:9px;text-decoration:underline}
+.map-production-region{fill:#eab971;fill-opacity:.20;stroke:#a67747;stroke-width:1}
+.map-production-region.active{fill:#f2a346;fill-opacity:.75;stroke:#8e481b;stroke-width:1.9}
+.production-region.quiet{fill-opacity:.20;stroke-opacity:.45}
+.production-marker text{fill:#70421c;font-weight:800;pointer-events:none}
+.production-marker circle{fill:#fffef4;stroke:#9b632d;stroke-width:1.15}
+.production-marker.active circle{fill:#f9d08d;stroke:#8d461c;stroke-width:2}
+.production-pin.quiet{opacity:.65}
 .production-pin circle{fill:#fff1d0;stroke:#98603b}
 .production-pin,.map-peak,.river-hit{cursor:pointer}
 .production-region{fill:#e6ad65;fill-opacity:.72;stroke:#9a6738;stroke-width:1.7;vector-effect:non-scaling-stroke}
@@ -3027,24 +3104,24 @@ body:has(#medal-dialog[open]){min-height:365px}
     <div id="phase-explore" hidden>
       <h2 id="pref-name" tabindex="-1"></h2>
       <p id="pref-capital"></p>
-      <div class="discovery-map">
+      <div id="fact-map-panel" class="discovery-map">
         <svg id="fact-map" viewBox="0 0 560 330" role="group" aria-label="都道府県と周辺の地図。県庁、地形、産業・特産品のしるし。">
           <defs>
             <clipPath id="fact-clip"><use href="#fact-shape"/></clipPath>
           </defs>
           <g id="fact-neighbors" aria-hidden="true"></g>
           <path id="fact-shape" fill-rule="evenodd" clip-rule="evenodd"/>
-          <path id="fact-land-extent" aria-hidden="true" hidden/>
+          <g id="fact-land-clip" aria-hidden="true"><path id="fact-land-extent" hidden/></g>
           <g id="fact-neighbor-names" aria-hidden="true"></g>
           <g id="fact-water" aria-hidden="true"></g>
-          <foreignObject id="map-product-box" hidden>
-            <div xmlns="http://www.w3.org/1999/xhtml" id="map-product-previews" class="product-previews"></div>
-          </foreignObject>
+
           <g id="fact-industry-area" clip-path="url(#fact-clip)" aria-hidden="true"></g>
+          <g id="fact-product-regions" clip-path="url(#fact-clip)" aria-hidden="true"></g>
           <g id="fact-rivers" clip-path="url(#fact-clip)"></g>
           <g id="fact-peaks"></g>
           <g id="fact-pins"></g>
         </svg>
+        <div id="map-product-previews" class="product-previews" role="group" aria-label="写真から産地を選ぶ" hidden></div>
       </div>
       <div class="map-key">
         <span id="capital-key-group" hidden>★ 県庁所在地</span>
@@ -3068,14 +3145,12 @@ body:has(#medal-dialog[open]){min-height:365px}
             <p class="story-category">特産品・ブランド</p>
             <h4 id="local-product-name"></h4>
             <p id="local-product-pitch"></p>
-            <div id="local-product-photos" class="product-previews story-photos"></div>
             <a id="local-product-source" target="_blank" rel="noopener noreferrer">特産品の出典</a>
           </section>
           <section class="local-story" aria-labelledby="local-dish-name">
             <p class="story-category">有名な食べ物</p>
             <h4 id="local-dish-name"></h4>
             <p id="local-dish-pitch"></p>
-            <div id="local-dish-photos" class="product-previews story-photos"></div>
             <a id="local-dish-source" target="_blank" rel="noopener noreferrer">料理の出典</a>
           </section>
         </div>
@@ -3606,76 +3681,132 @@ function mapWater(pref, item, toMap, scale, tx, ty) {
     label.textContent = sea.name;
     water.append(label);
   }
-  if (!item.product_previews.length) return;
-  // The complete photo set sits with the stories, so map thumbnails are optional.
-  const photoBox = $("map-product-box"), width = 126, height = 153;
-  for (const x of [FACT_WIDTH-width-13,13]) {
-    for (const y of [FACT_HEIGHT-height-12,16,94]) {
-      if (labels.some(l => l.x+l.half>x && l.x-l.half<x+width && l.y+13>y && l.y-13<y+height)) continue;
-      const blocked = [0,.25,.5,.75,1].some(u =>
-        [0,.25,.5,.75,1].some(v => onLand(x+u*width,y+v*height)));
-      if (blocked) continue;
-      photoBox.setAttribute("x",x);
-      photoBox.setAttribute("y",y);
-      photoBox.setAttribute("width",width);
-      photoBox.setAttribute("height",height);
-      photoBox.dataset.fits = "yes";
-      return;
-    }
-  }
-  photoBox.dataset.fits = "no";
 }
-function photoCard({caption,image,source,credit}) {
-  const card = document.createElement("figure");
-  const link = document.createElement("a");
-  link.href = image;
-  link.target = "_blank";
-  link.rel = "noopener noreferrer";
-  link.title = caption+"の写真を開く";
-  const picture = document.createElement("img");
-  picture.loading = "lazy";
-  picture.referrerPolicy = "no-referrer";
-  picture.alt = "";
-  picture.onerror = () => { picture.hidden = true; };
-  picture.src = image;
-  const label = document.createElement("span");
-  label.textContent = caption;
-  link.append(picture,label);
-  const attribution = document.createElement("a");
-  attribution.className = "photo-credit";
-  attribution.href = source;
-  attribution.target = "_blank";
-  attribution.rel = "noopener noreferrer";
-  attribution.textContent = "写真："+credit;
-  attribution.title = attribution.textContent;
-  card.append(link,attribution);
-  return card;
+
+function mapStories(item) {
+  const stories = [
+    {key:"product", name:item.local_product.name, photos:item.product_story_photos.filter(p=>
+      !item.wheat_place || p.caption!=="さぬきの夢の小麦畑")},
+    {key:"dish", name:item.local_dish.name, photos:item.product_previews.slice(0,1), place:item.dish_place},
+    ...item.regional_industries.map((story,index)=>({key:"regional-"+index, name:story.name,
+      photos:[story.photo], place:story.place})),
+  ];
+  if (item.wheat_place) stories.push({key:"wheat",name:"さぬきの夢",place:item.wheat_place,
+    photos:[item.product_previews[1]]});
+  return stories;
+}
+function selectMapStory(key) {
+  if (attempt?.phase !== "explore" || attempt.view !== "industry") return;
+  attempt.mapStory = key;
+  const item = info();
+  renderIndustryMap(prefectures.get(attempt.pref),item);
+  $("map-product-previews").querySelector(`button[data-story="${key}"]`)?.focus({preventScroll:true});
 }
 function renderProductPreviews(pref, item, selected) {
-  const box = $("map-product-box");
-  const previews = item.product_previews;
-  box.toggleAttribute("hidden", selected !== "industry" || !previews.length || box.dataset.fits !== "yes");
   const gallery = $("map-product-previews");
-  if (selected !== "industry" || gallery.dataset.prefecture === pref.id) return;
-  gallery.dataset.prefecture = pref.id;
-  gallery.replaceChildren(...previews.map(photoCard));
+  const visible = selected === "industry";
+  $("fact-map-panel").classList.toggle("has-products",visible);
+  gallery.hidden = !visible;
+  if (!visible) return;
+  const active = attempt.mapStory || "product";
+  if (gallery.dataset.prefecture !== pref.id) {
+    gallery.dataset.prefecture = pref.id;
+    gallery.replaceChildren(...mapStories(item).flatMap((story,index)=>story.photos.map(media=>{
+      const card = document.createElement("figure");
+      card.dataset.story = story.key;
+      const pick = document.createElement("button");
+      pick.type = "button";
+      pick.dataset.story = story.key;
+      pick.onclick = () => selectMapStory(story.key);
+      const image = document.createElement("img");
+      image.referrerPolicy = "no-referrer";
+      image.alt = "";
+      image.src = media.image;
+      image.onerror = () => {image.hidden = true;};
+      const label = document.createElement("span");
+      label.textContent = (index+1)+". "+media.caption;
+      const source = document.createElement("a");
+      source.href = media.image;
+      source.className = "photo-credit";
+      source.target = "_blank";
+      source.rel = "noopener noreferrer";
+      source.title = "写真："+media.credit;
+      source.textContent = "画像を開く";
+      pick.append(image,label);
+      card.append(pick,source);
+      return card;
+    })));
+  }
+  for (const card of gallery.children) {
+    const on = active === card.dataset.story;
+    card.classList.toggle("active",on);
+    card.querySelector("button").setAttribute("aria-pressed",String(on));
+  }
+}
+
+function factMapProjection(pref) {
+  // Tokyo's remote islands make mainland landmarks too small in the national bounds.
+  const [x,y,w,h] = pref.id === "13" ? [346,344,32,21] : pref.bounds;
+  const scale = Math.min((FACT_WIDTH-144)/w,(FACT_HEIGHT-92)/h);
+  const tx = FACT_WIDTH/2-(x+w/2)*scale, ty = FACT_HEIGHT/2-(y+h/2)*scale;
+  return {scale,tx,ty,transform:`translate(${tx} ${ty}) scale(${scale})`,
+    toMap:([px,py])=>[tx+px*scale,ty+py*scale]};
+}
+function renderIndustryMap(pref,item) {
+  const {transform,toMap} = factMapProjection(pref);
+  const key = attempt.mapStory || "product";
+  const stories = mapStories(item);
+  const active = stories.find(story=>story.key===key) || stories[0];
+  renderProductPreviews(pref,item,"industry");
+  $("fact-industry-area").replaceChildren(svgNode("path",{
+    d:item.production_area,transform,class:"production-region"+(active.key==="product"?"":" quiet"),
+    "fill-rule":"evenodd",
+  }));
+  const regions = $("fact-product-regions"), pins = $("fact-pins");
+  regions.replaceChildren();
+  pins.replaceChildren();
+  for (const site of item.industry_points) {
+    const pin = svgNode("g",{class:"production-pin"+(active.key==="product"?"":" quiet"),
+      transform:`translate(${toMap(site.point).join(" ")})`});
+    const symbol = svgNode("g",{class:"industry-icon",transform:"translate(-10 -10) scale(.83)"});
+    symbol.innerHTML = INDUSTRY_ICONS[item.industry_icon];
+    pin.append(svgNode("circle",{r:15}),symbol, Object.assign(svgNode("text",{x:9,y:-8,
+      "font-size":9,"font-weight":800,fill:"#70421c",stroke:"#fffdf4","stroke-width":2,
+      "paint-order":"stroke"}),{textContent:"1"}));
+    pins.append(featureControl(pin,site.name+"の"+item.industry+"をみる",()=>selectMapStory("product")));
+  }
+  const pending = stories.map((story,index)=>({story,index})).filter(({story})=>story.place);
+  pending.sort((a,b)=>Number(a.story===active)-Number(b.story===active));
+  for (const {story,index} of pending) {
+    const selected = story===active;
+    const [x,y] = toMap(story.place.point);
+    regions.append(svgNode("circle",{cx:x,cy:y,r:selected?16:10,
+      class:"map-production-region"+(selected?" active":"")}));
+    const marker = svgNode("g",{class:"production-marker"+(selected?" active":""),
+      transform:`translate(${x} ${y})`});
+    marker.append(svgNode("circle",{r:selected?7.5:6}),Object.assign(svgNode("text",{
+      "font-size":selected?10:8,"text-anchor":"middle","dominant-baseline":"central",
+    }),{textContent:String(index+1)}));
+    pins.append(featureControl(marker,story.name+"："+story.place.label,()=>selectMapStory(story.key)));
+  }
+  $("industry-key-symbol").innerHTML = INDUSTRY_ICONS[item.industry_icon];
+  $("industry-name").textContent = active.name;
+  const localities = active.place?.label || item.production_cities.join("・");
+  $("map-caption").textContent = (stories.indexOf(active)+1)+". "+active.name+"："+localities+
+    (active.place ? "（代表地の周辺）" : "（産地を含む市町村）");
 }
 
 function renderFactMap(pref, item, selected) {
-  const [x,y,w,h] = pref.bounds;
-  const scale = Math.min((FACT_WIDTH-144)/w,(FACT_HEIGHT-92)/h);
-  const tx = FACT_WIDTH/2-(x+w/2)*scale, ty = FACT_HEIGHT/2-(y+h/2)*scale;
-  const transform = `translate(${tx} ${ty}) scale(${scale})`;
-  const toMap = ([px,py]) => [tx+px*scale,ty+py*scale];
+  const {scale,tx,ty,transform,toMap} = factMapProjection(pref);
   $("fact-shape").setAttribute("d",pref.path);
   $("fact-shape").setAttribute("transform",transform);
   renderFactNeighbors(pref,item,transform,toMap,scale,tx,ty);
   mapWater(pref,item,toMap,scale,tx,ty);
-  renderProductPreviews(pref,item,selected);
+  if (selected !== "industry") renderProductPreviews(pref,item,selected);
   const extent = $("fact-land-extent");
   extent.setAttribute("hidden","");
   const overlay = item.land_overlay;
-  for (const id of ["fact-rivers","fact-peaks","fact-industry-area","fact-pins","relief-controls"]) $(id).replaceChildren();
+  for (const id of ["fact-rivers","fact-peaks","fact-industry-area","fact-product-regions","fact-pins","relief-controls"]) $(id).replaceChildren();
   $("fact-industry-area").hidden = selected !== "industry";
   $("relief-controls").hidden = $("relief-list-title").hidden = selected !== "land";
   $("terrain-key-group").hidden = selected !== "land";
@@ -3696,20 +3827,7 @@ function renderFactMap(pref, item, selected) {
     return;
   }
   if (selected === "industry") {
-    $("map-caption").textContent = "色は産地を含む市町村の範囲です。アイコンは代表地点です。";
-    $("fact-industry-area").append(svgNode("path",{
-      d:item.production_area,transform,class:"production-region","fill-rule":"evenodd",
-    }));
-    for (const site of item.industry_points) {
-      const loc = toMap(site.point);
-      const pin = svgNode("g",{class:"production-pin",transform:`translate(${loc.join(" ")})`});
-      const symbol = svgNode("g",{class:"industry-icon",transform:"translate(-10 -10) scale(.83)"});
-      symbol.innerHTML = INDUSTRY_ICONS[item.industry_icon];
-      pin.append(svgNode("circle",{r:15}),symbol);
-      $("fact-pins").append(featureControl(pin,site.name+"の"+item.industry+"をみる",()=>openFeature("industry")));
-    }
-    $("industry-key-symbol").innerHTML = INDUSTRY_ICONS[item.industry_icon];
-    $("industry-name").textContent = item.industry;
+    renderIndustryMap(pref,item);
     return;
   }
   const rivers = [...item.rivers.entries()].filter(([,river]) =>
@@ -3733,8 +3851,11 @@ function renderFactMap(pref, item, selected) {
     extent.setAttribute("transform",transform);
     const active = !selectedRelief || selectedRelief.kind === "main";
     extent.setAttribute("class",overlay.kind === "river" ? "map-river"+(active ? " selected" : "") : "land-"+overlay.kind);
-    if (overlay.kind === "area" || overlay.kind === "river") extent.setAttribute("clip-path","url(#fact-clip)");
-    else extent.removeAttribute("clip-path");
+    // This group and the transformed clip share the same viewport coordinate space.
+    // Applying the clip to the transformed path would transform the clip a second time.
+    const clip = $("fact-land-clip");
+    if (overlay.kind === "area" || overlay.kind === "river") clip.setAttribute("clip-path","url(#fact-clip)");
+    else clip.removeAttribute("clip-path");
     extent.removeAttribute("hidden");
   }
   const [lx,ly] = toMap((mainPeak || mainRiver)?.point || item.land_point);
@@ -3769,15 +3890,15 @@ function renderFactMap(pref, item, selected) {
     $("fact-peaks").append(featureControl(pin,peak.name+"をみる",()=>openRelief("peak",index)));
   }
   const controls = [
-    ...(overlay ? [["main",0,item.kind,item.land]] : []),
-    ...rivers.map(([i,f])=>["river",i,"川",f.name]),
-    ...peaks.map(([i,f])=>["peak",i,"山",f.name]),
+    ...(overlay ? [["main",0,item.land]] : []),
+    ...rivers.map(([i,f])=>["river",i,f.name]),
+    ...peaks.map(([i,f])=>["peak",i,f.name]),
   ];
-  for (const [kind,index,icon,name] of controls) {
+  for (const [kind,index,name] of controls) {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "secondary relief-"+(kind === "main" ? overlay.kind : kind);
-    button.textContent = icon+" "+name;
+    button.textContent = name;
     const active = selectedRelief ? selectedRelief.kind===kind && selectedRelief.index===index :
       kind==="main" || (kind==="river" && item.rivers[index]===mainRiver) ||
       (kind==="peak" && item.peaks[index]===mainPeak);
@@ -3938,8 +4059,8 @@ function drawExplore(pref) {
   $("fact-text").hidden = !text;
   $("local-stories").hidden = $("regional-industries").hidden = selected !== "industry";
   if (selected === "industry") {
-    renderLocalStory("local-product",pref.id,item.local_product,item.product_intro,item.product_story_photos);
-    renderLocalStory("local-dish",pref.id,item.local_dish,item.dish_intro,item.product_previews.slice(0,1));
+    renderLocalStory("local-product",item.local_product,item.product_intro);
+    renderLocalStory("local-dish",item.local_dish,item.dish_intro);
     renderRegionalIndustries(pref.id,item.regional_industries);
   }
   for (const key of ["capital","land","industry"]) {
@@ -3949,15 +4070,12 @@ function drawExplore(pref) {
   }
   $("start-quiz").disabled = !canStartQuiz();
 }
-function renderLocalStory(id, prefecture, story, intro, photos) {
-  const gallery = $(id+"-photos");
-  if (gallery.dataset.prefecture === prefecture) return;
-  gallery.dataset.prefecture = prefecture;
+function renderLocalStory(id, story, intro) {
   const {name, reading, source} = story;
   $(id+"-name").textContent = reading && reading !== name ? `${name}（${reading}）` : name;
   $(id+"-pitch").textContent = intro;
   $(id+"-source").href = source;
-  gallery.replaceChildren(...photos.map(photoCard));
+
 }
 function renderRegionalIndustries(prefecture, stories) {
   const cards = $("regional-industry-cards");
@@ -3975,15 +4093,12 @@ function renderRegionalIndustries(prefecture, stories) {
     const sentences = story.pitch.match(/[^。？！]+[。？！]?/g) || [];
     pitch.textContent = sentences.length > 1 && sentences[0].length < 22 &&
       sentences[0].length+sentences[1].length <= 62 ? sentences.slice(0,2).join("") : sentences[0] || story.pitch;
-    const gallery = document.createElement("div");
-    gallery.className = "product-previews story-photos";
-    gallery.append(photoCard(story.photo));
     const source = document.createElement("a");
     source.href = story.source;
     source.target = "_blank";
     source.rel = "noopener noreferrer";
     source.textContent = "出典を見る";
-    card.append(category,name,pitch,gallery,source);
+    card.append(category,name,pitch,source);
     return card;
   }));
 }
@@ -3993,6 +4108,7 @@ function openFeature(key) {
   if (!didOpen(key)) attempt.actions.push({type:"explore",feature:key,at:time()});
   attempt.view = key;
   attempt.relief = null;
+  attempt.mapStory = null;
   drawExplore(prefectures.get(attempt.pref));
   diagnostic("feature_opened",{feature:key});
   readCurrent();
