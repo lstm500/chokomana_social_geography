@@ -2804,11 +2804,46 @@ for row in REGIONAL_ADDITIONS.strip().splitlines():
     INDUSTRY_PLACES[pid].append(dict(label=locality, point=project(pid, location)))
 
 
+# Extra foods are taught on the map without altering existing quiz answers or saved records.
+REPRESENTATIVE_FOOD_ROWS = """
+01|ジンギスカン|じんぎすかん|有名な食べ物|羊の肉と野菜をいっしょに焼いて食べるよ。真ん中がもり上がったなべを使うこともあるよ。|||https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/jingisukan_hokkaido.html
+04|仙台の牛たん焼き|せんだいのぎゅうたんやき|有名な食べ物|牛の舌を切り、焼いて食べる仙台の名物。麦ごはんや牛のしっぽのスープと出ることもあるよ。|仙台市|38.268,140.869|https://miyagi-kankou.or.jp/theme/detail.php?id=19014
+08|水戸納豆|みとなっとう|特産品・加工品|水戸の名物。大豆を発酵させて作るよ。小粒の納豆や、わらで包んだ納豆もあるよ。|水戸市|36.366,140.471|https://www.maff.go.jp/j/keikaku/syokubunka/traditional-foods/menu/natto_ibaraki.html
+09|栃木のいちご|とちぎのいちご|特産品・農産物|栃木県ではいちご作りがさかん。「とちあいか」や「とちおとめ」という品種があるよ。|||https://www.pref.tochigi.lg.jp/c05/kensei/aramashi/sangyou/nouringyou/ichigo.html
+12|落花生（ピーナッツ）|らっかせい、ぴーなっつ|特産品・農産物|千葉県では八街市などで落花生を育てるよ。花が咲いたあと、土の中でさやが育つよ。|八街市|35.666,140.318|https://www.pref.chiba.lg.jp/ryuhan/pbmgm/zukan/kome/rakkase.html
+12|房州びわ|ぼうしゅうびわ|特産品・農産物|千葉県の南房総で育つ果物。オレンジ色の実は大きく、みずみずしいよ。|南房総市 富浦地区|35.041,139.837|https://www.pref.chiba.lg.jp/ryuhan/pbmgm/zukan/kajitsu/biwa.html
+15|魚沼産コシヒカリ|うおぬまさんこしひかり|特産品・農産物|新潟県の魚沼地域で作られるお米。魚沼市には、魚野川とそこに流れ込む川があるよ。|魚沼市|37.232,138.962|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/area_stories/niigata.html
+23|味噌煮込みうどん|みそにこみうどん|有名な食べ物|愛知で親しまれている麺料理。豆みそを使ったつゆで、うどんをぐつぐつ煮るよ。|||https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/misonikomiudon_aichi.html
+24|松阪牛|まつさかうし|特産品・畜産物|三重県の松阪市などの決められた地域で、条件に沿って育てた牛だよ。すき焼きなどで味わえるよ。|松阪市|34.577,136.527|https://www.city.matsusaka.mie.jp/site/matsusakaushi/matsusakaushitowa.html
+25|近江牛|おうみぎゅう|特産品・畜産物|滋賀県で育てられる、歴史の長い牛肉のブランドだよ。|||https://www.pref.shiga.lg.jp/gc00/6910.html
+25|近江米|おうみまい|特産品・農産物|滋賀県で育つお米。琵琶湖のまわりに広がる田んぼでも作られているよ。|||https://www.pref.shiga.lg.jp/gc00/6910.html
+38|愛媛の温州みかん|えひめのうんしゅうみかん|特産品・農産物|愛媛県ではいろいろなかんきつを育てているよ。温州みかんは、手で皮をむいて食べやすいみかんだよ。|||https://www.kankitsu.aifood.jp/about/1/
+40|辛子明太子|からしめんたいこ|特産品・加工品|福岡の名物。スケトウダラの卵を、とうがらしなどで味つけした食べ物だよ。|福岡市|33.590,130.401|https://www.crossroadfukuoka.jp/spot/12647
+42|長崎びわ|ながさきびわ|特産品・農産物|長崎市の茂木などで育つ果物。うすい皮の中にやわらかい果肉があり、真ん中に大きな種があるよ。|長崎市 茂木地区|32.695,129.919|https://www.city.nagasaki.lg.jp/page/2435.html
+45|宮崎の完熟マンゴー|みやざきのかんじゅくまんごー|特産品・農産物|実がしっかり熟して、枝から自然に落ちるところをネットで受け止めて収穫するよ。|宮崎市|31.907,131.421|https://www.city.miyazaki.miyazaki.jp/business/agriculture_and_fisheries/delicious/206994.html
+46|かごしま黒豚|かごしまくろぶた|特産品・畜産物|鹿児島県を代表する畜産物の一つ。とんかつやしゃぶしゃぶなどに使われるよ。|||https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/area_stories/kagoshima.html
+47|ゴーヤーチャンプルー|ごーやーちゃんぷるー|有名な食べ物|苦みのあるゴーヤーを、豆腐や卵などと炒める沖縄の家庭料理だよ。|||https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/47_11_okinawa.html
+"""
+REPRESENTATIVE_FOODS = {}
+for row in REPRESENTATIVE_FOOD_ROWS.strip().splitlines():
+    pid, name, reading, category, intro, locality, location, source = row.split("|")
+    place = {"label":locality, "point":project(pid, location)} if location else None
+    REPRESENTATIVE_FOODS.setdefault(pid, []).append(
+        dict(name=name, reading=reading, category=category, intro=intro, source=source, place=place))
+
+PRODUCT_DISPLAY = {
+    "07": dict(name="福島の桃（あかつき）", reading="ふくしまのもも、あかつき",
+               source="https://www.pref.fukushima.lg.jp/w4/engeijin/peach/"),
+    "30": dict(name="和歌山の有田みかん", reading="わかやまのありだみかん",
+               source="https://www.pref.wakayama.lg.jp/prefg/130400/kannkou/tokusannhin.html"),
+}
+
 DISCOVERY = {
     pid: {**info, "capital_point": project(pid, CAPITAL_POINTS[pid]),
           "land_point": project(pid, info["place"]), "questions": short_discovery_questions(pid),
           "previous_questions": previous_discovery_questions(pid), "seas": SEA_LABELS.get(pid, []),
           "local_dish": LOCAL_DISHES[pid], "dish_place": DISH_PLACES[pid], "land_overlay": LAND_OVERLAYS.get(pid),
+          "representative_foods": REPRESENTATIVE_FOODS.get(pid, []), "product_display": PRODUCT_DISPLAY.get(pid, {}),
           "wheat_place": KAGAWA_WHEAT_PLACE if pid == "37" else None,
           "product_intro": STORY_INTROS[pid][0], "dish_intro": STORY_INTROS[pid][1],
           "product_story_photos": ([KAGAWA_RICE_PHOTO, PRODUCT_PHOTOS[pid]] if pid == "37"
@@ -3286,7 +3321,8 @@ body:has(#medal-dialog[open]){min-height:365px}
         <p id="fact-text"></p>
         <div id="industry-stories" hidden></div>
       </article>
-      <button id="start-quiz" disabled>特徴クイズに すすむ</button>
+      <p class="map-note" id="quiz-unlock-hint" role="status">「地形」と「産業・特産品」を ひらいてから クイズへ。</p>
+      <button id="start-quiz" aria-describedby="quiz-unlock-hint" disabled>特徴クイズに すすむ</button>
     </div>
     <div id="phase-quiz" hidden>
       <p id="quiz-name"></p>
@@ -3642,7 +3678,7 @@ function containsHint() { return attempt.actions.some(a => a.type === "hint"); }
 function info() { return args.discovery[attempt.pref]; }
 function currentQuiz() { return attempt.content_version === args.version; }
 function quizQuestions() { return currentQuiz() ? info().questions : info().previous_questions; }
-function canStartQuiz() { return currentQuiz() || (didOpen("land") && didOpen("industry")); }
+function canStartQuiz() { return attempt?.phase === "explore" && didOpen("land") && didOpen("industry"); }
 function didOpen(key) { return attempt.actions.some(a => a.type === "explore" && a.feature === key); }
 function showQuestion() {
   const pref = prefectures.get(attempt.pref);
@@ -3877,8 +3913,9 @@ function mapStories(item) {
   const product = item.local_product, dish = item.local_dish;
   const stories = [
     {key:"product", name:product.name, reading:product.reading, intro:item.product_intro,
-      category:"特産品・ブランド · "+item.industry, source:product.source,
+      category:"特産品・ブランド · "+item.industry, source:product.source, ...item.product_display,
       photos:item.product_story_photos.filter(p=>!item.wheat_place || p.caption!=="さぬきの夢の小麦畑")},
+    ...item.representative_foods.map((story,index)=>({...story,key:"food-"+index,photos:[]})),
     ...item.regional_industries.map((story,index)=>({key:"regional-"+index, name:story.name,
       reading:story.reading, intro:story.pitch, photos:[story.photo],
       category:story.category, source:story.source, place:story.place})),
@@ -4043,9 +4080,9 @@ function renderIndustryMap(pref,item,projection,occupied) {
   }
   $("industry-key-symbol").innerHTML = active.key === "product" ? INDUSTRY_ICONS[item.industry_icon] : "";
   $("industry-name").textContent = active.name;
-  const localities = active.place?.label || item.production_cities.join("・");
-  $("map-caption").textContent = active.number+". "+active.name+"："+localities+
-    (active.place ? "（代表地の周辺）" : "（産地を含む市町村）");
+  const locality = active.place ? active.place.label+"（代表地の周辺）" : active.key === "product"
+    ? item.production_cities.join("・")+"（産地を含む市町村）" : "";
+  $("map-caption").textContent = active.number+". "+active.name+(locality?"："+locality:"");
 }
 
 function renderFactMap(pref, item, selected) {
@@ -4353,7 +4390,12 @@ function drawExplore(pref) {
     control.setAttribute("aria-pressed", String(selected === key));
     control.querySelector("span").hidden = !didOpen(key);
   }
-  $("start-quiz").disabled = !canStartQuiz();
+  const canStart = canStartQuiz();
+  $("start-quiz").disabled = !canStart;
+  const remaining = ["land","industry"].filter(key=>!didOpen(key)).map(key=>key==="land"?"「地形」":"「産業・特産品」");
+  const guide = $("quiz-unlock-hint");
+  const message = canStart ? "地形と産業・特産品を たしかめたよ。" : remaining.join("と")+"を ひらいてから クイズへ。";
+  if (guide.textContent !== message) guide.textContent = message;
 }
 function renderIndustryStories(pref, stories, active) {
   const cards = $("industry-stories");
