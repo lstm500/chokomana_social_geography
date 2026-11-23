@@ -996,7 +996,8 @@ CAPITAL_DATA = """
 """
 
 PREVIOUS_VERSION = "geography-prefecture-discovery-2"
-VERSION = "geography-prefecture-discovery-3"
+ARCHIVE_VERSION = "geography-prefecture-discovery-3"
+VERSION = "geography-prefecture-discovery-4"
 # 年齢の帯は、ホームの年齢設定と単独利用の年齢選択で共通。
 AGE_BANDS = [(1, 6, 2), (7, 7, 4), (8, 9, 6), (10, 10, 8), (11, 100, 10)]
 SKILLS = {
@@ -1121,63 +1122,6 @@ def previous_discovery_questions(pid):
     ]
 
 
-INDUSTRY_MAP_DATA = """
-01|cow|別海町:43.39,145.12;中標津町:43.55,144.97
-02|apple|弘前市:40.60,140.46
-03|rice|花巻市周辺:39.40,141.12
-04|rice|仙台平野:38.30,140.99
-05|rice|横手市周辺:39.32,140.48
-06|cherry|東根市:38.43,140.39
-07|fruit|福島市北西部:37.81,140.44
-08|root|土浦市周辺:36.06,140.24
-09|cow|那須町周辺:37.04,140.01
-10|leaf|嬬恋村:36.55,138.48
-11|leaf|深谷市:36.21,139.27
-12|fish|片貝漁港周辺:35.54,140.47
-13|tea|瑞穂町:35.77,139.35
-14|fish|湘南の沿岸:35.30,139.48
-15|rice|新潟市南部:37.77,139.02
-16|rice|砺波市周辺:36.63,136.96
-17|root|金沢市北部:36.64,136.68
-18|crab|越前町の漁港周辺:35.93,135.99
-19|grape|甲州市勝沼周辺:35.66,138.73
-20|leaf|川上村:35.98,138.58
-21|fish|岐阜市の長良川:35.44,136.77
-22|tea|牧之原市周辺:34.81,138.19
-23|melon|田原市:34.65,137.17
-24|pearl|志摩市の英虞湾:34.30,136.82
-25|fish|琵琶湖沿岸の例:35.28,136.19
-26|tea|宇治田原町:34.86,135.86
-27|root|八尾市:34.63,135.60
-28|onion|南あわじ市:34.29,134.77
-29|fruit|五條市西部:34.35,135.65
-30|citrus|有田川町周辺:34.06,135.25
-31|root|鳥取砂丘の周辺:35.54,134.25
-32|shell|宍道湖:35.44,132.94
-33|fruit|岡山市北部:34.72,133.92
-34|shell|広島湾:34.28,132.40
-35|fish|下関市の市場周辺:33.94,130.93
-36|root|鳴門市周辺:34.16,134.57
-37|rice|丸亀市南部:34.23,133.87
-38|pearl|宇和島市の入江:33.20,132.46
-39|greenhouse|南国市周辺:33.56,133.67
-40|greenhouse|八女市周辺:33.21,130.56
-41|seaweed|有明海の佐賀県側:33.14,130.30
-42|shell|九十九島の沿岸:33.18,129.66
-43|cow|阿蘇の草原:32.94,131.04
-44|mushroom|国東半島の山あい:33.57,131.60
-45|greenhouse|宮崎市周辺:31.94,131.42
-46|root|南九州市周辺:31.37,130.45
-47|cane|沖縄本島南部:26.15,127.72
-"""
-INDUSTRY_MAP = {}
-for row in INDUSTRY_MAP_DATA.strip().splitlines():
-    pid, icon, sites = row.split("|")
-    INDUSTRY_MAP[pid] = (icon, [
-        dict(name=name, point=project(pid, coords))
-        for name, coords in (site.split(":") for site in sites.split(";"))
-    ])
-# 出典：国土数値情報（河川・行政区域）、国土地理院（日本の主な山岳標高）。
 VERIFIED_MAP_DATA = (
     "eNp8veuurkd1Lngv/m1Zb52rcg1VN5CtqBXtjXZQq5NWOt1/okisBQQfMMbggAET42AbjDHYOARz9MVMz7W8fuUW+q1xfL75"
     "rWnJWhqzXF+9o8a5Ro2q+udnjvDMX/3zM//3P/7D//p//+c/ffkf/v7/+Nt//NLfPvNXz6wSx3PHs+Goz7VZYn1unHB5Lp9w"
@@ -2123,63 +2067,6 @@ for first, second in (
 
 # One documented example tied to the industry taught for each prefecture.
 # Examples may be regional products, named varieties, individual products or local dishes.
-PRODUCT_DATA = """
-01|なかしべつ牛乳|なかしべつぎゅうにゅう|北海道の東にある中標津の牛乳。朝ごはんに一口、そのまま飲んで、牛乳の風味をたしかめてみよう。|https://www.rakunou.org/nyuseihin_syokai/nyuseihin_syokai01.html
-02|青森のサンふじ|あおもりのさんふじ|パリッとかむと、甘い果汁がじゅわっ。切ったりんごの断面にも注目してみよう。|https://www.aomori-ringo.or.jp/wp-content/uploads/2023/04/pop_sanfuji.pdf
-03|銀河のしずく|ぎんがのしずく|炊くと白くつやつや。ほどよいねばりがあって、かむほどお米の甘みがわかるよ。|https://iwate-kome.jp/ginganoshizuku/
-04|だて正夢|だてまさゆめ|もちもちした食感が自慢のお米。おにぎりにして、ひと口ずつゆっくりかんでみよう。|https://datemasayume.pref.miyagi.jp/|https://www.youtube.com/watch?v=uvlS-Sc4zO4
-05|あきたこまち|あきたこまち|冷めてもおいしい秋田のお米。あつあつのごはんと、おべんとうのおにぎり。どちらの食感が好きかな？|https://www.ja-town.com/shop/contents3/farmerinterview12.aspx|https://www.youtube.com/watch?v=3El8HSwv-1M
-06|佐藤錦|さとうにしき|赤く色づくさくらんぼ。甘さの中にほどよいすっぱさがあるよ。はじけるような一粒を味わってみよう。|https://www.pref.yamagata.jp/140032/sangyo/nourinsuisangyou/nogyo/nousambutsu/sakurambo/sakuranbohinsyu.html
-07|あかつき|あかつき|福島の甘くて果汁たっぷりの桃。切りたてをひと口食べると、口いっぱいに果汁が広がるよ。|https://ja-f-mirai.or.jp/topics/?id=6304
-08|霞ヶ浦のれんこん|かすみがうらのれんこん|輪切りにすると穴がずらり。炒めてシャキッ、煮てほくっ。同じれんこんの食感をくらべてみよう。|https://www.ibaraki-shokusai.net/brand/lotus-root
-09|ガーンジィゴールデンミルク||那須高原の牧場で、ガーンジィという牛からしぼる牛乳。冷たい一杯で、濃いミルクの味を楽しもう。|https://www.minamigaoka.co.jp/smt/shopping/store.html
-10|嬬恋高原キャベツ|つまごいこうげんきゃべつ|すずしい高原で育つキャベツ。葉を一枚はがして、パリッとかんだときの甘さをさがそう。|https://jatsumagoi.jp/agriinfo_about.html
-11|深谷ねぎ|ふかやねぎ|白いところが長いねぎ。焼くと甘みが出て、とろりとした中身が出てくるよ。|https://www.city.fukaya.saitama.jp/soshiki/sangyoshinko/nougyoshinkou/tanto/tokusan/fukayanegi/1391490851596.html
-12|せぐろいわしのごま漬け|せぐろいわしのごまづけ|九十九里の小さないわしを、お酢とごまで味つけした郷土料理。すっぱい香りとごまの香ばしさに注目。|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/seguro_iwashi_no_gomazuke_chiba.html
-13|東京狭山茶|とうきょうさやまちゃ|東京の西のほうで作るお茶。お湯を入れたとき、ふわっと立ちのぼる香りをかいでみよう。|https://www.chiikishigen.metro.tokyo.lg.jp/introduction/details/introduction_116.html
-14|湘南しらす|しょうなんしらす|相模湾でとれる小さな魚。ゆでた釜揚げしらすはふんわり。ごはんにのせて小さな目をさがしてみよう。|https://shonan-shirasu.org/
-15|こしいぶき||新潟生まれのお米。炊くと粒がつやつやして、冷めてもおいしい。おにぎりと炊きたてをくらべてみよう。|https://www.pref.niigata.lg.jp/sec/syokuhin/shun09-koshiibuki.html
-16|富富富|ふふふ|富山生まれのお米。ひと口かむと、うまみと甘みが広がるよ。まずは何ものせずにひと口。|https://shoku-toyama.jp/fufufu/about/
-17|加賀れんこん|かがれんこん|粘りが強い金沢のれんこん。すりおろして焼いたら、輪切りのときとどんな食感の違いが出るかな？|https://www.maff.go.jp/j/shokusan/gi_act/register/0178/index.html
-18|越前がに|えちぜんがに|黄色いタグが目印の福井のかに。殻から出した身には、どんな甘みがあるか味わってみよう。|https://www.city.fukui-sakai.lg.jp/kankou/kanko-bunka/kanko/shoku/echizengani.html
-19|山梨のシャインマスカット|やまなしのしゃいんますかっと|緑のぶどうを皮ごとぱくっ。パリッとした皮の中から、さわやかな甘さと香りが出てくるよ。|https://www.zfc-shop.jp/Form/Product/ProductDetail.aspx?cat=sea&pid=GR19041000&shop=0&swrd=&vid=
-20|川上村の高原レタス|かわかみむらのこうげんれたす|山あいのすずしい畑で育つレタス。葉をちぎってサンドイッチに入れたら、シャキッと音がするかな？|https://www.vill.kawakami.nagano.jp/www/contents/1001000000041/index.html
-21|長良川の鮎|ながらがわのあゆ|岐阜の清流で育つ魚。焼いたあゆを見つけたら、まず香りをかいでから、ふっくらした身を味わおう。|https://nagaragawa.gifu.jp/about/ayu/
-22|牧之原の深蒸し茶|まきのはらのふかむしちゃ|茶の葉を長めに蒸すから、いれたお茶は濃い緑。まろやかな一口を、色も見ながら楽しもう。|https://www.city.makinohara.shizuoka.jp/site/tea/470.html
-23|渥美半島のマスクメロン|あつみはんとうのますくめろん|外はあみ目模様、中はとろけるような甘さ。切る前と切ったあとで、香りをくらべてみよう。|https://www.taharakankou.gr.jp/news/news_detail.php?news_id=181
-24|伊勢志摩のアコヤ真珠|いせしまのあこやしんじゅ|アコヤ貝の中で育つ宝物。つやつやの粒を光の下でくるっと回すと、光り方はどう変わるかな？|https://www.pref.mie.lg.jp/common/content/000784169.pdf
-25|びわ湖のふなずし|びわこのふなずし|湖の魚を塩とごはんでじっくり発酵させた郷土料理。薄く切った一切れは、どんな香りとすっぱさかな？|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/funa_zushi_shiga.html
-26|宇治茶|うじちゃ|京都の山あいのお茶づくりとつながる名前。抹茶なら、お茶をたてたときの泡や香りにも注目してみよう。|https://www.kyotocha.or.jp/ujicha.html
-27|八尾若ごぼう|やおわかごぼう|葉や長い軸も食べられるごぼう。軸を炒めると、歯ごたえとごぼうの香りが楽しめるよ。|https://www.pref.osaka.lg.jp/o120160/chubunm/chubu_nm/fq-wakagobo.html
-28|淡路島たまねぎ|あわじしまたまねぎ|火を通すと甘い、淡路島のたまねぎ。輪切りをじっくり焼いたら、真ん中はどんな食感になるかな？|https://www.brand-awajishima.com/syokuzai_detail.php?c=1&sid=1
-29|奈良の富有柿|ならのふゆうがき|奈良の五條などで育つ甘がき。オレンジ色の果肉を切って、かたさや甘さをたしかめよう。|https://www.pref.nara.lg.jp/n116/58599.html
-30|有田市認定みかん|ありだしにんていみかん|和歌山の有田市が認めたみかん。有田川ぞいの段々畑で日をあびたみかん。皮をむいたとたん、どんな香りがするかな？|https://www.city.arida.lg.jp/sangyoshigoto/gensanchi/1002053/1001170.html
-31|鳥取砂丘らっきょう|とっとりさきゅうらっきょう|海の近くの砂地で育つ白いらっきょう。甘酢漬けをかむと、ポリッとどんな音がするかな？|https://www.maff.go.jp/j/shokusan/gi_act/register/0011/index.html
-32|宍道湖産ヤマトシジミ|しんじこさんやまとしじみ|海の水と川の水がまじる湖で育つ貝。おみそ汁で、小さな貝から出るだしを味わってみよう。|https://www.maff.go.jp/j/shokusan/gi_act/register/0171/index.html
-33|清水白桃|しみずはくとう|岡山で生まれた白っぽい桃。皮の色を見てから切ると、ふわっと甘い香りが広がるよ。|https://www.okayama-kanko.jp/spot/detail_12003.html
-34|米田海産の広島かき|よねだかいさんのひろしまかき|火を通してもぷっくり。カキフライを割って、サクサクの衣と中の身の違いを見てみよう。|https://www.city.hiroshima.lg.jp/hiroshima-brand/tokusan/1026502/1026503/1014677.html
-35|下関ふく|しものせきふく|下関ではふぐを「ふく」とも呼ぶよ。お店で薄く切った身が花びらのように並ぶ盛りつけを見てみよう。|https://www.maff.go.jp/j/shokusan/gi_act/register/0019/index.html
-36|なると金時|なるときんとき|外は赤紫、中は黄色のさつまいも。焼きいもを半分に割ると、ほくほくの中身が出てくるよ。|https://www.naruto-bussan.jp/specialties/kintoki/
-37|さぬき米おいでまい|さぬきまいおいでまい|香川で生まれたお米。炊いたごはんを見て、つやのある粒を見つけたら、かんで食感をたしかめよう。|https://www.pref.kagawa.lg.jp/seiryu/oidemai/index2.html
-38|宇和島のアコヤ真珠|うわじまのあこやしんじゅ|宇和海の貝が育てる、つやのある粒。宇和島には真珠を選んで小物を作れる体験もあるよ。|https://www.iyokannet.jp/spot/6650/
-39|高知なす|こうちなす|つやつやの紫色のなす。焼いたなすを切って、やわらかくなった中身の食感を楽しもう。|https://ja-kochi.or.jp/agriculture/products/vegetable/839/
-40|あまおう||福岡生まれのいちご。大きくて赤い一粒をぱくっ。甘さとすっぱさをじっくり味わおう。|https://zennoh-fukuren.jp/consumer/fruit/ichigo
-41|佐賀海苔|さがのり|有明海で育つのり。焼いた一枚を割るとパリッ。手巻きごはんにして、香りと口どけを楽しもう。|https://www.jf-sariake.or.jp/page/feature.html
-42|九十九島かき|くじゅうくしまかき|殻は小さめでも、中はぷりぷり。よく焼いたかきをひと口食べると、濃いうまみが広がるよ。|https://www.sasebo99.com/event/51728
-43|くまもとあか牛|くまもとあかうし|阿蘇などの草原とつながる牛。赤身のうまみが自慢で、焼いたお肉をかむと味がじんわり広がるよ。|https://www.maff.go.jp/j/shokusan/gi_act/register/0067/index.html
-44|大分の原木乾しいたけ|おおいたのげんぼくほししいたけ|木で育てたしいたけを乾かしたもの。水でもどすとどうなるかな？ もどし汁は料理のだしにもなるよ。|https://www.oita-shiitake.info/faq.html
-45|みやざきワンタッチきゅうり||とりながら箱に詰めるからワンタッチ。冷やして切って、かんだときの音を聞いてみよう。|https://www.pref.miyazaki.lg.jp/contents/org/honbu/hisho/komiya/local_0602.htm
-46|紅さつま|べにさつま|鹿児島の甘いさつまいも。焼いて割ったときの湯気と、ほくほくの食感を楽しもう。|https://ja-ibusuki.or.jp/tokusan
-47|沖縄黒糖|おきなわこくとう|さとうきびのしぼり汁を煮つめて作る砂糖。小さなかけらを口に入れると、独特の香りと甘みが広がるよ。|https://www.maff.go.jp/j/shokusan/gi_act/register/0172/index.html
-"""
-LOCAL_PRODUCTS = {}
-for row in PRODUCT_DATA.strip().splitlines():
-    pid, name, reading, pitch, source_url, *videos = row.split("|")
-    LOCAL_PRODUCTS[pid] = dict(name=name, reading=reading, pitch=pitch, source=source_url,
-                               video=videos[0] if videos else "")
-
-
-# Chosen relief features for school geography, including selected local landmarks.
 CORE_RIVERS = set("""
 石狩川 天塩川 岩木川 北上川 雄物川 米代川 最上川 阿武隈川 那珂川 鬼怒川
 利根川 荒川 多摩川 相模川 信濃川 阿賀野川 庄川 黒部川 手取川 九頭竜川
@@ -2226,116 +2113,6 @@ for sea, sites in SEA_AREAS.items():
         SEA_LABELS.setdefault(pid, []).append(dict(name=sea, point=project(pid, lat_lon)))
 
 # Original, source-hosted photographs: the default row is the regional specialty.
-PRODUCT_PHOTO_ROWS = """
-01|なかしべつ牛乳|https://webshop.montbell.jp/common/images/product/prod_k/k0443201.jpg|https://webshop.montbell.jp/goods/disp.php?product_id=0443201|モンベル
-02||https://www.ja-town.com/img/goods/2001/L/2001-02013nai.jpg|https://www.ja-town.com/shop/g/g2001-02013nai/|JAタウン
-03||https://magazine.hitosara.com/image/2930/MC_2930_87763_1.jpg|https://magazine.hitosara.com/article/2930/|ヒトサラ
-04|だて正夢の炊き込みご飯|https://datemasayume.pref.miyagi.jp/datemasayume-anniversary/common/images/recipe-a-01-image-01.jpg|https://datemasayume.pref.miyagi.jp/datemasayume-anniversary/|だて正夢公式
-05||https://www.tsunagi-japan.co.jp/upload/save_image/10032021_68dfb1a2df131.jpg|https://www.tsunagi-japan.co.jp/products/detail.php?product_id=1546|ツナギ（みずほライス）
-06||https://www.oisix.com/gift/image/sc1-okada-cherry_img-3.jpg|https://www.oisix.com/shop.gift2--Wsc1-okada-cherry__html.htm|Oisix
-07||https://jaec-f-mirai.s3-ap-northeast-1.amazonaws.com/uploads/product_image/image/1589/square_4__1_.png|https://f-mirai.sanchoku-prime.com/products/shunnootodoke2026|JAふくしま未来
-08||https://fujii-renkon.com/system_panel/uploads/images/fv2.jpg|https://fujii-renkon.com/|藤井農園
-09|ガーンジィゴールデンミルク|https://minamigaoka.co.jp/smt/order/images/photo_item_01.png|https://minamigaoka.co.jp/smt/order/item_01.html|南ヶ丘牧場
-10||https://s3.ap-northeast-1.amazonaws.com/prod.owl.private/store/1ce670048eba8e777b8aee4c89437ccb.jpg|https://owl-food.com/areas/kanto/gunma/104256|産直アウル
-11|深谷ねぎ|https://i0.wp.com/assets.st-note.com/img/1662127100178-ZIcIsaTXQD.jpg?ssl=1|https://negiya-kenmochi.com/2022/09/02/%E6%B7%B1%E8%B0%B7%E3%81%AD%E3%81%8E%E3%80%81%E8%91%B1%E3%82%84-%E3%81%91%E3%82%93%E3%82%82%E3%81%A1%E3%81%AE%E3%81%AD%E3%81%8E%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6%E6%9B%B8%E3%81%84%E3%81%A6%E3%81%BF/|和合堂
-12||https://www.maff.go.jp/e/policies/market/k_ryouri/assets/uploads/2022/08/chiba_2_2.jpg|https://www.maff.go.jp/e/policies/market/k_ryouri/search_menu/1189/index.html|農林水産省「うちの郷土料理」
-13||https://www.chiikishigen.metro.tokyo.lg.jp/introduction/details/nbail900000005uj-img/detail116_img02.jpg|https://www.chiikishigen.metro.tokyo.lg.jp/introduction/details/introduction_116.html|東京都
-14|湘南しらすの釜揚げ|https://shop.r10s.jp/f142018-yokosuka/cabinet/item/akez/akez002.jpg|https://item.rakuten.co.jp/f142018-yokosuka/akez002/|横須賀市
-15||https://www.niigata-nosho.com/images/material/item_XXL/4544948257059.jpg|https://www.niigata-nosho.com/item/20705/|新潟農商
-16||https://www.ja-town.com/img/goods/4001/C/4001-4001-155-1-01.JPG|https://www.ja-town.com/shop/g/g4001-4001-155-1-01/|JAタウン
-17|加賀れんこん|https://www.maff.go.jp/e/policies/intel/gi_act/attach/img/Register-6-19.jpg|https://www.maff.go.jp/j/shokusan/gi_act/register/0178/index.html|農林水産省
-18||https://www.pref.fukui.lg.jp/doc/suisan/ryutsu/echizengani_1_d/img/003.jpg|https://www.pref.fukui.lg.jp/doc/suisan/ryutsu/echizengani_1.html|福井県
-19||https://jaec-fruits-yamanashi.s3-ap-northeast-1.amazonaws.com/uploads/product_image/image/709/square_%E3%82%B7%E3%83%A3%E3%82%A4%E3%83%B3%E3%83%9E%E3%82%B9%E3%82%AB%E3%83%83%E3%83%883%E7%AE%B1.png|https://fruits-yamanashi.sanchoku-prime.com/products/1|JAフルーツ山梨
-20||https://kuraonline.jp/public/images/media/1733216723_LVYemNqdGK_thumbnail.png|https://kuraonline.jp/city-guide/27|KURA
-21||https://cdn.visitgifu.com/wp/2021/02/9276430e-002-1_%E9%AE%8E.jpg|https://visitgifu.com/specials-of-gifu/best-of-gifu-food-top-5-food-drink/|岐阜県観光連盟
-22||https://www.daimaru-matsuzakaya.jp/ito/img_public/prod/26A703/26A703462/26A703462/IMG_PATH_L/pc/26A703462_1.jpg|https://www.daimaru-matsuzakaya.jp/Item?prod=26A703462|大丸松坂屋
-23||https://www.ja-town.com/img/goods/4401/L/4401aichiminamimelon5.jpeg|https://www.ja-town.com/shop/g/g4401aichiminamimelon5/|JAタウン
-24||https://www1.pref.mie.lg.jp/g7tmm/blog/08731b69b60/images/hero.jpeg|https://www1.pref.mie.lg.jp/g7tmm/blog/08731b69b60/|三重県
-25||https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/img/shiga_1_3.jpg|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/funa_zushi_shiga.html|農林水産省「うちの郷土料理」
-26||https://www.yamamasa-koyamaen.co.jp/enjoy/assets_c/2026/04/28e3d348e86f6b2edb377fede90a0b45cbe4d094-thumb-960xauto-785.jpg|https://www.yamamasa-koyamaen.co.jp/enjoy/2026/2026-1/|山政小山園
-27||https://www.on-do.net/yaotokusanbutsu/img/menu3.jpg|https://www.on-do.net/yaotokusanbutsu/santyoku.php|八尾特産物net.
-28||https://image-cdn.tabechoku.com/crop/w/1440/h/1153/cw/1440/ch/1080/images/5ccb206a21859ee218051152995548b5e6258115f91e6ce8ac12175e766ff0b4.jpg|https://www.tabechoku.com/products/194613|食べチョク掲載生産者
-29||https://www.ja-town.com/img/goods/5502/S/5502-3014.jpg|https://www.ja-town.com/shop/g/g5502-3014/|JAタウン
-30||https://556.jp/pic-labo/arida147.JPG|https://556.jp/SHOP/aridasininteimikan-1.html|ふみこ農園
-31||https://www.ja-tottoriinaba.jp/product/rakkyo/img/rakkyou.jpg|https://www.ja-tottoriinaba.jp/product/rakkyo/|JA鳥取いなば
-32|宍道湖産ヤマトシジミ|https://www.maff.go.jp/e/policies/intel/gi_act/attach/img/Register-6-17.jpg|https://www.maff.go.jp/j/shokusan/gi_act/register/0171/index.html|農林水産省
-33||https://www.okayama-kanko.jp/lsc/upfile/articleDetail/0000/2823/2823_2_l.jpg|https://www.okayama-kanko.jp/feature/kourousya/20|岡山県観光連盟
-34|米田海産の広島かき|https://yonedakaisan.co.jp/img/top/img_oyster.png|https://yonedakaisan.co.jp/|米田海産
-35||https://yamaguchi-tourism.jp/lsc/upfile/spot/0001/9506/19506_1_m.jpg|https://yamaguchi-tourism.jp/spot/detail_19568.html|山口県観光連盟
-36||https://www.ja-town.com/img/goods/7001/L/7001-0010-2.jpg|https://www.ja-town.com/shop/g/g7001-0010-2/|JAタウン
-37|さぬきの夢の小麦畑|https://flour-net.com/archives/001/202506/large-6c1ff60ffea34b30.jpg|https://flour-net.com/nextKagawaWheat/entry-1168.html|吉原食糧
-38||https://furusato.ana.co.jp/shop_assets/contents/38203/img/goods/L/38203-A375-102018.jpg|https://furusato.ana.co.jp/donation/g/g38203-A375-102018/|ANAのふるさと納税
-39||https://www.radishbo-ya.co.jp/contents/shop/radish/commodity/221523.jpg|https://www.radishbo-ya.co.jp/shop/commodity/radish/2/321323/?srsltid=AfmBOoqeB0mAYHrO4Ey1Ebxf8DIYAxs5JZP3g8LNaElGboaEzGVtm-oZ|らでぃっしゅぼーや
-40||https://www.ja-town.com/img/goods/8002/L/8002-amaou-g-1080-1.JPG|https://www.ja-town.com/shop/g/g8002-amaou-g-1080-1/|JAタウン
-41||https://www.asobo-saga.jp/files/download/article_blocks/09d016d0-bfb1-44a5-91cb-024fbd5ef746/value01/value02/|https://www.asobo-saga.jp/articles/detail/bb26d427-5625-4914-a1f5-0e4195374d90|佐賀県観光連盟
-42||https://www.nagasaki-tabinet.com/storage/tourism_attractions/51728/responsive_images/fj0cDVgboIq0uRYI5hMUd7CR9JbfhqdFNBwZqkh1__825_550.jpeg|https://www.welcomekyushu.jp/event/?id=9999900062553&mode=detail|長崎県観光連盟
-43||https://www.ja-town.com/img/goods/9503/2/9503-K-KUMAMOTO-3222-1.jpg|https://www.ja-town.com/shop/g/g9503-K-KUMAMOTO-3222-1/|JAタウン
-44||https://shop.odakyu-dept.co.jp/storage/ex_product_sku_image/1/1012610599.jpg|https://shop.odakyu-dept.co.jp/product/detail/s/1012610599|小田急百貨店
-45|みやざきワンタッチきゅうり|https://www.pref.miyazaki.lg.jp/parts/000049647.jpg|https://www.pref.miyazaki.lg.jp/contents/org/honbu/hisho/komiya/local_0602.htm|宮崎県
-46||https://furusatobin.itembox.design/product/002/000000000272/000000000272-01-l.jpg?t=20260205134208|https://furusato.karen-ja.or.jp/c/genre/vegetables/sweet-potatoes/500-150|商品掲載元
-47|沖縄黒糖|https://www.maff.go.jp/e/policies/intel/gi_act/attach/img/Register-6-18.jpg|https://www.maff.go.jp/j/shokusan/gi_act/register/0172/index.html|農林水産省
-"""
-PRODUCT_PHOTOS = {}
-for row in PRODUCT_PHOTO_ROWS.strip().splitlines():
-    pid, caption, image, source, credit = row.split("|")
-    PRODUCT_PHOTOS[pid] = dict(caption=caption or LOCAL_PRODUCTS[pid]["name"], image=image, source=source, credit=credit)
-
-FOOD_ROWS = """
-01|石狩鍋|いしかりなべ|北海道のさけを、野菜といっしょにみそ味で煮る鍋。さけのうまみがしみた汁も味わってみよう。|https://www.nippon.com/en/ncommon/contents/japan-topics/2916278/2916278.jpg|https://www.nippon.com/en/japan-topics/c153210/so-much-more-than-soup-the-many-uses-of-miso.html|nippon.com
-02|せんべい汁|せんべいじる|八戸の鍋に、汁用の南部せんべいを割り入れるよ。かたいせんべいが、煮るともっちりするのがおもしろいね。|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/img/aomori_3_3.jpg|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/senbei_jiru_aomori.html|農林水産省「うちの郷土料理」
-03|わんこそば||小さなおわんに、ひと口分のそばが次々に入る岩手の名物。おわんがどんどん積み上がるよ。|https://web-japan.org/kidsweb/img/local_wanko-soba_pic03.jpg|https://web-japan.org/kidsweb/ja/local/wanko-soba/|外務省 Web Japan
-04|ずんだ餅|ずんだもち|枝豆をつぶして作った緑色のあんを、お餅にからめるよ。豆の香りとお餅のもちもちをいっしょに味わえるね。|https://www.maff.go.jp/j/keikaku/syokubunka/traditional-foods/files/topics/788_ext_01_0_L.jpg|https://www.maff.go.jp/j/keikaku/syokubunka/traditional-foods/menu/zunda.html|農林水産省「にっぽん伝統食図鑑」
-05|きりたんぽ鍋|きりたんぽなべ|つぶしたごはんを棒に巻いて焼いた「きりたんぽ」を鍋に入れるよ。お米がだしを吸うとどんな味かな？|https://www.a-bisaikan.jp/img/sightseeing/gourmet_kiritanponabe.jpg|https://www.a-bisaikan.jp/sightseeing/|あきた美彩館
-06|芋煮|いもに|さといもを肉や野菜といっしょに煮る料理。山形では秋に、河原で大きな鍋を囲む芋煮会も開かれるよ。|https://www.maff.go.jp/j/syokuiku/kodomo_navi/cuisine/img/1-6_1.png|https://www.maff.go.jp/j/syokuiku/kodomo_navi/cuisine/cuisine1_6.html|農林水産省「うちの郷土料理」
-07|こづゆ||会津のお祝いで食べる汁物。貝柱のだしに、豆麩や野菜を入れるよ。小さな具をいくつ見つけられるかな？|https://www.aizu-ichiba.jp/ichiba/wp-content/uploads/2019/11/kozuyu.jpg|https://www.aizu-ichiba.jp/recipe/128|会津若松市公設地方卸売市場協会
-08|あんこう鍋|あんこうなべ|茨城の海沿いで親しまれる冬の鍋。あんこうの身と皮を見くらべると、どんなちがいがあるかな？|https://www.pref.ibaraki.jp/sangyo/gijyutsu/chiiki/images/ankou.jpg|https://www.pref.ibaraki.jp/sangyo/gijyutsu/chiiki/jizakebar_mito.html|茨城県
-09|しもつかれ||すりおろした大根やにんじんに、さけの頭、大豆などを合わせて煮るよ。冬の栃木に伝わる料理だよ。|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/img/tochigi_1_1.jpg|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/31_1_tochigi.html|農林水産省「うちの郷土料理」
-10|おっきりこみ||幅の広いめんを野菜といっしょに煮こむ群馬の料理。つるっとしためんに、汁の味がしみこんでいるよ。|https://life.ja-group.jp/upload/recipe/main/8555_1.jpg|https://life.ja-group.jp/recipe/detail?id=8555|JAグループ・JAたかさき女性会
-11|すったて||埼玉では、ごまとみそをすり、きゅうりなどを加えた冷たい汁でうどんを食べるよ。まずはごまの香りをかいでみよう。|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/img/saitama_3_1.jpg|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/33_3_saitama.html|農林水産省「うちの郷土料理」
-12|なめろう||房総の漁師料理。魚にみそやねぎを合わせ、包丁でたたいて作るよ。魚の身がどんな形になるか写真で見てみよう。|https://maruchiba.jp/lsc/upfile/articleDetail/0000/4939/4939_1_l.jpg|https://maruchiba.jp/gourmet/feature/detail_454.html|千葉県公式観光サイト
-13|深川めし|ふかがわめし|東京の深川で親しまれたあさりのごはん。汁をごはんにかける作り方と、あさりを炊きこむ作り方があるよ。|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/img/tokyo_1_3.jpg|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/34_1_tokyo.html|農林水産省「うちの郷土料理」
-14|けんちん汁|けんちんじる|大根やごぼう、豆腐などが入った汁物。神奈川の鎌倉にもゆかりがあるよ。具によって歯ごたえが変わるね。|https://www.maff.go.jp/e/policies/market/k_ryouri/assets/uploads/2022/08/kanagawa_1_3.jpg|https://www.maff.go.jp/e/policies/market/k_ryouri/search_menu/1056/index.html|農林水産省「うちの郷土料理」
-15|笹団子|ささだんご|よもぎが香るお団子を笹の葉で包んで蒸すよ。ひもをほどくと、どんな香りがするかな？|https://www.maff.go.jp/e/policies/market/k_ryouri/assets/uploads/2022/09/niigata_4_1.jpg|https://www.maff.go.jp/e/policies/market/k_ryouri/search_menu/pref/Niigata/index.html|農林水産省「うちの郷土料理」
-16|ます寿司|ますずし|ますと酢めしを笹の葉で包んだ富山の押しずし。丸い形を切り分けると、魚とごはんの層が見えるよ。|https://www.info-toyama.com/storage/blog_article_paragraphs/9289/responsive_images/lPuzUezvgl53gZtDjOjXqcMCgdlTTIm80LRNCaQH__731_487.jpeg|https://www.info-toyama.com/articles/kanako-masuzushi|とやま観光ナビ
-17|じぶ煮|じぶに|石川の煮物。粉をまぶした肉や麩、野菜を煮るから、汁にとろみがつくよ。|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/img/ishikawa_1_2.jpg|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/jibuni_ishikawa.html|農林水産省「うちの郷土料理」
-18|越前おろしそば|えちぜんおろしそば|冷たいそばに大根おろしを合わせる福井の名物。つるっとしたそばと、おろしのさっぱりした味が合うよ。|https://www.fuku-e.com/lsc/upfile/blog/main/0000/0601/601_1_m.jpg|https://www.fuku-e.com/fukutabi/detail_480.html|福井県観光連盟
-19|ほうとう||山梨では幅広いめんを、かぼちゃなどの野菜とみそ味で煮こむよ。かぼちゃがとけると汁がほんのり甘くなるね。|https://www.maff.go.jp/j/syokuiku/kodomo_navi/cuisine/img/3-5_3.jpg|https://www.maff.go.jp/j/syokuiku/kodomo_navi/cuisine/cuisine3_5.html|農林水産省「うちの郷土料理」
-20|おやき||小麦粉などの生地に野沢菜やあんを包んだ長野の名物。半分に割って、中の具を見てみよう。|https://www.nagano-cvb.or.jp/uploads/sightseeing/147/20161128145809.jpg|https://www.nagano-cvb.or.jp/modules/sightseeing/page/141|ながの観光net
-21|朴葉味噌|ほおばみそ|岐阜の飛騨では、ほおの葉にみそをのせて焼くよ。葉の色や、焼いたみその香りに注目。|https://www.maff.go.jp/e/policies/market/k_ryouri/assets/uploads/2023/08/gifu_10_3.jpg|https://www.maff.go.jp/e/policies/market/k_ryouri/search_menu/3056/index.html|農林水産省「うちの郷土料理」
-22|桜えびのかき揚げ|さくらえびのかきあげ|静岡の駿河湾でとれる小さな桜えび。かき揚げにすると、色と香ばしさが楽しめるよ。|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/img/shizuoka_28_1.jpg|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/36_28_shizuoka.html|農林水産省「うちの郷土料理」
-23|ひつまぶし||名古屋で親しまれるうなぎのごはん。そのまま、薬味、だしなど、食べ方を変えると味も変わるよ。|https://www.houraiken.com/honten/shared/img/index/sec3_img1.jpg|https://www.houraiken.com/honten/|あつた蓬莱軒
-24|伊勢うどん|いせうどん|三重の伊勢で親しまれるやわらかな太めん。少なめの濃い色のたれをからめて食べるよ。|https://www.maff.go.jp/j/pr/aff/1606/img/n_search_01_02.jpg|https://www.maff.go.jp/j/pr/aff/1606/n_search.html|農林水産省「うちの郷土料理」
-25|焼鯖そうめん|やきさばそうめん|滋賀の湖北では、焼いて煮たさばと、煮汁の味をしみこませたそうめんをいっしょに食べるよ。|https://static.gltjp.com/glt/data/directory/17000/16800/20250403_093030_3839a06b_w1920.webp|https://www.gltjp.com/ja/directory/item/16800/|GOOD LUCK TRIP（翼果楼）
-26|にしんそば||京都で親しまれる、甘辛く煮たにしんをのせたそば。温かいつゆに魚のうまみが広がるよ。|https://www.kyoto-meisan.jp/common/files/shopdata/1507/1507_02.jpg|https://www.kyoto-meisan.jp/shops/matsuba/|京都名産品協同組合
-27|お好み焼き|おこのみやき|大阪のお好み焼きでは、生地にキャベツなどを混ぜて鉄板で焼く作り方がよく知られているよ。|https://storage.googleapis.com/veltra-kurios/media/CACHE/images/articles/article/8752d8d8191b969ab14457c6d9e150d1/2bfe4b7bae395973cfed2c56f15d3e37.jpg|https://www.veltra.com/jp/yokka/article/osaka-gourmet-ekichika/|VELTRA YOKKA
-28|明石焼|あかしやき|兵庫の明石では、たこ入りの丸い玉子焼をだしにつけるよ。見た目が似ているたこ焼きと食べ方を比べてみよう。|https://www.yokoso-akashi.jp/sites/default/files/styles/gridmedia/public/008_kodama01.jpg?itok=bWNm7-Kj|https://www.yokoso-akashi.jp/eat/tamagoyaki?tid=2|明石観光協会
-29|柿の葉寿司|かきのはずし|奈良の名物。さばなどを酢めしにのせて、柿の葉で包むよ。葉を開いて香りをたしかめよう。|https://www.maff.go.jp/e/policies/market/k_ryouri/assets/uploads/2022/08/nara_1_1.jpg|https://www.maff.go.jp/e/policies/market/k_ryouri/search_menu/750/index.html|農林水産省「うちの郷土料理」
-30|めはりずし||和歌山の熊野地方では、ごはんを高菜の漬物の葉で包むよ。まるごとの葉で包む形を見てみよう。|https://www.maff.go.jp/e/policies/market/k_ryouri/assets/uploads/2022/08/wakayama_2_1.jpg|https://www.maff.go.jp/e/policies/market/k_ryouri/search_menu/pref/wakayama/index.html|農林水産省「うちの郷土料理」
-31|いただき||鳥取の西のほうで作られる、油揚げに米や具を詰めて炊く料理。三角に切った油揚げの中に何が入っているかな？|https://www.senmiekisu.co.jp/wp/wp-content/uploads/2023/04/CR22102719-scaled.jpg|https://www.senmiekisu.co.jp/recipe/cr22102719/|センミエキス
-32|出雲そば|いずもそば|島根の名物。割子そばは丸い器を重ねて出すよ。上の段からつゆをかけて味わってみよう。|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/img/shimane_12_4.jpg|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/izumosoba_shimane.html|農林水産省「うちの郷土料理」
-33|ばらずし||岡山では、魚介や野菜をたくさん使った色あざやかなすしをお祝いなどで食べるよ。上に何がのっているかな？|https://www.okayama-kanko.jp/lsc/upfile/spot/0010/0699/100699_1_l.jpg|https://www.okayama-kanko.jp/spot/detail_100699.html|岡山県観光連盟
-34|お好み焼き（広島）|おこのみやき|広島のお好み焼きでは、生地にキャベツやめん、卵などを重ねるよ。切ったときの層を見てみよう。|https://res-3.cloudinary.com/jnto/image/upload/w_1000%2Ch_667%2Cc_fill%2Cf_auto%2Cfl_lossy%2Cq_auto/v1/media/filer_public/57/aa/57aa0f43-4ef0-4068-907a-17c88184a146/it554_003_vsjtha|https://www.japan.travel/en/experiences-in-japan/538/|日本政府観光局（JNTO）
-35|瓦そば|かわらそば|山口の下関では、熱い瓦に茶そばと肉や卵を盛る名物があるよ。瓦に当たっためんは、どんな歯ごたえかな？|https://yamaguchi-tourism.jp/asset/dc-yamaguchi/mv-014.jpg|https://yamaguchi-tourism.jp/dc-yamaguchi/index.html|山口県観光連盟
-36|そば米雑炊|そばごめぞうすい|徳島の郷土料理。そばをめんにせず、殻をむいた粒のまま汁に入れるよ。どんな食感か想像してみよう。|https://www.maff.go.jp/e/policies/market/k_ryouri/assets/uploads/2022/08/tokushima_1_1.jpg|https://www.maff.go.jp/e/policies/market/k_ryouri/search_menu/704/index.html|農林水産省「うちの郷土料理」
-37|讃岐うどん|さぬきうどん|讃岐平野では米のあとに小麦を作る地域があり、その小麦がうどん文化を支えたよ。香川生まれの小麦「さぬきの夢」を使ったうどんもあるよ。もちもちしためんをかんで、コシを感じてみよう。|https://www.maff.go.jp/j/pr/aff/1611/img/n_search_01_02.jpg|https://www.maff.go.jp/j/pr/aff/1611/n_search.html|農林水産省
-38|宇和島鯛めし|うわじまたいめし|愛媛の宇和島では、たいの切り身をたれや卵と合わせてごはんにのせるよ。炊きこむ鯛めしもあるから、見た目を比べてみよう。|https://www.iyokannet.jp/image/rendering/feature_paragraph_detail/75/trim.640/235/156?v=d5a173fa0f88993705e1dbc0d194f3fd9b6c8aea|https://www.iyokannet.jp/feature/tai/taimeshi|愛媛県観光物産協会
-39|かつおのたたき||高知の名物。かつおの表面をさっと焼くよ。切り口を見ると、焼けた外側と中の色がちがうね。|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/img/kochi_12_2.jpg|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/katuonotataki_kochi.html|農林水産省「うちの郷土料理」
-40|がめ煮|がめに|福岡で親しまれる、鶏肉や根菜などの煮物。れんこん、ごぼう、にんじん。ひと口ずつ歯ごたえを比べられるよ。|https://asset.oceans-nadia.com/upload/save_image/ef/efa900bfd0377a6bc50e5d9431bec7d9.jpg|https://oceans-nadia.com/user/236306/recipe/517580|レシピサイトNadia
-41|いかしゅうまい||佐賀の呼子の名物。いかのすり身に細い皮をまぶして蒸すよ。ふんわりした形が目印だね。|https://www.jfa.maff.go.jp/j/kikaku/wpaper/h30_h/trend/1/img/p1_3_4_2-08zoom.jpg|https://www.jfa.maff.go.jp/j/kikaku/wpaper/h30_h/trend/1/zoom_p1_3_4_2-08.html|水産庁（JF佐賀げんかい）
-42|長崎ちゃんぽん|ながさきちゃんぽん|長崎の名物めん料理。野菜や魚介などがたっぷり入るよ。スープにどんなうまみが出ているかな？|https://www.nagasaki-tabinet.com/storage/special_feature_paragraph_contents/7377/responsive_images/Df2CkZzWO44Q4I1SXrxOMEMExCDnQTPDTyUvN3wZ__1171_780.jpeg|https://www.discover-nagasaki.com/en/featured-topics/nyt2026|長崎県観光連盟
-43|だご汁|だごじる|熊本では、こねた小麦粉の生地をちぎって汁に入れるよ。もちっとした「だご」を具の中から探してみよう。|https://www.maff.go.jp/e/policies/market/k_ryouri/assets/uploads/2022/08/kumamoto_2_3.jpg|https://www.maff.go.jp/e/policies/market/k_ryouri/search_menu/275/index.html|農林水産省「うちの郷土料理」
-44|とり天|とりてん|鶏肉に衣をつけて揚げる大分の名物。天ぷらの衣と、肉のやわらかさをいっしょに味わえるよ。|https://www.ja-town.com/img/goods/8401/1/8401-21016.jpg|https://www.ja-town.com/shop/g/g8401-21016/|JAタウン
-45|冷や汁|ひやじる|宮崎では、魚やみそなどを使った冷たい汁をごはんにかけるよ。きゅうりの歯ごたえがさっぱりした味に合うね。|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/img/miyazaki_12_1.jpg|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/hiyajiru_miyazaki.html|農林水産省「うちの郷土料理」
-46|さつま揚げ|さつまあげ|鹿児島では「つけあげ」とも呼ぶよ。魚のすり身を揚げると、外はこんがり、中はふわっと仕上がるよ。|https://www.maff.go.jp/e/policies/market/k_ryouri/assets/uploads/2022/08/kagoshima_7_3.jpg|https://www.maff.go.jp/e/policies/market/k_ryouri/search_menu/140/index.html|農林水産省「うちの郷土料理」
-47|沖縄そば|おきなわそば|沖縄そばのめんは小麦粉が材料。豚肉をのせる食べ方もあるよ。めんの太さや形を写真で見てみよう。|https://www.maff.go.jp/e/policies/market/k_ryouri/assets/uploads/2023/12/okinawa_20_1-2.jpg|https://www.maff.go.jp/e/policies/market/k_ryouri/search_menu/5566/index.html|農林水産省「うちの郷土料理」
-"""
-LOCAL_DISHES = {}
-for row in FOOD_ROWS.strip().splitlines():
-    pid, name, reading, pitch, image, source, credit = row.split("|")
-    LOCAL_DISHES[pid] = dict(name=name, reading=reading, pitch=pitch, image=image, source=source, credit=credit)
-
-# Generalized teaching overlays in the same projection as the prefecture outlines.
-# Coordinates are approximate; these are neither mapped geologic boundaries nor survey data.
 LAND_ROWS = """
 01|area|43.12,144.51 43.20,144.31 43.51,144.26 43.78,144.65 43.68,145.01 43.53,145.10 43.37,145.34 43.16,145.47 43.06,144.93
 02|area|40.53,140.42 40.58,140.31 40.86,140.30 41.03,140.29 41.06,140.50 40.82,140.55 40.63,140.64
@@ -2404,465 +2181,312 @@ if chikuma:
 
 
 # Other industries and specialties to discover after the main lesson.
-REGIONAL_INDUSTRY_ROWS = """
-01|工芸|二風谷イタ|にぶたにいた|アイヌの木彫りのお盆。魚のうろこのような模様が彫られているよ。|https://kougeihin.jp/craft/0601/
-02|工芸|津軽塗|つがるぬり|色のちがう漆を何度も塗ってからみがくと、下の色があらわれるよ。|https://www.pref.aomori.lg.jp/soshiki/sangyo/chikikigyo/aomori_dento-kogei_tsugarunuri.html
-03|工芸|南部鉄器|なんぶてっき|鉄を型に流し込んで作るやかん。表面の小さな丸いでこぼこが、雨つぶみたいに並ぶよ。|https://www.tohoku.meti.go.jp/s_densan/iwate_01.html
-04|工芸|宮城伝統こけし|みやぎでんとうこけし|木を丸くけずって作る人形。産地ごとに顔や模様がちがうよ。|https://www.pref.miyagi.jp/soshiki/shinsan/01kokesi.html
-05|工芸|大館曲げわっぱ|おおだてまげわっぱ|うすい杉の板を曲げて作るおべんとう箱。ふたを開けると杉が香るよ。|https://www.tohoku.meti.go.jp/s_densan/akita_03.html
-06|工芸|山形鋳物|やまがたいもの|とかした金属を型に流し、ふちのうすい鉄びんなどを作るよ。|https://www.tohoku.meti.go.jp/s_densan/yamagata_01.html
-07|工芸|会津塗|あいづぬり|木のおわんなどに漆を塗る工芸。黒いおわんに金色の模様が光るものもあるよ。|https://www.tohoku.meti.go.jp/s_densan/fukusima_01.html
-08|工芸|笠間焼|かさまやき|茨城の土で作る焼き物。ざらっとした器も、つるっとした器もあるよ。|https://www.city.kasama.lg.jp/page/page002072.html
-09|工芸|益子焼|ましこやき|栃木の益子で作る焼き物。うわぐすりが流れて、色の境目が器ごとにちがうよ。|https://www.pref.tochigi.lg.jp/c05/intro/tochigiken/miryoku/kentou/002.html
-10|工芸|高崎だるま|たかさきだるま|まゆは鶴、ひげは亀を思わせる形。|https://www.pref.gunma.jp/site/kougei/690379.html
-11|工芸|岩槻人形|いわつきにんぎょう|さいたま市の岩槻で作るひな人形など。着物を重ねたひな人形もあるよ。|https://www.jpo.go.jp/system/trademark/gaiyo/chidan/shoukai/ichiran/5028377.html
-12|工芸|房州うちわ|ぼうしゅううちわ|一本の竹の先を細くさき、広げてうちわの骨にするよ。持ち手から骨まで、一本の竹でつながっているよ。|https://www.city.minamiboso.chiba.jp/0000001419.html
-13|工芸|江戸切子|えどきりこ|ガラスに細いみぞをけずって、模様を作るよ。コップを回すと、光り方もくるくる変わるね。|https://www.dento-tokyo.metro.tokyo.lg.jp/items/22.html
-14|工芸|箱根寄木細工|はこねよせぎざいく|色のちがう木を組み合わせて模様を作るよ。三角やひし形の模様もあるよ。|https://www.jtco.or.jp/kougeihinkan/?act=detail&c=4&id=143&p=14
-15|ものづくり|燕三条の金属洋食器|つばめさんじょうのきんぞくようしょっき|新潟の燕三条で作るスプーンやフォーク。|https://www.tsjiba.or.jp/michi/store/index.html
-16|工芸|高岡銅器|たかおかどうき|とかした金属を型に流してできる富山の工芸。風鈴にも使われるよ。|https://douki-takaoka.jp/about
-17|工芸|九谷焼|くたにやき|赤・黄・緑・紫・紺青で絵を描く、石川の色あざやかな焼き物。|https://www.pref.ishikawa.lg.jp/kyoiku/bunkazai/mukei/k2.html
-18|工芸|越前漆器|えちぜんしっき|福井の漆塗りの器。漆を塗ったおわんは、光が映り込むほどつややか。|https://fuku-iro.jp/omiyage/detail_10545.html
-19|工芸|甲州印伝|こうしゅういんでん|山梨で作られる工芸。鹿の革に漆で模様をつけるよ。やわらかな革とつやのある模様が目印。|https://www.pref.yamanashi.jp/shouko/kogyo/densan/inden_01.html
-20|工芸|木曽漆器|きそしっき|長野の木曽で作る漆塗りの器。木目が透けて見える器もあるよ。|https://www.jtco.or.jp/japanese-crafts/?act=detail&c=17&id=46&p=18
-21|工芸|美濃和紙|みのわし|岐阜で作る手すきの和紙。明かりにかざすと、細い繊維が集まった紙ごしに光がやわらかく見えるよ。|https://www.kankou-gifu.jp/spot/detail_3044.html
-22|ものづくり|浜松の楽器づくり|はままつのがっきづくり|静岡の浜松はピアノなどの楽器づくりがさかん。|https://hamamatsu-mononavi.jp/about/music/
-23|ものづくり|愛知の自動車づくり|あいちのじどうしゃづくり|豊田市にはトヨタの工場があるよ。車体に窓や座席をつけて、自動車を組み立てるよ。|https://global.toyota/jp/company/profile/facilities/manufacturing-worldwide/japan.html
-24|工芸|伊賀くみひも|いがくみひも|三重の伊賀で作る、何本もの糸を組んだひも。糸が上下に交差して模様になるよ。|https://www.pref.mie.lg.jp/CHISHI/HP/72498045141.htm
-25|工芸|信楽焼|しがらきやき|滋賀の土を焼いて作る器や置物。たぬきの置物でおなじみだよ。|https://kyokai.kougeihin.jp/hall/h019/
-26|工芸|西陣織|にしじんおり|京都で、先に色をつけた糸を組み合わせて織るよ。着物の帯の花模様にも使われるよ。|https://www.pref.kyoto.jp/senshoku/nisijin.html
-27|工芸|堺打刃物|さかいうちはもの|大阪の堺では、熱した金属をたたいて包丁などを作るよ。魚用や野菜用で刃の形がちがうよ。|https://www.pref.osaka.lg.jp/o110070/mono/dento/dento16.html
-28|工芸|播州そろばん|ばんしゅうそろばん|兵庫の小野市などで作るそろばん。珠をはじくとパチッと音がするよ。|https://web.pref.hyogo.lg.jp/sr09/ie07_000000020.html
-29|工芸|高山茶筌|たかやまちゃせん|奈良の生駒で竹を細かくさいて作る道具。抹茶をかきまぜると、小さな泡がたくさんできるよ。|https://www.pref.nara.lg.jp/n101/1381.html
-30|工芸|紀州漆器|きしゅうしっき|和歌山の海南で育った漆塗り。赤と黒を重ねてみがき、下の黒がところどころのぞく「根来塗」もあるよ。|https://www.kishusikki.com/07_kisyusikki.html
-31|工芸|因州和紙|いんしゅうわし|鳥取の和紙。筆をすべらせると墨が紙にしみこむよ。|https://www.pref.tottori.lg.jp/item/203857.htm
-32|工芸|石見焼|いわみやき|島根の石見では、食べ物などを入れる大きなかめが作られてきたよ。|https://www.iimono-shimane.jp/traditional-crafts/309/
-33|工芸|備前焼|びぜんやき|岡山の焼き物。うわぐすりをかけずに焼くと、火や灰の当たり方で色や模様が変わるよ。|https://www.pref.okayama.lg.jp/site/2859/
-34|工芸|熊野筆|くまのふで|広島の熊野町には筆づくりの技があるよ。文字を書く筆や、絵をかく筆があるよ。|https://www.kumanofude.or.jp/traditional-craft/
-35|工芸|萩焼|はぎやき|山口の萩で知られる焼き物。茶わんを使ううちに、細かいひび模様にお茶がしみて色が変わることもあるよ。|https://www.jtco.or.jp/japanese-crafts/?act=detail&id=102
-36|工芸|阿波和紙|あわわし|徳島で作る和紙。明かりにかざすと、細い繊維が見えるよ。|https://www.pref.tokushima.lg.jp/japanese/specialty/traditional/awawashi
-37|工芸|丸亀うちわ|まるがめうちわ|香川の丸亀で作るうちわ。細く分かれた竹の骨が、手を動かすたびにしなって風を送るよ。|https://marugameuchiwa.jp/tradition
-38|ものづくり|今治タオル|いまばりたおる|愛媛の今治はタオルの産地。表面に並んだ短い糸の輪が水を吸うよ。|https://www.city.imabari.ehime.jp/sangyou/jibasan/
-39|工芸|土佐和紙|とさわし|高知の手すき和紙には、透けるほど薄い紙もあるよ。|https://www.jtco.or.jp/japanese-crafts/?act=detail&id=32
-40|工芸|博多織|はかたおり|福岡の織物。糸をぎゅっと詰めて織る帯が知られているよ。|https://www.crossroadfukuoka.jp/feature/traditionalcrafts/hakataori
-41|工芸|伊万里・有田焼|いまり・ありたやき|佐賀の磁器。白い器に青や赤で花や鳥を描いたものもあるよ。|https://www.aritayaki.or.jp/business/shokunin-sha
-42|工芸|波佐見焼|はさみやき|長崎の波佐見町で作る焼き物。毎日のごはんで使う器も多いよ。青い絵の入った器もあるよ。|https://www.jtco.or.jp/japanese-crafts/?act=detail&id=81
-43|工芸|肥後象がん|ひごぞうがん|熊本の工芸。鉄の表面に金や銀をはめこむよ。黒い鉄の上に、金や銀の模様が浮かび上がるよ。|https://kumamoto-kougei.jp/craft_making/cat_higozougan/
-44|工芸|別府竹細工|べっぷたけざいく|大分の別府では竹を細くさいて、かごなどを編むよ。竹を上、下、上と交差させて編むよ。|https://www.jtco.or.jp/japanese-crafts/?act=detail&id=41
-45|特産品|宮崎牛|みやざきぎゅう|宮崎で育つ黒毛和牛のうち基準を満たした牛肉。赤いお肉の中に、白い脂が細い線のように見えるよ。|https://www.maff.go.jp/j/shokusan/gi_act/register/0055/index.html
-46|工芸|薩摩焼|さつまやき|鹿児島の焼き物には白っぽいものと黒っぽいものがあるよ。|https://www.pref.kagoshima.jp/kids/sangyou/dentoukougei.html
-47|工芸|琉球びんがた|りゅうきゅうびんがた|沖縄の染め物。布に型を当てて模様をつけるよ。花や鳥の色あざやかな模様があるよ。|https://www.kogeikan.jp/history-bingata.html
-30|特産品|紀州南高梅|きしゅうなんこううめ|皮はうすく、中はやわらか。|https://www.maff.go.jp/j/keikaku/syokubunka/traditional-foods/menu/wakayama_no_umeboshi.html
-30|食品づくり|湯浅のしょうゆ|ゆあさのしょうゆ|和歌山の湯浅に伝わるしょうゆづくり。|https://www.maff.go.jp/kinki/keiei/tiiki_syokuhin/wasyoku/100nenfood.html 
-"""
-REGIONAL_INDUSTRIES = {}
-for row in REGIONAL_INDUSTRY_ROWS.strip().splitlines():
-    pid, category, name, reading, pitch, source = row.split("|")
-    REGIONAL_INDUSTRIES.setdefault(pid, []).append(
-        dict(category=category, name=name, reading=reading, pitch=pitch, source=source))
-
-
-SHORT_STORIES = """
-01|北海道の中標津で作る、ミルクの風味が豊かな牛乳。|さけと野菜をみそで煮こんだ、北海道のあったかい鍋。
-02|ぱりっとかむと、甘い果汁がじゅわっと広がるりんご。|南部せんべいを鍋へ。汁を吸うともっちりするよ。
-03|つやつやのお米。かむほど甘みが広がるよ。|小さなおわんに一口ずつ。食べるたびにおわんが積み上がるよ。
-04|おにぎりにも合う、もちもちのお米。|緑の枝豆あんを、お餅にたっぷりからめるよ。
-05|冷めてもおいしい秋田のお米。おべんとうのおにぎりにも。|棒に巻いて焼いたごはんが、鍋のだしをぎゅっと吸うよ。
-06|甘さの中に少しすっぱさがある、赤いさくらんぼ。|さといもを肉や野菜と煮るよ。秋には河原で大鍋を囲むことも。
-07|切ると果汁がじゅわっと広がる、福島の甘い桃。|会津のお祝いの汁物。貝柱のだしに小さな豆麩が浮かぶよ。
-08|輪切りにすると穴が並ぶよ。炒めるとシャキッ。|あんこうの身や皮が入った、茨城の冬の鍋。
-09|那須でガーンジィという牛からしぼる、濃い味わいの牛乳。|おろした野菜と大豆などを煮る、栃木の冬の料理。
-10|すずしい高原で育つキャベツ。葉をかむとパリッ、ほんのり甘い。|幅広いめんと野菜をいっしょに煮こむ群馬の料理。
-11|白い部分が長いねぎ。焼くと中がとろりと甘くなるよ。|ごまが香る冷たいみそ仕立ての汁で、うどんをつるっと。
-12|九十九里のいわしをお酢とごまで味つけ。すっぱくて香ばしいよ。|魚にみそやねぎを加え、包丁でたたく漁師料理。
-13|東京の西で作るお茶。お湯を注ぐと、ふわっと香りが立つよ。|あさりのうまみをごはんと味わう、東京・深川の名物。
-14|相模湾の小さな魚。ゆでるとふんわり、ごはんにも合うよ。|大根やごぼう、豆腐などが入った汁物。具ごとに歯ごたえがちがうよ。
-15|炊くと粒がつやつや。冷めてもおいしい新潟のお米。|笹の葉をほどくと、よもぎ団子の香りがふわっ。
-16|かむと甘みが広がる、富山生まれのお米。|丸い押しずしを切ると、ますと酢めしの層が見えるよ。
-17|輪切りは歯ごたえがあり、すりおろすと粘りが出る金沢のれんこん。|肉や麩をとろみのある汁で煮る、石川の郷土料理。
-18|黄色いタグが目印。殻の中に甘いかにの身がつまっているよ。|冷たいそばに大根おろしを合わせる、福井のさっぱりした名物。
-19|皮はパリッ、中は甘くてさわやかな香りのぶどう。|幅広いめんをかぼちゃなどとみそ味で煮こむ、山梨の料理。
-20|すずしい高原のレタス。ちぎってかむと、シャキッといい音。|半分に割ると野沢菜やあん。長野の具入りのおやつ。
-21|長良川で育つあゆ。焼きたては香りがふわっと立つよ。|大きなほおの葉にみそをのせて焼く飛騨の料理。
-22|葉を長めに蒸すお茶。濃い緑色の一杯は、まろやかな味。|駿河湾の小さな桜えびを、香ばしいかき揚げにするよ。
-23|あみ目模様を切ると、甘い香りとやわらかな果肉が出てくるよ。|うなぎとごはん。そのまま、薬味、だしで味が変わるよ。
-24|貝の中で育つつやつやの粒。光の下で回すと輝き方が変わるよ。|やわらかな太めんに、色の濃いたれをからめる伊勢のうどん。
-25|湖の魚を塩とごはんで発酵。薄い一切れに独特の香りと酸味。|焼きさばの煮汁がそうめんにしみる、滋賀・湖北の味。
-26|抹茶は、たてると細かい泡が立ち、香りがふわっと広がるよ。|甘辛く煮たにしんを、温かいそばにのせる京都の味。
-27|葉や長い軸も食べるごぼう。軸を炒めると歯ごたえが楽しい。|キャベツ入りの生地を鉄板でじゅうっと焼く、大阪の名物。
-28|輪切りをじっくり焼くと、真ん中まで甘くやわらかくなるよ。|丸いたこ入りの玉子焼を、温かいだしにつけて食べるよ。
-29|オレンジ色の果肉に歯ごたえがある、奈良の甘がき。|さばなどをのせた酢めしを、香りのある柿の葉で包むよ。
-30|有田川ぞいの段々畑で育つみかん。皮をむくと甘い香り。|ごはんを高菜の葉でまるごと包む、熊野地方のおすし。
-31|砂地で育つ白いらっきょう。甘酢漬けをかむとポリッ。|三角の油揚げの中に米や具をつめて炊く鳥取の料理。
-32|海と川の水が混じる宍道湖の貝。みそ汁にうまみが出るよ。|そばを入れた丸い器を重ね、上の段からつゆをかけて食べるよ。
-33|白っぽい桃を切ると、ふわっと甘い香りが広がるよ。|魚介や野菜を色あざやかに盛る、岡山のお祝いのすし。
-34|火を通すと身がぷっくり。カキフライは衣がサクサク。|生地・キャベツ・めん・卵。切ると重なった層が見えるよ。
-35|下関ではふぐを「ふく」とも呼ぶよ。薄切りの身は花びらのように並ぶよ。|熱い瓦に茶そばを盛る下関の名物。瓦に当たるめんはパリッ。
-36|焼いて割ると黄色い中身がほくほくの、徳島のさつまいも。|そばをめんにせず、粒のまま汁に入れる徳島の料理。
-37|炊くとつやが出て、粒の食感がしっかりしたお米。|讃岐平野の小麦づくりが育てた、コシのあるうどん。「さぬきの夢」を使う店もあるよ。
-38|宇和海の貝が育てる、光に当たるとつややかに輝く真珠。|たいの切り身を、たれや卵と合わせてごはんにのせる宇和島の味。
-39|つやつやの紫色。焼くと中がとろっとやわらかくなるよ。|表面だけをさっと焼くよ。切ると外と中の色がちがうね。
-40|甘みと酸味のある、福岡生まれの大きないちご。|鶏肉と根菜の煮物。れんこんやごぼうは歯ごたえがあるよ。
-41|有明海で育つのり。焼くとパリッ、口の中でほどけるよ。|いかのすり身を細い皮で包んだ、呼子のふんわりした名物。
-42|小さめの殻にぷりっとした身。焼くと濃いうまみが広がるよ。|野菜や魚介のうまみがスープに出る、長崎のめん料理。
-43|阿蘇などの草原とつながる牛。赤身はかむほどうまみが広がるよ。|小麦粉の生地をちぎって汁に入れるよ。「だご」はもちっとした食感。
-44|木で育てたしいたけを乾かしたもの。水でもどすと、だしにもなるよ。|鶏肉を衣で包んで揚げる、大分のサクッとした名物。
-45|とりながら箱に詰めるきゅうり。冷やしてかむとパリッ。|魚やみその冷たい汁をごはんにかける宮崎の夏の味。
-46|焼いて割ると、湯気とほくほくの甘い中身が出てくるよ。|魚のすり身を揚げると、外はこんがり、中はふわっとするよ。
-47|さとうきびの汁を煮つめた、香りのある砂糖。|小麦粉の太めのめん。豚肉をのせる食べ方もあるよ。
-"""
-STORY_INTROS = {pid: (product, dish) for pid, product, dish in
-                (row.split("|") for row in SHORT_STORIES.strip().splitlines())}
-
-REGIONAL_PHOTO_ROWS = """
-二風谷イタ|https://furusato.jreast.co.jp/html/upload/save_image/shop/17786/product/391997/0307175602_65e9812274687.jpg|https://furusato.jreast.co.jp/furusato/products/detail/F579/F579-BRTA011|JR東日本ふるさと納税
-津軽塗|https://aomori-tourism.com/lsc/upfile/spot/0000/9355/9355_105_l.jpg|https://aomori-tourism.com/tw/gourmet/detail_9355.html|青森県観光情報サイト
-南部鉄器|https://www.tohoku.meti.go.jp/s_densan/assets/img/item02.jpg|https://www.tohoku.meti.go.jp/s_densan/iwate_01.html|東北経済産業局
-宮城伝統こけし|https://www.tohoku.meti.go.jp/s_densan/assets/img/item10.jpg|https://www.tohoku.meti.go.jp/s_densan/miyagi_01.html|東北経済産業局
-大館曲げわっぱ|https://thumb.wikimedia.org/wikipedia/commons/thumb/9/98/%E5%88%9D%E3%80%81%E7%A7%8B%E7%94%B0%E6%9D%89%E6%9B%B2%E3%81%92%E3%82%8F%E3%81%A3%E3%81%B1_%282914609193%29.jpg/960px-%E5%88%9D%E3%80%81%E7%A7%8B%E7%94%B0%E6%9D%89%E6%9B%B2%E3%81%92%E3%82%8F%E3%81%A3%E3%81%B1_%282914609193%29.jpg|https://commons.wikimedia.org/wiki/File:%E5%88%9D%E3%80%81%E7%A7%8B%E7%94%B0%E6%9D%89%E6%9B%B2%E3%81%92%E3%82%8F%E3%81%A3%E3%81%B1_%282914609193%29.jpg|sota
-山形鋳物|https://cdn.shopify.com/s/files/1/0058/4817/0560/files/YG-CK-2_4_6_0432_8b13accb-3659-47a0-bd58-11b96c0ef2fa_600x600.jpg?v=1653471521|https://japanesecrafts.com/collections/yamagata-imono?srsltid=AfmBOorrGXljX6H4kcivuF72Whx7iR6vQ3CPnohKS_ZJTykaCCXCiUhr|日本工芸堂
-会津塗|https://www.aizukanko.com/image/rendering/attraction_image/978/trim.1180/3/2?v=3e2a9e3771cee1ea9570286774b524c940d7e504|https://www.aizukanko.com/souvenir/401|会津若松観光ナビ
-笠間焼|https://exports.pref.ibaraki.jp/tw/resource/img/20210105173701075874145.jpg|https://exports.pref.ibaraki.jp/tw/product/detail?id=714906|茨城県
-益子焼|https://www.pref.tochigi.lg.jp/150th/miryoku/images/20221226170813.jpg|https://www.pref.tochigi.lg.jp/150th/miryoku/index.html|栃木県
-高崎だるま|https://image1.shopserve.jp/daruma-takasaki.jp/pic-labo/llimg/fuku_200_3.jpg?t=20231122152517|https://www.daruma-takasaki.jp/SHOP/daruma-fuku-200.html|高崎だるま
-岩槻人形|https://ningyo-muse.jp/modules/xelfinder/index.php?file=1309&page=view&%E9%A3%9B%E9%B3%A5%E9%9B%9B_%E6%96%9C%E3%82%81.jpg=|https://ningyo-muse.jp/modules/exhibition/index.php?action=PageView&page_id=53|さいたま市岩槻人形博物館
-房州うちわ|https://kaeru-kogei.com/wp-content/uploads/%E6%88%BF%E5%B7%9E%E3%81%86%E3%81%A1%E3%82%8F-1024x1024.jpg|https://kaeru-kogei.com/ver_chiba/|かえる工芸
-江戸切子|https://saihou.net/cdn/shop/products/M-7571-2BP.jpg?v=1668947686|https://saihou.net/products/m-7571-2bp|彩鳳
-箱根寄木細工|https://store.kyotohandicraftcenter.com/cdn/shop/products/2105805_1.jpg?v=1623471652&width=1024|https://store.kyotohandicraftcenter.com/products/2105805|京都ハンディクラフトセンター
-燕三条の金属洋食器|https://www.city.tsubame.niigata.jp/material/images/group/15/omotenashi5.jpg|https://www.city.tsubame.niigata.jp/monodukuri/tokuchou.html|燕市
-高岡銅器|https://japanesecrafts.com/cdn/shop/files/TD-KS-25_1.jpg?v=1732173634&width=2048|https://japanesecrafts.com/products/td-ks-25|日本工芸堂
-九谷焼|https://www.gov-online.go.jp/en/assets/hj_2026_03_02_01.webp|https://www.gov-online.go.jp/hlj/en/march_2026/march_2026-02.html|政府広報オンライン
-越前漆器|https://static.wixstatic.com/media/f5e8f7_0152aba158d244659d37bab9c3471e0a.jpg/v1/fill/w_980%2Ch_653%2Cal_c%2Cq_85%2Cusm_0.66_1.00_0.01%2Cenc_avif%2Cquality_auto/f5e8f7_0152aba158d244659d37bab9c3471e0a.jpg|https://www.echizen.or.jp/en/shikki-galier6|越前漆器協同組合
-甲州印伝|https://www.yamamoto-inden.com/mrmm/media/1125x0_slides_901080_915766.jpg|https://www.yamamoto-inden.com/|山本印伝
-木曽漆器|https://navi.chinotabi.jp/assets/uploads/2026/02/%E6%9C%A8%E6%9B%BD%E6%BC%86%E5%99%A8-1280x855.jpg|https://navi.chinotabi.jp/spot/14935/|茅野観光ナビ
-美濃和紙|https://images.squarespace-cdn.com/content/v1/53b3d458e4b001dd36b270ee/1498706916493-IXRMAJWOC9RY46H58N7M/washi.jpg|https://www.toki.tokyo/blogt/2015/8/30/the-elegant-and-refined-world-of-washi|TOKI
-浜松の楽器づくり|https://exploreshizuoka.jp/wp-content/uploads/2024/12/%E3%83%94%E3%82%A2%E3%83%8E%E8%A3%BD%E9%80%A0-1.jpg|https://exploreshizuoka.jp/en/inspirations/stories/spotlight/hamamatsu-city-a-city-of-craftsmen-and-music/|Explore Shizuoka
-愛知の自動車づくり|https://aichinow.pref.aichi.jp/upload/site/features/large/314c375c70593dd151c284ea58b39607.jpg|https://aichinow.pref.aichi.jp/en/stories/detail/352/|愛知県観光協会
-伊賀くみひも|https://jtcw.jp/2015/images/shop/main-photo/35.jpg|https://jtcw.jp/2015/35_igakumihimo/index.html|JTCW
-信楽焼|https://www.gov-online.go.jp/en/assets/hj_2026_03_03_01.webp|https://www.gov-online.go.jp/hlj/en/march_2026/march_2026-03.html|政府広報オンライン
-西陣織|https://coto-mono-michi.heteml.net/coto-mono-michi.jp/store/pc/detail/2021_10_morisan/1600px-20170828-Morisan-1189_DxO.jpg|https://store.coto-mono-michi.jp/?mode=f38|コトモノミチ
-堺打刃物|https://kougei-expo.com/mrmm/media/960x0_event34_791758_791823.jpg|https://kougei-expo.com/34/article/791758.html|伝統的工芸品展
-播州そろばん|https://web.pref.hyogo.lg.jp/sr09/jibasan/images/soroban4.jpg|https://web.pref.hyogo.lg.jp/sr09/jibasan/21.html|兵庫県
-高山茶筌|https://japan-sui-collection.go.jp/assets/images/recommendation/takayama-chasen-tea-whisk/sp/img-01.png?v=sha384-YchKDGIijLeLXBpVBrL2wwZeOvakeGcQv0qBTminsvfo3O%2Fln5EsMJ94uVHPPABm|https://japan-sui-collection.go.jp/ja/collection/takayamachasenteawhisk/|JAPAN SUI COLLECTION
-紀州漆器|https://static.wixstatic.com/media/13bf68_37fba03985264c018d742c321431bc02~mv2.jpg/v1/crop/x_278%2Cy_0%2Cw_1363%2Ch_1080/fill/w_491%2Ch_389%2Cal_c%2Cq_80%2Cusm_0.66_1.00_0.01%2Cenc_avif%2Cquality_auto/kisyushikki2.jpg|https://madeinjp.wixsite.com/info/%E8%A4%87%E8%A3%BD-%E8%81%B7%E4%BA%BA-%E4%BA%AC%E7%84%BC-12|掲載元
-因州和紙|https://kogeijapan.com/element/shared/images/kj/tottori/title/tottori-01.jpg|https://kogeijapan.com/locale/en_US/inshuwashi/|KOGEI JAPAN
-石見焼|https://www.iimono-shimane.jp/webtool/wp-content/uploads/2023/03/95eada56a02be1696e9ddeb05f1061ea.jpg|https://www.iimono-shimane.jp/traditional-crafts/309/|いいものしまね
-備前焼|https://fs.nihonkogeikai.or.jp/view/?fid=%2Fwww_v2%2Fimages%2F1%2F62%2FA010.jpg|https://www.nihonkogeikai.or.jp/works/405/1241/|日本工芸会
-熊野筆|https://japanshopping.org/files/itemimg/6e426f753289d3b7588588b18d1d9868.jpg|https://japanshopping.org/ja/search/items/detail/36149|Japan Shopping Now
-萩焼|https://www.hagishi.com/img/1000007.jpg|https://www.hagishi.com/search/detail.php?d=1000007|萩市観光協会
-阿波和紙|https://www.east-tokushima.jp/img_data/fe_i_24_536.jpg|https://www.east-tokushima.jp/feature/detail.php?id=24|イーストとくしま観光推進機構
-丸亀うちわ|https://dentou.pref.kagawa.lg.jp/artisans/images/marugameuchiwa/img_6935.png|https://dentou.pref.kagawa.lg.jp/|香川県
-今治タオル|https://jbpress.ismcdn.jp/mwimgs/8/c/1200mw/img_8cff71e0c33e51872530dc68453dcb3f4106864.jpg|https://jbpress.ismedia.jp/articles/-/71072|JBpress
-土佐和紙|https://www.jb-honshi.co.jp/kanko/seto_mare/se_travel/se_travel16_01/images/large/03/PJP130125_0363.jpg|https://www.jb-honshi.co.jp/kanko/seto_mare/se_travel/se_travel16_01/photo.html|JB本四高速
-博多織|https://orism.co.jp/cdn/shop/articles/DSC_6598.jpg?v=1769248033&width=1920|https://orism.co.jp/en/blogs/column/%E5%8D%9A%E5%A4%9A%E7%B9%94%E3%81%A3%E3%81%A6%E3%81%AA%E3%81%AB|オリシム
-伊万里・有田焼|https://www.zck.or.jp/uploaded/image/6821.jpg|https://www.zck.or.jp/site/sumika/8993.html|全国町村会
-波佐見焼|https://www.gov-online.go.jp/en/assets/hj_2026_03_06_01.webp|https://www.gov-online.go.jp/hlj/en/march_2026/march_2026-06.html|政府広報オンライン
-肥後象がん|https://cdn.wowu.travel/image_store/172bf56da0b96e3931656f4ab337af8f.jpg|https://www.wowu.travel/spots/kumamoto-prefectural-traditional-crafts-center|WOW U
-別府竹細工|https://japanesecrafts.com/cdn/shop/collections/toppageicon2.jpg?v=1699248666&width=2048|https://japanesecrafts.com/collections/beppu-bamboo-work|日本工芸堂
-宮崎牛|https://www.kirishima.co.jp/news/upload/20260129_4.png|https://www.kirishima.co.jp/news/2026012901.html|霧島酒造
-薩摩焼|https://www.k-p-a.jp/cms/wp-content/uploads/2016/07/12d9a02ef49140f117505f8f51efbd93.jpg|https://www.k-p-a.jp/products/pro-craft/|鹿児島県特産品協会
-琉球びんがた|https://www.kyuhaku.jp/exhibition/img/s_65/p10.jpg|https://www.kyuhaku.jp/exhibition/exhibition_s65.html|九州国立博物館
-紀州南高梅|https://furusato.jreast.co.jp/html/upload/save_image/shop/17914/product/558429/1017123238_67108556849d0.jpg|https://furusato.jreast.co.jp/furusato/products/detail/F653/F653-r30381001734|JR東日本ふるさと納税
-湯浅のしょうゆ|https://makeshop-multi-images.akamaized.net/sano2022/itemimages/000000000461_g76hsNm.jpg|https://shop.sanomiso.com/view/item/000000000461|佐野みそ
-"""
-REGIONAL_PHOTOS = {}
-for row in REGIONAL_PHOTO_ROWS.strip().splitlines():
-    name, image, source, credit = row.split("|")
-    REGIONAL_PHOTOS[name] = dict(caption=name, image=image, source=source, credit=credit)
-REGIONAL_PHOTOS["大館曲げわっぱ"].update(
-    caption="大館曲げわっぱ（参考写真）", license="https://creativecommons.org/licenses/by-sa/2.0/"
-)
-
-ADDITIONAL_PRODUCT_PHOTO_ROWS = """
-45|きゅうりのキムチ和え|https://www.pref.miyazaki.lg.jp/parts/000049632.jpg|https://www.pref.miyazaki.lg.jp/contents/org/honbu/hisho/komiya/local_0602.htm|宮崎県
-04|炊く前のだて正夢|https://datemasayume.pref.miyagi.jp/datemasayume-anniversary/common/images/recipe-a-01-image-02.jpg|https://datemasayume.pref.miyagi.jp/datemasayume-anniversary/|だて正夢公式
-"""
-ADDITIONAL_PRODUCT_PHOTOS = {}
-for row in ADDITIONAL_PRODUCT_PHOTO_ROWS.strip().splitlines():
-    pid, caption, image, source, credit = row.split("|")
-    ADDITIONAL_PRODUCT_PHOTOS.setdefault(pid, []).append(
-        dict(caption=caption, image=image, source=source, credit=credit))
-
-KAGAWA_RICE_PHOTO = dict(caption='さぬき米おいでまい', image='https://oomoriya.com/cdn/shop/products/az410-5.jpg?v=1634020801',
-                         source='https://oomoriya.com/products/410-5', credit='大森屋')
-
-
-# Use the product or variety name on quiz buttons and the complete name in feedback.
-QUIZ_PRODUCT_NAMES = {
-    "01": ("牛乳", "ぎゅうにゅう"),
-    "02": ("サンふじ", ""),
-    "08": ("れんこん", ""),
-    "10": ("キャベツ", ""),
-    "11": ("ねぎ", ""),
-    "13": ("狭山茶", "さやまちゃ"),
-    "14": ("しらす", ""),
-    "17": ("れんこん", ""),
-    "19": ("シャインマスカット", ""),
-    "20": ("高原レタス", "こうげんれたす"),
-    "21": ("鮎", "あゆ"),
-    "22": ("深蒸し茶", "ふかむしちゃ"),
-    "23": ("マスクメロン", ""),
-    "24": ("アコヤ真珠", "あこやしんじゅ"),
-    "25": ("ふなずし", ""),
-    "27": ("若ごぼう", "わかごぼう"),
-    "28": ("たまねぎ", ""),
-    "29": ("富有柿", "ふゆうがき"),
-    "30": ("みかん", ""),
-    "31": ("らっきょう", ""),
-    "32": ("ヤマトシジミ", ""),
-    "34": ("かき", ""),
-    "35": ("ふぐ", ""),
-    "37": ("おいでまい", ""),
-    "38": ("アコヤ真珠", "あこやしんじゅ"),
-    "39": ("なす", ""),
-    "41": ("海苔", "のり"),
-    "42": ("かき", ""),
-    "43": ("あか牛", "あかうし"),
-    "44": ("原木乾しいたけ", "げんぼくほししいたけ"),
-    "45": ("ワンタッチきゅうり", ""),
-    "47": ("黒糖", "こくとう"),
+# Question identities needed to validate already recorded version-3 rounds.
+ARCHIVE_QUESTIONS_V3 = {
+    '01': ('geography.discovery.01.land', 'geography.discovery.01.product'),
+    '02': ('geography.discovery.02.land', 'geography.discovery.02.product'),
+    '03': ('geography.discovery.03.land', 'geography.discovery.03.product'),
+    '04': ('geography.discovery.04.land', 'geography.discovery.04.product'),
+    '05': ('geography.discovery.05.land', 'geography.discovery.05.product'),
+    '06': ('geography.discovery.06.land', 'geography.discovery.06.product'),
+    '07': ('geography.discovery.07.land', 'geography.discovery.07.product'),
+    '08': ('geography.discovery.08.land', 'geography.discovery.08.product'),
+    '09': ('geography.discovery.09.land', 'geography.discovery.09.product'),
+    '10': ('geography.discovery.10.land', 'geography.discovery.10.product'),
+    '11': ('geography.discovery.11.land', 'geography.discovery.11.product'),
+    '12': ('geography.discovery.12.land', 'geography.discovery.12.product'),
+    '13': ('geography.discovery.13.land', 'geography.discovery.13.product'),
+    '14': ('geography.discovery.14.land', 'geography.discovery.14.product'),
+    '15': ('geography.discovery.15.land', 'geography.discovery.15.product'),
+    '16': ('geography.discovery.16.land', 'geography.discovery.16.product'),
+    '17': ('geography.discovery.17.land', 'geography.discovery.17.product'),
+    '18': ('geography.discovery.18.land', 'geography.discovery.18.product'),
+    '19': ('geography.discovery.19.land', 'geography.discovery.19.product'),
+    '20': ('geography.discovery.20.land', 'geography.discovery.20.product'),
+    '21': ('geography.discovery.21.land', 'geography.discovery.21.product'),
+    '22': ('geography.discovery.22.land', 'geography.discovery.22.product'),
+    '23': ('geography.discovery.23.land', 'geography.discovery.23.product'),
+    '24': ('geography.discovery.24.land', 'geography.discovery.24.product'),
+    '25': ('geography.discovery.25.land', 'geography.discovery.25.product'),
+    '26': ('geography.discovery.26.land', 'geography.discovery.26.product'),
+    '27': ('geography.discovery.27.land', 'geography.discovery.27.product'),
+    '28': ('geography.discovery.28.land', 'geography.discovery.28.product'),
+    '29': ('geography.discovery.29.land', 'geography.discovery.29.product'),
+    '30': ('geography.discovery.30.land', 'geography.discovery.30.product'),
+    '31': ('geography.discovery.31.land', 'geography.discovery.31.product'),
+    '32': ('geography.discovery.32.land', 'geography.discovery.32.product'),
+    '33': ('geography.discovery.33.land', 'geography.discovery.33.product'),
+    '34': ('geography.discovery.34.land', 'geography.discovery.34.product'),
+    '35': ('geography.discovery.35.land', 'geography.discovery.35.product'),
+    '36': ('geography.discovery.36.land', 'geography.discovery.36.product'),
+    '37': ('geography.discovery.37.land', 'geography.discovery.37.product'),
+    '38': ('geography.discovery.38.land', 'geography.discovery.38.product'),
+    '39': ('geography.discovery.39.land', 'geography.discovery.39.product'),
+    '40': ('geography.discovery.40.land', 'geography.discovery.40.product'),
+    '41': ('geography.discovery.41.land', 'geography.discovery.41.product'),
+    '42': ('geography.discovery.42.land', 'geography.discovery.42.product'),
+    '43': ('geography.discovery.43.land', 'geography.discovery.43.product'),
+    '44': ('geography.discovery.44.land', 'geography.discovery.44.product'),
+    '45': ('geography.discovery.45.land', 'geography.discovery.45.product'),
+    '46': ('geography.discovery.46.land', 'geography.discovery.46.product'),
+    '47': ('geography.discovery.47.land', 'geography.discovery.47.product'),
 }
+ARCHIVE_QUESTION_SKILLS = ("map", "industry")
 
-QUIZ_LANDFORMS = {
-    "平野": ("低く平らな土地が広がる", "低い丘がいくつも続く", "まわりより一段高い平地が広がる"),
-    "盆地": ("山にかこまれた平らな土地", "海に向かって広がる平らな土地", "まわりより高く平らな土地"),
-    "砂丘": ("風で運ばれた砂が積もった丘", "海の波でけずられたがけ", "川が運んだ土でできた平地"),
-    "湾": ("海が陸に入りこんでいる", "陸が海につき出している", "海が二つの陸の間を通っている"),
-    "島": ("陸のまわりがすべて海", "陸の一方だけが海につき出す", "海が陸に入りこんでいる"),
+# Each row begins with a map landmark and explains the link between place and activity.
+# The first two cards for each prefecture have a question and two comparable alternatives.
+EXAM_INDUSTRY_ROWS = """
+01|畑作|十勝平野の畑作|とかちへいやのはたさく|帯広市周辺|42.92,143.20|広く平らな畑で、大型機械を使って小麦・じゃがいも・てんさい・豆を栽培する。畑ごとに作る物を年ごとに替える輪作は、同じ作物を作り続けたときの病害などを抑える工夫。|帯広の周りで、小麦・じゃがいも・てんさいを輪作するのは？|01b,01c
+01|畜産|根釧台地の酪農|こんせんだいちのらくのう|別海町周辺|43.39,145.12|夏も涼しく、海からの霧が入る根釧台地では、広い草地で牧草を育てて乳牛を飼う。生乳は飲用のほか、バターやチーズの原料にもなる。||
+01|稲作|石狩平野の米|いしかりへいやのこめ|岩見沢市周辺|43.20,141.77|石狩川流域では湿地の排水や品種改良が進み、稲作が広がった。北海道の中でも、十勝の畑作や根釧の酪農とは土地の使い方が異なる。||
+01|漁業|ホタテガイ|ほたてがい|オホーツク海沿岸・紋別市|44.36,143.36|オホーツク海沿岸では、稚貝を海底にまいて大きく育った貝を漁獲する方式がある。青森の陸奥湾で貝をつるして育てる方式と比べられる。||
+02|果樹|りんご|りんご|弘前市周辺|40.60,140.46|岩木山のふもとなど、津軽地方にりんご園が広がる。涼しい気候を生かし、収穫後は低温で貯蔵して出荷時期を調整する。|津軽地方の弘前市周辺に果樹園が広がる果物は？|06a,07a
+02|水産養殖|ホタテガイ養殖|ほたてがいようしょく|陸奥湾・平内町沖|40.96,140.89|陸奥湾は外海より波が穏やかで、稚貝をかごやロープにつるして育てやすい。湾の内側で営む養殖と、外海で行う漁業を地図で比べよう。||
+03|水産養殖|わかめ養殖|わかめようしょく|三陸海岸・大船渡湾|39.02,141.74|三陸のリアス海岸は入り江が多い。外海より波が穏やかな湾で、海面近くに張ったロープにわかめを育てる。|三陸海岸の入り江で、ロープを使って育てる海藻は？|41a,38c
+03|伝統工芸|南部鉄器|なんぶてっき|盛岡市周辺|39.70,141.15|盛岡や奥州で受け継がれてきた鋳物。溶かした鉄を型に流し込み、鉄瓶やなべなどを作る。||
+04|稲作|大崎平野の米|おおさきへいやのこめ|大崎市・古川周辺|38.57,140.96|大崎平野に水田が広がる。川の水を用水路で田に引き、低地では排水も工夫して米を育てる。|大崎市周辺で、水路を整えた低地の水田で作るものは？|09a,12a
+04|水産養殖|カキ養殖|かきようしょく|松島湾周辺|38.36,141.08|松島湾や石巻周辺では、カキの稚貝を付けた資材を海につるして育てる。入り江の多い地形が養殖場の立地に関わる。||
+05|稲作|秋田平野の米|あきたへいやのこめ|秋田市南部・雄物川下流|39.65,140.15|雄物川下流などの平野では水田が広がる。冬に積もった雪が解けて川に流れ、用水路を通して田に水を引く。|雄物川下流の平野で、水田を使って生産するものは？|11a,29b
+05|林業|秋田杉|あきたすぎ|能代市・米代川下流|40.21,140.04|米代川流域の森林資源と木材を運び出しやすい位置を背景に、能代では木材の加工が発達した。杉は建築材などに使われる。||
+06|果樹|さくらんぼ|さくらんぼ|東根市周辺|38.43,140.39|山形盆地の東根や天童では果樹栽培が盛ん。さくらんぼは実が熟す時期の雨で割れることがあり、雨よけの屋根を使う園地がある。|東根市周辺で、実が割れないよう雨よけを使う果物は？|02a,19a
+06|稲作|庄内平野の米|しょうないへいやのこめ|酒田市・庄内平野|38.89,139.88|最上川の下流には広い平野がある。用水・排水を整えた水田で稲作が行われ、酒田は米を運び出す港としても発展した。||
+07|果樹|桃|もも|福島市・福島盆地|37.78,140.45|阿武隈川流域の福島盆地では桃などの果樹が作られる。収穫した桃は傷みやすいため、選果・箱詰めをして早く出荷する。|福島盆地の果樹園で育て、傷まないように箱詰めする代表的な果物は？|02a,06a
+07|稲作|会津盆地の米|あいづぼんちのこめ|会津坂下町周辺|37.56,139.82|会津盆地では川から水を引いて稲作を行う。県内でも福島盆地の果樹と会津盆地の稲作のように、作物の分布に違いがある。||
+08|農産物|メロン|めろん|鉾田市周辺|36.16,140.52|鹿島灘に近い鉾田では、ハウスなどを使って温度や水分を調整しながらメロンを育てる。首都圏の市場へも出荷する。|鉾田市で、ハウスなどで育てる果肉の甘いウリの仲間は？|09a,20a
+08|工業地域|鹿島臨海工業地域|かしまりんかいこうぎょうちいき|鹿島港・神栖市|35.93,140.70|陸地を掘り込んで整備した鹿島港は、大型船で原料を運びやすい。周辺に鉄鋼や石油化学の工場が集まった。||
+08|食品加工|水戸の納豆|みとのなっとう|水戸市周辺|36.37,140.47|大豆を納豆菌で発酵させる加工食品。水戸の名産として知られる。作物としての大豆の産地と、加工食品の名産地は分けて考えよう。||
+09|農産物|いちご|いちご|真岡市周辺|36.44,140.01|真岡市などでは冬も日照を利用し、ハウスで温度を調整していちごを育てる。屋外では寒い時期にも出荷できる。|真岡市周辺で、冬のハウス栽培でも出荷する赤い果実は？|08a,12a
+09|機械工業|自動車工業|じどうしゃこうぎょう|上三川町周辺|36.47,139.91|県南部には自動車の組立工場や関連工場がある。内陸でも道路を通じて部品を集め、製品を出荷できる。||
+10|高原野菜|キャベツ|きゃべつ|嬬恋村周辺|36.53,138.51|嬬恋村は標高が高く、夏でも比較的涼しい。平地が暑い時期にキャベツを生産し、東京などの市場に送る。|嬬恋村で、夏の涼しい高原を利用して多く出荷する野菜は？|20a,11a
+10|機械工業|自動車工業|じどうしゃこうぎょう|太田市周辺|36.29,139.38|太田市周辺には自動車の組立工場と部品工場が集まる。高速道路などを利用して部品や完成車を運ぶ北関東の内陸工業の例。||
+11|近郊農業|ねぎ|ねぎ|深谷市周辺|36.20,139.28|深谷周辺では利根川と荒川の間の農地で野菜が生産される。大きな消費地に近く、ねぎなどを首都圏の市場へ出荷できる。|深谷市周辺で育て、首都圏に出荷する代表的な長い野菜は？|10a,28b
+11|機械工業|内陸の自動車工業|ないりくのじどうしゃこうぎょう|寄居町周辺|36.12,139.22|寄居町などに自動車工場がある。県内を通る高速道路は、内陸の工場と部品の供給先や出荷先をつなぐ。||
+11|茶|狭山茶|さやまちゃ|入間市周辺|35.82,139.36|県西部の入間市や所沢市周辺には茶畑がある。茶の栽培に比較的冷涼な地域で、冬の寒さに備えて栽培を工夫してきた。||
+12|畑作|落花生（ピーナッツ）|らっかせい、ぴーなっつ|八街市周辺|35.67,140.32|八街市など、下総台地の水はけのよい畑で育てる。花が咲いたあと、実が育つ部分が土に入り、地中でさやができる。|八街市周辺で、花のあとに地中でさやが育つ作物は？|09a,36a
+12|工業地域|京葉工業地域|けいようこうぎょうちいき|東京湾岸・市原市|35.54,140.06|千葉県側の東京湾岸に石油精製や化学工業の工場が集まる。大型船で原油を運び、配管で工場同士をつないで原料を受け渡す。||
+12|漁業|銚子の漁業|ちょうしのぎょぎょう|銚子漁港|35.75,140.86|利根川の河口付近に銚子漁港があり、太平洋でとれたいわしやさばなどが水揚げされる。水揚げ後に冷凍や加工を行う施設もある。||
+13|工業|印刷・出版|いんさつしゅっぱん|千代田区・文京区周辺|35.71,139.75|出版社や新聞社などが集まり、編集と印刷を近い場所で行いやすかった。大都市では、人や情報の集まりが産業の立地に関わる。|出版社や新聞社が集まる大都市で、編集した本などを製品にする産業は？|22b,15b
+13|近郊農業|小松菜|こまつな|江戸川区周辺|35.71,139.89|江戸川区は小松菜ゆかりの地。都市の中でも畑が残る場所では、鮮度が大事な葉物野菜を近い消費地へ届けられる。||
+13|サービス業|金融・商業|きんゆうしょうぎょう|丸の内・大手町|35.68,139.77|交通が便利で人や情報が集まる都心には、銀行や企業の本社などが集中する。ものを作る工業とは異なる第三次産業の例。||
+14|工業地帯|京浜工業地帯|けいひんこうぎょうちたい|川崎市・横浜市の湾岸|35.50,139.74|川崎や横浜の臨海部には鉄鋼や石油化学などの工場が立地する。東京側にもつながる工業地帯で、港から原料を受け入れやすい。|川崎・横浜の臨海部を含む工業地帯は？|12b,08b
+14|近郊農業|だいこん|だいこん|三浦市周辺|35.17,139.63|三浦半島では海の影響で冬も比較的温暖で、冬から春にかけてだいこんを出荷する。東京や横浜が近いことも出荷に便利。||
+15|稲作|越後平野の米|えちごへいやのこめ|新潟市南部・越後平野|37.80,139.02|信濃川や阿賀野川下流の広い低地に水田が広がる。水を引くだけでなく、低地にたまる水を排水する工夫も稲作を支えてきた。|信濃川や阿賀野川の下流で、低地の水田から収穫するものは？|19a,20a
+15|地場工業|燕三条の金属加工|つばめさんじょうのきんぞくかこう|燕市・三条市|37.65,138.93|燕では金属製の食器、三条では刃物や工具などの生産が発達した。小さな工場が工程を分担する地場産業の一例。||
+16|稲作|砺波平野の米|となみへいやのこめ|砺波市周辺|36.64,136.97|庄川などがつくった扇状地で、水路を整えて水田を開いた。田の中に屋敷林に囲まれた家が点在する散居村の景観が見られる。|散居村が見られる砺波平野の水田で生産するものは？|20a,22a
+16|工業|医薬品工業|いやくひんこうぎょう|富山市周辺|36.70,137.22|家庭に薬を預け、使った分の代金を後で受け取る売薬が富山で発達した。現在の医薬品製造につながる歴史的な背景の一つ。||
+17|伝統工芸|金沢箔|かなざわはく|金沢市周辺|36.57,136.66|金などの金属を何度も打ち延ばして、ごく薄い箔にする。金箔は仏具や工芸品、建物の装飾などにも利用される。|金沢で、金をたたいて薄く延ばして作る工芸品は？|26b,03b
+17|稲作|加賀平野の米|かがへいやのこめ|白山市・手取川下流|36.48,136.56|手取川の扇状地とその周辺では、用水路で水を分けて田をうるおしてきた。川と平野の関係から稲作の広がりを考えられる。||
+18|地場工業|めがね枠|めがねわく|鯖江市周辺|35.96,136.18|鯖江や福井では、めがね枠の生産が地場産業として発展した。加工、組立、仕上げを行う事業所が地域内に集まる。|鯖江市周辺で、分業で加工・組立・仕上げをする身近な製品は？|15b,17a
+18|漁業|越前がに|えちぜんがに|越前町沿岸|35.93,135.99|福井県の港で水揚げされる雄のズワイガニの呼び名。日本海の海底近くにすむカニをとる漁業で、養殖とは異なる。||
+19|果樹|ぶどう|ぶどう|甲州市・勝沼周辺|35.66,138.73|甲府盆地のふちでは、水はけのよい扇状地などが果樹園に使われる。ぶどうは生食用と、ワインなどの加工用がある。|勝沼周辺で育て、生で食べるほかワインにも加工する果物は？|02a,30a
+19|果樹|桃|もも|笛吹市周辺|35.64,138.65|笛吹市周辺では桃畑が広がる。甲府盆地の果樹はぶどうだけでなく、桃も重要で、春の花や夏の収穫時期に景観が変わる。||
+20|高原野菜|レタス|れたす|川上村周辺|35.98,138.58|川上村などの標高が高い地域では夏でも比較的涼しい。収穫後に冷やし、鮮度を保ったまま大都市へ出荷する。|川上村の高原から、収穫後に冷やして夏に出荷する代表的な葉物野菜は？|13b,11a
+20|機械工業|精密機械工業|せいみつきかいこうぎょう|諏訪湖周辺|36.05,138.07|諏訪地域では時計などの精密なものづくりが発展し、細かな加工を得意とする工場が集まった。海岸でなくても発達した内陸工業の例。||
+21|窯業|美濃焼|みのやき|多治見市・土岐市周辺|35.34,137.15|岐阜県南東部の東濃では、陶磁器用の土を利用し、茶わんや皿などの生産が発達した。愛知県の瀬戸焼とは産地を区別する。|東濃の多治見・土岐などで、茶わんや皿を作る焼き物の産地は？|23b,41b
+21|林業・木工|飛騨の木工|ひだのもっこう|高山市周辺|36.15,137.25|山地が多い飛騨では木材と木を加工する技術を生かし、家具などが作られる。東濃の陶磁器とは、産地も材料も異なる。||
+22|茶|茶|ちゃ|牧之原台地周辺|34.80,138.19|牧之原台地には茶畑が広がる。水はけのよい台地などで茶を栽培し、摘んだ葉を蒸すなどして加工する。|牧之原台地で栽培し、摘んだ葉を加工して飲み物にする作物は？|19a,20a
+22|機械工業|楽器・オートバイ|がっき、おーとばい|浜松市周辺|34.75,137.73|浜松では楽器づくりと二輪車工業が発展してきた。静岡県の工業を学ぶときは、牧之原の茶畑と浜松の工業を地図で区別する。||
+23|機械工業|中京の自動車工業|ちゅうきょうのじどうしゃこうぎょう|豊田市周辺|35.05,137.16|豊田市周辺では部品工場と組立工場が分担して車を作る。完成車は道路を通じて港にも運ばれ、国内外へ出荷される。|豊田市に組立工場や部品工場が集まる代表的な工業は？|22b,20b
+23|窯業|瀬戸焼|せとやき|瀬戸市周辺|35.23,137.10|瀬戸では陶磁器に適する土を利用して焼き物の技術が育った。茶わんや皿などの生産を県境近くの美濃焼と比べられる。||
+24|水産養殖|真珠養殖|しんじゅようしょく|志摩市・英虞湾|34.30,136.81|英虞湾の入り江には波が穏やかな場所がある。そこでアコヤガイを育て、貝の中で真珠をつくらせる。|英虞湾でアコヤガイを育て、装飾品の材料を得る産業は？|41a,34b
+24|工業|石油化学コンビナート|せきゆかがくこんびなーと|四日市市の伊勢湾岸|34.95,136.64|四日市の港の近くには、石油を精製し、原料を受け取って化学製品を作る工場が集まる。パイプで工場同士をつなぐ。||
+25|稲作|近江米|おうみまい|彦根市周辺・湖東平野|35.25,136.22|琵琶湖の東側の平野などには水田が広がる。川や湖の水を農業に利用しながら、田から流れる水が湖の水質に与える影響にも配慮する。|琵琶湖の周りに水田が広がる滋賀県で生産される米の総称は？|15a,16a
+25|内水面漁業|琵琶湖の漁業|びわこのぎょぎょう|近江八幡市沖・琵琶湖|35.17,136.01|海のない滋賀県では、琵琶湖でアユの仲間やビワマスなどの漁業が行われる。湖でとれる魚を使った保存食にふなずしがある。||
+26|茶|宇治茶|うじちゃ|宇治市周辺|34.89,135.81|宇治や京都府南部では茶の栽培・加工が盛ん。玉露や抹茶の原料のてん茶には、収穫前に覆いをかける栽培方法がある。|宇治周辺で、玉露や抹茶の原料にもなる葉を育てて作るものは？|19a,29b
+26|伝統工芸|西陣織|にしじんおり|京都市上京区周辺|35.03,135.74|京都市の西陣では、先に染めた糸を組み合わせて複雑な模様を織る。帯などに使われ、染め・織りなどを分業して作る。||
+27|工業地帯|阪神工業地帯|はんしんこうぎょうちたい|堺市・大阪湾岸|34.60,135.43|大阪と神戸を中心に広がり、堺の臨海部などに鉄鋼の工場がある。港と都市の市場を利用した工業が集まる。|大阪・神戸を中心とし、堺の臨海部も含む工業地帯は？|14a,12b
+27|地場工業|町工場の部品づくり|まちこうばのぶひんづくり|東大阪市周辺|34.67,135.59|東大阪には、金属を削る、曲げる、ねじを作るなど、それぞれの加工が得意な工場が集まる。近い工場同士で工程を分担しやすい。||
+28|機械工業|造船業|ぞうせんぎょう|神戸港周辺|34.66,135.19|神戸港周辺では船を造る工業が発達した。大きな船を直接海へ出せる岸壁が必要で、港の近くに立地する。|神戸港の岸壁を使い、大きな船を建造する工業は？|40a,23a
+28|農産物|たまねぎ|たまねぎ|南あわじ市周辺|34.30,134.79|淡路島南部では、田で米を作ったあとにたまねぎを育てる例がある。温暖な気候を生かし、収穫後は乾燥させて出荷する。||
+29|林業|吉野の林業|よしののりんぎょう|吉野町・川上村周辺|34.36,135.93|吉野川の上流では杉やヒノキを植え、枝打ちや間伐をしながら長い年月をかけて育ててきた。建築材として使われる。|吉野川の上流で、杉やヒノキを手入れして建築材を育てる産業は？|05b,21b
+29|果樹|柿|かき|五條市周辺|34.35,135.69|五條市など吉野川沿いの斜面では柿を栽培する。日当たりや水はけを考えて果樹園の場所が選ばれている。||
+30|果樹|みかん|みかん|有田市周辺|34.08,135.13|有田川流域では温暖な気候と、日当たり・水はけのよい斜面を利用してみかんを育てる。海岸近くの段々畑も産地の目印。|有田川流域の段々畑で育つ、冬に出回る代表的なかんきつは？|19a,31a
+30|果樹・加工|梅|うめ|みなべ町周辺|33.77,135.32|みなべ・田辺では斜面などに梅林が広がる。収穫した梅は塩漬けや天日干しなどの工程を経て梅干しになる。||
+31|果樹|なし|なし|倉吉市周辺|35.44,133.82|鳥取では二十世紀梨が長く栽培され、倉吉市などに果樹園がある。実に袋をかけて、傷や病害などを防ぐ工夫をする。|倉吉市などで栽培される「二十世紀」は何の果物？|07a,02a
+31|砂丘農業|らっきょう|らっきょう|鳥取市・福部砂丘|35.53,134.31|砂は水はけがよく乾きやすい。福部地区では水の管理をしながら砂丘地でらっきょうを育てて出荷する。||
+32|内水面漁業|ヤマトシジミ|やまとしじみ|松江市・宍道湖|35.44,133.00|宍道湖には川の淡水と中海から来る海水が混ざる。このような汽水の湖で、ヤマトシジミがとれる。|淡水と海水が混ざる宍道湖でとれる小さな二枚貝は？|34b,02b
+32|稲作|出雲平野の米|いずもへいやのこめ|出雲市・斐川町周辺|35.39,132.81|斐伊川下流の出雲平野では水田が広がる。同じ水辺でも、宍道湖の漁業と平野の稲作では水の使い方が違う。||
+33|工業地域|水島の臨海工業|みずしまのりんかいこうぎょう|倉敷市・水島|34.51,133.74|水島港の近くには製鉄、石油化学、自動車などの工場が集まる。大型船で原料や製品を運びやすい瀬戸内工業地域の一角。|倉敷市の港で、鉄鋼・石油化学などが集まる臨海工業は？|12b,08b
+33|果樹|白桃|はくとう|岡山市・一宮周辺|34.69,133.86|岡山県南部では比較的降水量が少なく、桃などの果樹栽培が行われる。白い果皮に仕上げるため袋をかけて育てる例がある。||
+34|機械工業|自動車工業|じどうしゃこうぎょう|広島市・府中町周辺|34.38,132.50|広島市と周辺に組立工場や部品工場が集まり、完成車は港からも出荷される。瀬戸内の海上輸送を利用する機械工業の例。|広島市と府中町の周辺で、部品を組み立て港からも出荷する製品の工業は？|38b,35a
+34|水産養殖|カキ養殖|かきようしょく|広島湾・江田島市周辺|34.26,132.46|広島湾では、いかだからカキをつるして育てる。島や入り江が多く、波の穏やかな水域を養殖に利用できる。||
+35|工業|周南の石油化学|しゅうなんのせきゆかがく|周南市・徳山湾岸|34.05,131.81|周南の湾岸では石油化学工場の集積がみられる。船で原料を受け入れ、工場が原料や製品を受け渡す瀬戸内工業地域の例。|徳山湾岸の周南で、原料の受け渡しをする工場が集まる産業は？|38b,23a
+35|水産流通|ふぐ|ふぐ|下関市・南風泊|33.95,130.91|下関には各地でとれたふぐや養殖されたふぐも集まる市場がある。水揚げ・集荷の場所と、魚をとった場所は同じとは限らない。||
+36|果樹|すだち|すだち|神山町周辺|33.97,134.35|神山町など、徳島の山あいで栽培されるかんきつ。完熟前の緑色の実も出荷され、香りや酸味を料理に添える。|神山町などで作られ、小さく緑色で料理に酸味を添えるかんきつは？|30a,36b
+36|水産養殖|鳴門わかめ|なるとわかめ|鳴門海峡周辺|34.22,134.60|鳴門海峡周辺ではロープを使ってわかめを育てる。海峡の潮の流れが速い海域を利用した水産養殖の例。||
+37|稲作|ため池を使う稲作|ためいけをつかういなさく|満濃池・まんのう町|34.15,133.89|讃岐平野は降水量が比較的少なく、大きな川が少ない。ため池に水を蓄えて水田に送り、現在は香川用水から来る水も使う。|雨が少ない讃岐平野で、満濃池などに水をためて行う農業は？|20a,39a
+37|食品加工|讃岐うどん|さぬきうどん|高松市周辺|34.33,134.04|小麦粉をこねて麺にする香川の食文化。小麦が作られてきた地域だが、うどんの原料には県外産や輸入小麦も使われる。||
+37|果樹|オリーブ|おりーぶ|小豆島町周辺|34.48,134.27|小豆島では、瀬戸内の比較的雨が少なく日照の多い環境を生かしてオリーブを栽培する。実から油をしぼることもできる。||
+38|果樹|みかん|みかん|八幡浜市周辺|33.46,132.42|宇和海沿いなどの傾斜地で、日当たりと水はけを生かしたかんきつ栽培を行う。険しい斜面を段々畑にした場所もある。|八幡浜周辺の斜面で、日当たりを生かして作る代表的なかんきつは？|36a,19a
+38|機械工業|今治の造船|いまばりのぞうせん|今治市沿岸|34.07,133.00|今治の沿岸には船を建造する造船所が立地する。瀬戸内海は島の間を船が行き来し、船を運航する事業も発達してきた。||
+38|水産養殖|真珠養殖|しんじゅようしょく|宇和島市・宇和海沿岸|33.24,132.49|宇和海の波が穏やかな入り江などでアコヤガイを育てて真珠をつくる。みかんを育てる斜面と、養殖を行う海が近い地域もある。||
+39|施設園芸|なすの促成栽培|なすのそくせいさいばい|安芸市周辺|33.50,133.91|高知は冬も比較的温暖で日照に恵まれる。ハウスで温度を調整し、露地での出荷が少ない時期にもなすを出す促成栽培を行う。|安芸市周辺で、ハウスを使い冬から春になすを出荷する方法は？|20a,37a
+39|漁業|カツオ漁|かつおりょう|中土佐町・久礼漁港|33.33,133.23|高知は黒潮が流れる太平洋に面し、カツオの一本釣りなどが知られる。カツオのたたきのように、漁業が食文化にもつながる。||
+40|工業|北九州の鉄鋼業|きたきゅうしゅうのてっこうぎょう|北九州市・八幡周辺|33.88,130.81|八幡には明治期に官営製鉄所が建設された。筑豊の石炭を利用しやすいことと、港で原料を運べることが発展に関わった。|明治期の官営八幡製鉄所を出発点の一つとする工業は？|24b,20b
+40|農産物|いちご|いちご|八女市・筑後平野|33.21,130.56|筑後地方では、ハウスの温度管理をしながらいちごを育てる。福岡は米や野菜も作るため、地域と栽培方法を結びつけて考えよう。||
+41|水産養殖|のり養殖|のりようしょく|佐賀市南部・有明海|33.13,130.29|有明海は潮の満ち引きの差が大きい。海に張った網にのりを育て、潮が引くと網が空気に触れる時間も利用する。|有明海で潮の満ち引きを利用し、海に張った網で育てる海藻は？|03a,34b
+41|窯業|伊万里・有田焼|いまりありたやき|有田町・伊万里市周辺|33.18,129.89|有田では陶石を使った磁器の生産が発達した。焼き物の一部は伊万里の港から積み出され、国内外に運ばれた。||
+42|果樹|びわ|びわ|長崎市・茂木周辺|32.69,129.92|長崎市の茂木などでは、海沿いの比較的温暖な斜面を生かしてびわを栽培する。実は傷がつきやすく、丁寧に扱って出荷する。|長崎市の茂木周辺で、橙色の実に大きな種がある代表的な果物は？|30a,07a
+42|機械工業|造船業|ぞうせんぎょう|長崎港周辺|32.74,129.85|奥深い長崎港に面して、船を造って修理できる施設が発達した。大型船を海へ出せる港が工場の立地に関わる。||
+43|畜産|肉牛の放牧|にくぎゅうのほうぼく|阿蘇市・阿蘇の草原|32.99,131.08|阿蘇の草原では肉用牛などを放牧する。人が草を刈り、野焼きなどで管理することも草原の維持につながっている。|阿蘇の草原で、草を食べさせながら肉用牛を育てる方法は？|01b,46b
+43|施設園芸|トマト|とまと|八代市周辺|32.50,130.57|八代平野などでは、ハウスで温度を管理してトマトを育てる。冬から春の出荷が、夏の露地栽培が中心の産地を補う。||
+44|林産物|原木しいたけ|げんぼくしいたけ|豊後大野市周辺|32.98,131.58|クヌギなどの丸太にしいたけの菌を植え付け、林の中などで育てる。収穫後に乾燥させた干ししいたけは保存しやすい。|大分の山あいで、クヌギの丸太に菌を植えて育てる食材は？|46a,28b
+44|工業|臨海部の鉄鋼業|りんかいぶのてっこうぎょう|大分市・別府湾岸|33.26,131.68|大分市の臨海部には製鉄所が立地する。鉄鉱石などの重い原料を海外から大型船で運べる港が工場の立地を支える。||
+45|施設園芸|ピーマンの促成栽培|ぴーまんのそくせいさいばい|宮崎市・宮崎平野|31.98,131.44|冬も比較的暖かく日照のある宮崎平野で、ハウスを使いピーマンなどを早い時期から出荷する。高知の施設園芸と比較できる。|宮崎平野で冬の気候とハウスを利用し、ピーマンを早く出荷する方法は？|20a,44a
+45|畜産|ブロイラーの飼育|ぶろいらーのしいく|都城市周辺|31.73,131.06|宮崎南西部では畜産が盛んで、肉用の鶏も飼育される。生産農場から食肉処理・加工を経て、鶏肉が各地に運ばれる。||
+46|畑作・加工|さつまいも|さつまいも|鹿屋市・大隅半島|31.39,130.85|火山の噴出物が積もったシラス台地は水がしみ込みやすい場所がある。大隅半島などでさつまいもを育て、でんぷんや焼酎などにも加工する。|大隅半島などで育て、でんぷんや芋焼酎の原料にもする作物は？|47a,12a
+46|畜産|養豚|ようとん|曽於市周辺|31.65,131.00|鹿児島では豚の飼育や食肉加工が盛ん。黒豚はその代表例の一つで、県内の畜産には肉用牛や肉用鶏も含まれる。||
+46|茶|茶|ちゃ|南九州市・知覧周辺|31.38,130.45|南薩の台地などで茶を栽培する。温暖な気候で春の新茶を早く出せ、まとまった畑では機械を使って収穫する。||
+47|畑作・加工|さとうきび|さとうきび|南城市周辺・沖縄本島南部|26.15,127.79|亜熱帯の温暖な気候で育つ。茎をしぼった汁から砂糖を作るため、畑と製糖工場が同じ島に立地することが多い。|沖縄で暖かい気候を生かし、茎をしぼって砂糖を作る作物は？|46a,37c
+47|サービス業|観光業|かんこうぎょう|恩納村沿岸|26.49,127.85|温暖な気候やサンゴ礁の海、琉球の歴史・文化を目当てに旅行者が訪れる。宿泊施設や交通、案内などのサービスにつながる。||
+47|果樹|パイナップル|ぱいなっぷる|東村周辺・沖縄本島北部|26.64,128.12|本島北部などの温暖な地域で育つ。生で食べるほか、加工品にもなる。さとうきびと同じ南の作物でも、使う部分や加工の仕方は異なる。||
+25|食品加工|ふなずし|ふなずし|高島市周辺・琵琶湖西岸|35.35,136.02|琵琶湖のフナを塩漬けにして米と発酵させる保存食。湖の漁業と周辺の稲作の両方が、食文化に結びついている。||
+29|果樹|なし|なし|大淀町周辺|34.39,135.81|奈良県内でも大淀町などでなしを作る。吉野川周辺は、林業だけでなく果樹の栽培も見られる。||
+"""
+EXAM_REASON_ROWS = """
+01|根釧台地で乳牛を育てるのに役立つ土地の条件は？|夏も涼しい広い草地|なつもすずしいひろいくさち|冬も温暖な海沿いの斜面|ふゆもおんだんなうみぞいのしゃめん|潮の満ち引きがある干潟|しおのみちひきがあるひがた
+02|陸奥湾でホタテガイをつるして養殖しやすいのはなぜ？|外海より波が穏やか|そとうみよりなみがおだやか|雪解け水で水田が広がる|ゆきどけみずですいでんがひろがる|外海の高波が直接届く|そとうみのたかなみがちょくせつとどく
+03|鉄瓶の形を作る南部鉄器の加工方法は？|溶かした鉄を型に流す|とかしたてつをかたにながす|金属をたたいて箔にする|きんぞくをたたいてはくにする|土をこねて窯で焼く|つちをこねてかまでやく
+04|松島湾でカキの養殖場を設けやすい場所は？|波が穏やかな入り江|なみがおだやかないりえ|波が直接打ち寄せる岬|なみがちょくせつうちよせるみさき|海水が届かない川の上流|かいすいがとどかないかわのじょうりゅう
+05|能代の木材加工が育った背景は？|米代川流域の森林資源|よねしろがわりゅういきのしんりんしげん|雄物川下流の水田|おものがわかりゅうのすいでん|日本海の漁場|にほんかいのぎょじょう
+06|庄内平野に米の産地が広がる背景は？|最上川下流の広い平野|もがみがわかりゅうのひろいへいや|水はけのよい高原の畑|みずはけのよいこうげんのはたけ|山形盆地の果樹園|やまがたぼんちのかじゅえん
+07|福島盆地の桃畑と比べ、会津盆地で水田に使う仕組みは？|川から水を引く用水路|かわからみずをひくようすいろ|果実を雨から守る屋根|かじつをあめからまもるやね|出荷した果実を冷やす貯蔵庫|しゅっかしたかじつをひやすちょぞうこ
+08|鹿島の臨海工業にとって、掘り込み式の港の利点は？|大型船で原料を運べる|おおがたせんでげんりょうをはこべる|夏でも畑の気温が低い|なつでもはたけのきおんがひくい|山の斜面で果樹を育てられる|やまのしゃめんでかじゅをそだてられる
+09|海に面していない上三川の自動車工場で、部品や完成車を運ぶ手段は？|道路を使うトラック輸送|どうろをつかうとらっくゆそう|港の岸壁での大型船への積み込み|みなとのがんぺきでのおおがたせんへのつみこみ|田へ水を送る用水路|たへみずをおくるようすいろ
+10|太田の自動車工業で、組立工場の周辺に部品工場がある利点は？|必要な部品を運びやすい|ひつようなぶひんをはこびやすい|外海の漁場に出やすい|そとうみのぎょじょうにでやすい|稲作の用水をためやすい|いなさくのようすいをためやすい
+11|寄居町の自動車工場が製品を出荷する経路として適切なのは？|内陸を結ぶ高速道路|ないりくをむすぶこうそくどうろ|東京湾の工場間をつなぐ原油の配管|とうきょうわんのこうじょうかんをつなぐげんゆのはいかん|ねぎ畑に水を送る水路|ねぎばたけにみずをおくるすいろ
+12|京葉工業地域で、石油を扱う工場が東京湾に面している利点は？|原油を大型船で運べる|げんゆをおおがたせんではこべる|地中で落花生のさやを育てやすい|ちちゅうでらっかせいのさやをそだてやすい|日当たりのよい段々畑が広がる|ひあたりのよいだんだんばたけがひろがる
+13|江戸川区で小松菜を育てる近郊農業の利点は？|消費地が近く新鮮なうちに届けられる|しょうひちがちかくしんせんなうちにとどけられる|雪を使って夏まで長期貯蔵できる|ゆきをつかってなつまでちょうきちょぞうできる|高原なので平地より夏が涼しい|こうげんなのでへいちよりなつがすずしい
+14|三浦半島で冬にもだいこんを出荷しやすい理由は？|海に囲まれ冬も比較的温暖|うみにかこまれふゆもひかくてきおんだん|標高が高く夏も涼しい|ひょうこうがたかくなつもすずしい|冬の積雪が長く続く|ふゆのせきせつがながくつづく
+15|燕三条で金属製品の種類が多い理由として、作り方の特徴は？|工場ごとに得意な工程を分担する|こうじょうごとにとくいなこうていをぶんたんする|すべて同じ工場で同じ形だけを作る|すべておなじこうじょうでおなじかたちだけをつくる|原料を育てる水田が工場の中心にある|げんりょうをそだてるすいでんがこうじょうのちゅうしんにある
+16|富山の医薬品工業の背景にある、家庭向けの販売方法は？|薬を預け使った分の代金を受け取る|くすりをあずけつかったぶんのだいきんをうけとる|収穫した米を港から積み出す|しゅうかくしたこめをみなとからつみだす|染めた糸を組み合わせて織る|そめたいとをくみあわせておる
+17|加賀平野の田に水を届ける水路は、主に何と田を結ぶ？|手取川|てどりがわ|琵琶湖|びわこ|最上川|もがみがわ
+18|越前がにと広島湾のカキを比べると、越前がにはどのように水揚げする？|日本海でズワイガニを漁獲する|にほんかいでずわいがにをぎょかくする|湾内のいかだから貝を引き上げる|わんないのいかだからかいをひきあげる|汽水湖の底からシジミをとる|きすいこのそこからしじみをとる
+19|甲府盆地のふちなどを桃やぶどうの果樹園に使うときの利点は？|扇状地などの水はけのよさ|せんじょうちなどのみずはけのよさ|海面の潮の満ち引き|かいめんのしおのみちひき|一年中田に水をためられること|いちねんじゅうたにみずをためられること
+20|諏訪湖周辺の精密機械工業が得意とする加工は？|時計などの細かな部品の加工|とけいなどのこまかなぶひんのかこう|原油を使った化学製品の製造|げんゆをつかったかがくせいひんのせいぞう|大型船の船体の組立|おおがたせんのせんたいのくみたて
+21|高山市周辺の家具づくりを支えた山地の資源は？|森林の木材|しんりんのもくざい|陶磁器に使う粘土|とうじきにつかうねんど|港から運び入れる原油|みなとからはこびいれるげんゆ
+22|静岡県の浜松市で工業の集積を示す、生産品の組み合わせは？|楽器とオートバイ|がっきとおーとばい|茶とみかん|ちゃとみかん|真珠とカキ|しんじゅとかき
+23|瀬戸市で焼き物づくりが育った背景は？|陶磁器に適した土が得られる|とうじきにてきしたつちがえられる|原油を運ぶ大型船が入れる|げんゆをはこぶおおがたせんがはいれる|冬も海水温が高い|ふゆもかいすいおんがたかい
+24|四日市のコンビナートでは、近くの工場同士で原料をどう運ぶ？|配管を通して運ぶ|はいかんをとおしてはこぶ|農業用水路に流して運ぶ|のうぎょうようすいろにながしてはこぶ|果物用の箱に詰めて運ぶ|くだものようのはこにつめてはこぶ
+25|琵琶湖の漁業を、三陸海岸の養殖と区別する水の特徴は？|海水が流れこまない淡水|かいすいがながれこまないたんすい|海水と淡水が混ざる汽水|かいすいとたんすいがまざるきすい|潮の満ち引きが大きい海水|しおのみちひきがおおきいかいすい
+26|西陣織で複雑な模様を作る方法は？|先に染めた糸を織り合わせる|さきにそめたいとをおりあわせる|溶かした鉄を型に流す|とかしたてつをかたにながす|金属をたたいて薄く延ばす|きんぞくをたたいてうすくのばす
+27|東大阪に小さな工場が多く集まる利点は？|得意な加工を工場同士で分担できる|とくいなかこうをこうじょうどうしでぶんたんできる|すべての工場が同じ製品だけを作る|すべてのこうじょうがおなじせいひんだけをつくる|工場内で原油を採掘できる|こうじょうないでげんゆをさいくつできる
+28|淡路島南部で、同じ田を季節で使い分ける例は？|米の収穫後にたまねぎを育てる|こめのしゅうかくごにたまねぎをそだてる|雪が残る間に稲を植える|ゆきがのこるあいだにいねをうえる|水田に海水を入れてのりを育てる|すいでんにかいすいをいれてのりをそだてる
+29|五條市周辺で、柿の果樹園を斜面に作る利点は？|日当たりと水はけを確保しやすい|ひあたりとみずはけをかくほしやすい|海から船で農場に入れる|うみからふねでのうじょうにはいれる|水を深くためたまま栽培できる|みずをふかくためたままさいばいできる
+30|みなべで収穫した梅を長く保存できる食品に加工する方法は？|塩漬けや天日干し|しおづけやてんぴぼし|果汁から砂糖を取り出す|かじゅうからさとうをとりだす|葉を蒸して乾かす|はをむしてかわかす
+31|福部砂丘でらっきょうを育てるとき、水の管理が必要なのはなぜ？|砂地は水が抜けやすい|すなちはみずがぬけやすい|砂地には常に水がたまる|すなちにはつねにみずがたまる|冬の間ずっと地面が凍っている|ふゆのあいだずっとじめんがこおっている
+32|出雲平野での稲作と宍道湖での漁業のうち、稲作のための水の使い方は？|川の水を水田に引く|かわのみずをすいでんにひく|海水を混ぜて汽水にする|かいすいをまぜてきすいにする|干満に合わせて海の網を干す|かんまんにあわせてうみのあみをほす
+33|岡山の白桃を白い果皮に仕上げる栽培の工夫は？|実に袋をかける|みにふくろをかける|土の中で実を育てる|つちのなかでみをそだてる|茎を刈って糖分をしぼる|くきをかってとうぶんをしぼる
+34|広島湾でいかだ式のカキ養殖をしやすい水域は？|島に囲まれた波の穏やかな海|しまにかこまれたなみのおだやかなうみ|海水が入らない山間の湖|かいすいがはいらないさんかんのみずうみ|高い波が打ち寄せる外海|たかいなみがうちよせるそとうみ
+35|下関の市場に並ぶふぐについて、産地と市場の関係は？|各地から集めて下関で取引する|かくちからあつめてしものせきでとりひきする|市場に並ぶ魚はすべて市場の前でとる|いちばにならぶさかなはすべていちばのまえでとる|市場で取引する魚は地元でしか食べない|いちばでとりひきするさかなはじもとでしかたべない
+36|鳴門のわかめはどのように生産する？|海峡周辺の海でロープを使って育てる|かいきょうしゅうへんのうみでろーぷをつかってそだてる|海の底に貝の稚貝をまく|うみのそこにかいのちがいをまく|淡水の池でいかだにつるす|たんすいのいけでいかだにつるす
+37|讃岐うどんと香川の農業を結びつける説明は？|小麦が原料で県外産や輸入品も使う|こむぎがげんりょうでけんがいさんやゆにゅうひんもつかう|原料の小麦はすべて県内産に限る|げんりょうのこむぎはすべてけんないさんにかぎる|ため池で育てる稲のお米だけが原料|ためいけでそだてるいねのおこめだけがげんりょう
+38|今治の造船所が岸辺にある理由は？|組み立てた船を直接海に出せる|くみたてたふねをちょくせつうみにだせる|日当たりのよい斜面が必要|ひあたりのよいしゃめんがひつよう|山地の木材を家具へ加工する|さんちのもくざいをかぐへかこうする
+39|高知のカツオ漁と関わりの深い海流は？|黒潮|くろしお|親潮|おやしお|リマン海流|りまんかいりゅう
+40|筑後地方で寒い時期にいちごを出荷する工夫は？|ハウス内の温度を調整する|はうすないのおんどをちょうせいする|夏の高原の涼しさを使う|なつのこうげんのすずしさをつかう|潮の満ち引きで海の網を干す|しおのみちひきでうみのあみをほす
+41|有田焼の材料と、焼き物を運ぶために使われた場所の組み合わせは？|陶石と伊万里の港|とうせきといまりのみなと|砂鉄と八幡の製鉄所|さてつとやはたのせいてつじょ|生糸と諏訪湖|きいととすわこ
+42|長崎港の奥深い海岸に造船所ができた立地の利点は？|大型船を建造して港から海へ出せる|おおがたせんをけんぞうしてみなとからうみへだせる|港の海水で水田をうるおせる|みなとのかいすいですいでんをうるおせる|海岸が夏も涼しく牧草地が広がる|かいがんがなつもすずしくぼくそうちがひろがる
+43|八代平野のトマトが夏の産地を補える理由は？|ハウスを使い冬から春にも出荷する|はうすをつかいふゆからはるにもしゅっかする|夏だけ同じ時期に出荷する|なつだけおなじじきにしゅっかする|土を使わず海水に植える|つちをつかわずかいすいにうえる
+44|大分市の製鉄所が海沿いにある利点は？|重い鉄鉱石を大型船で運び込める|おもいてっこうせきをおおがたせんではこびこめる|山の斜面でみかんを育てられる|やまのしゃめんでみかんをそだてられる|冬の積雪で工場を冷やせる|ふゆのせきせつでこうじょうをひやせる
+45|宮崎のブロイラーの飼育は、何を作るため？|鶏肉|けいにく、とりにく|鶏卵|けいらん|牛乳|ぎゅうにゅう
+46|鹿児島の養豚を、北海道の根釧台地の酪農と区別する生産品は？|豚肉|ぶたにく|牛乳|ぎゅうにゅう|鶏卵|けいらん
+47|沖縄の観光業は、浜辺の自然や歴史をどんな仕事に結びつける？|宿泊や案内などのサービス|しゅくはくやあんないなどのさーびす|茎をしぼる製糖業|くきをしぼるせいとうぎょう|原油を精製する石油化学|げんゆをせいせいするせきゆかがく
+"""
+EXAM_REASON_QUESTIONS = {}
+for row in EXAM_REASON_ROWS.strip().splitlines():
+    pid, prompt, answer, reading, wrong1, reading1, wrong2, reading2 = row.split("|")
+    conditions = [(answer, reading), (wrong1, reading1), (wrong2, reading2)]
+    # Clauses become noun phrases so they can be spoken as 「○○県は…です」.
+    EXAM_REASON_QUESTIONS[pid] = (prompt, [
+        (label + "こと", kana + "こと") if label.endswith(tuple("くぐすつぬぶむるうい")) else (label, kana)
+        for label, kana in conditions
+    ])
+MAFF_REGIONAL_PROFILES = "https://www.maff.go.jp/j/kanbo/tiho/todouhuken_gaiyou2022.html"
+FISH_STATISTICS = "https://www.jfa.maff.go.jp/j/kikaku/wpaper/r07_h/sankou/sankou_3_15.html"
+MANUFACTURING_STATISTICS = "https://www.meti.go.jp/statistics/tyo/kkj/seizo_result.html"
+CRAFT_PROFILES = "https://www.kanto.meti.go.jp/seisaku/chiiki_brand/index_densan.html"
+TOPIC_SOURCES = {
+    "01a": ("農林水産省｜十勝平野の農業", "https://www.maff.go.jp/j/nousin/sekkei/museum/m_siki/03_tokati/index.html"),
+    "01b": ("TESTEA｜中学受験の北海道", "https://testea.net/chugaku-juken/tirihoxtukaidou/"),
+    "04a": ("農林水産省｜大崎耕土", "https://www.maff.go.jp/j/nousin/kantai/giahs_3_092.html"),
+    "07a": ("福島市｜桃・くだもの", "https://www.city.fukushima.fukushima.jp/kankounavi/contents/eat/11449.html"),
+    "08c": ("農林水産省｜納豆", "https://www.maff.go.jp/j/keikaku/syokubunka/traditional-foods/menu/natto_ibaraki.html"),
+    "12a": ("農林水産省｜千葉県の落花生", "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/yude_rakkasei_chiba.html"),
+    "24a": ("志摩市｜真珠養殖", "https://www.city.shima.mie.jp/shisei/shi_no_shokai/shisei_yoran/1470808548377.html"),
+    "25b": ("滋賀県｜琵琶湖の食文化・農水産物", "https://www.pref.shiga.lg.jp/biwako-system/18893.html"),
+    "25c": ("滋賀県｜琵琶湖の食文化・農水産物", "https://www.pref.shiga.lg.jp/biwako-system/18893.html"),
+    "30a": ("和歌山県｜有田みかんと石積みの段々畑", "https://www.pref.wakayama.lg.jp/prefg/000200/nagomi/w58/24/index.html"),
+    "32a": ("島根県｜ヤマトシジミ", "https://www.pref.shimane.lg.jp/industry/suisan/shinkou/kawa_mizuumi/seibutu/yamatosi_jimi.html"),
+    "13c": ("東京都｜都の統計", "https://www.toukei.metro.tokyo.lg.jp/"),
+    "42a": ("長崎市｜長崎びわ", "https://www.city.nagasaki.lg.jp/page/2435.html"),
+    "43a": ("農林水産省｜阿蘇の草原と農業", "https://www.maff.go.jp/j/nousin/kantai/giahs_3_040.html"),
 }
-
-# Comparable choices where only one or two prefectures use the same product family.
-QUIZ_PRODUCT_ALTERNATIVES = {
-    "01": (("ヨーグルト", ""), ("チーズ", "")),
-    "09": (("ジャージー牛乳", "じゃーじーぎゅうにゅう"), ("ホルスタイン牛乳", "ほるすたいんぎゅうにゅう")),
-    "24": (("マベ真珠", "まべしんじゅ"), ("淡水真珠", "たんすいしんじゅ")),
-    "38": (("マベ真珠", "まべしんじゅ"), ("淡水真珠", "たんすいしんじゅ")),
-    "43": (("黒毛和牛", "くろげわぎゅう"), ("日本短角種", "にほんたんかくしゅ")),
+TOPIC_ICONS = {
+    "畑作":"root", "畑作・加工":"root", "稲作":"rice", "果樹":"fruit", "果樹・加工":"fruit",
+    "茶":"tea", "畜産":"cow", "近郊農業":"leaf", "高原野菜":"leaf", "施設園芸":"greenhouse",
+    "砂丘農業":"root", "農産物":"fruit", "漁業":"fish", "水産養殖":"shell",
+    "内水面漁業":"fish", "水産流通":"fish",
 }
-
-
-def quiz_product_name(pid):
-    product = LOCAL_PRODUCTS[pid]
-    return QUIZ_PRODUCT_NAMES.get(pid, (product["name"], product["reading"]))
-
-
-def short_discovery_questions(pid):
-    info, product = PREFECTURE_INFO[pid], LOCAL_PRODUCTS[pid]
-    region = region_of(pid)[0]
-    nearby = LAND_NEIGHBORS.get(pid, []) + SEA_NEIGHBORS.get(pid, [])
-    others = [key for key in PREFECTURE_INFO if key != pid]
-
-    def question(code, prompt, label, reading, candidates, explanation, skill):
-        variants = sorted(candidates, key=lambda option: (option[2], abs(len(option[0])-len(label))))
-        unique = {label: reading}
-        for name, kana, _ in variants:
-            unique.setdefault(name, kana)
-            if len(unique) == 3:
-                break
-        return dict(id=f"geography.discovery.{pid}.{code}", prompt=prompt, explanation=explanation,
-                    options=[f"{name}（{kana}）" if kana and kana != name else name for name, kana in unique.items()],
-                    correct="0", skill=skill, reasoning=False)
-
-    group = next((kinds for kinds in [
-        {"川"}, {"平野", "盆地", "台地", "高原", "丘陵"}, {"湖"}, {"湾", "海", "海峡", "海岸", "島", "半島"}, {"山"}
-    ] if info["kind"] in kinds), set())
-    prefecture = info["name"].removesuffix("県").removesuffix("府")
-    land_label, land_reading = info["land"], info["land_reading"]
-    land_prompt = "地図でたしかめた地形はどれ？"
-    land_explanation = f"地図で見つけたのは{info['land']}です。"
-    if land_label.startswith(prefecture) and info["kind"] in QUIZ_LANDFORMS:
-        land_label, *alternatives = QUIZ_LANDFORMS[info["kind"]]
-        land_reading = ""
-        land_prompt = f"地図でたしかめた{info['kind']}は、どんな地形？"
-        land_explanation = f"{info['land']}は、{land_label}です。"
-        geography_options = [(option, "", (index,)) for index, option in enumerate(alternatives)]
+EXAM_STORIES, EXAM_CHOICES, EXAM_QUESTION_ROWS = {}, {}, {}
+for row in EXAM_INDUSTRY_ROWS.strip().splitlines():
+    pid, category, name, reading, locality, location, intro, clue, wrong = row.split("|")
+    stories = EXAM_STORIES.setdefault(pid, [])
+    key = pid + chr(ord("a") + len(stories))
+    if key in TOPIC_SOURCES:
+        source_label, url = TOPIC_SOURCES[key]
+    elif category in ("漁業", "水産養殖", "内水面漁業", "水産流通"):
+        source_label, url = "水産庁｜都道府県別の漁業・養殖業", FISH_STATISTICS
+    elif category in ("伝統工芸", "窯業"):
+        source_label, url = "経済産業省｜伝統的工芸品", CRAFT_PROFILES
+    elif "工業" in category:
+        source_label, url = "経済産業省｜製造業の地域別統計", MANUFACTURING_STATISTICS
+    elif category == "サービス業":
+        source_label, url = "観光庁｜観光統計", "https://www.mlit.go.jp/kankocho/siryou/toukei/index.html"
     else:
-        geography_options = [
-            (v["land"], v["land_reading"],
-             (v["kind"] != info["kind"], v["kind"] not in group, key not in nearby, region_of(key)[0] != region))
-            for key, v in PREFECTURE_INFO.items() if key != pid
-        ]
+        source_label, url = "農林水産省｜都道府県の農林水産業", MAFF_REGIONAL_PROFILES
+    story = dict(key=key, name=name, reading=reading, category=category, intro=intro, source=url,
+                 source_label=source_label, place={"label": locality, "point": project(pid, location)},
+                 icon=TOPIC_ICONS.get(category))
+    stories.append(story)
+    EXAM_CHOICES[key] = story
+    if clue:
+        EXAM_QUESTION_ROWS.setdefault(pid, []).append((key, clue, wrong.split(",")))
 
-    families = ("03 04 05 15 16 37", "02 06 07 19 23 29 30 33 40",
-                "08 10 11 17 20 27 28 31 39 45", "12 14 18 21 25 32 34 35 41 42",
-                "13 22 26", "36 44 46 47")
-    product_label, product_reading = quiz_product_name(pid)
-    if pid in QUIZ_PRODUCT_ALTERNATIVES:
-        brand_options = [(name, kana, (index,)) for index, (name, kana) in enumerate(QUIZ_PRODUCT_ALTERNATIVES[pid])]
-    else:
-        family = next(set(members.split()) for members in families if pid in members.split())
-        brand_options = [
-            (*quiz_product_name(key), (key not in family, region_of(key)[0] != region, key not in nearby))
-            for key in others
-        ]
+
+def exam_industry_questions(pid):
+    key, clue, wrong = EXAM_QUESTION_ROWS[pid][0]
+    topics = [EXAM_CHOICES[choice] for choice in [key, *wrong]]
+    names = [(topic["name"], topic["reading"]) for topic in topics]
+    reason, conditions = EXAM_REASON_QUESTIONS[pid]
+
+    def question(number, prompt, options, skill, explanation):
+        labels = [name if kana == name or "（" in name or number == 2
+                  else f"{name}（{kana}）" for name, kana in options]
+        return dict(
+            id=f"geography.discovery.{pid}.exam.{number}", prompt=prompt, options=labels,
+            readings=[kana for _, kana in options], correct="0", skill=skill, reasoning=False,
+            explanation=explanation,
+        )
+
     return [
-        question("land", land_prompt, land_label, land_reading, geography_options, land_explanation, "map"),
-        question("product", "地図といっしょに学んだ特産品はどれ？", product_label, product_reading, brand_options,
-                 f"学習で紹介したのは{product['name']}です。{STORY_INTROS[pid][0]}", "industry"),
+        question(1, clue, names, "industry", topics[0]["intro"]),
+        question(2, reason, conditions, "reasoning", EXAM_STORIES[pid][1]["intro"]),
     ]
 
 
-# Representative places for geographical context, not exclusive production or distribution regions.
-STORY_LOCATION_ROWS = """
-01|石狩市|43.17,141.32|平取町 二風谷|42.63,142.16
-02|八戸市|40.51,141.49|弘前市|40.60,140.47
-03|盛岡市|39.70,141.15|盛岡市|39.71,141.13
-04|仙台市|38.27,140.88|蔵王町 遠刈田|38.12,140.58
-05|大館市|40.27,140.56|大館市|40.27,140.57
-06|山形市 馬見ヶ崎川の河川敷|38.265,140.355|山形市 銅町|38.274,140.337
-07|会津若松市|37.50,139.93|会津若松市|37.51,139.94
-08|大洗町|36.31,140.57|笠間市|36.38,140.26
-09|宇都宮市|36.56,139.88|益子町|36.46,140.10
-10|前橋市|36.39,139.06|高崎市|36.34,139.00
-11|川島町|35.98,139.48|さいたま市 岩槻|35.95,139.69
-12|南房総市|35.05,139.90|館山市・南房総市|35.04,139.87
-13|江東区 深川|35.68,139.79|江東区|35.70,139.82
-14|鎌倉市|35.33,139.55|箱根町|35.22,139.06
-15|新潟市|37.91,139.04|燕市・三条市|37.65,138.93
-16|富山市|36.70,137.21|高岡市|36.75,137.02
-17|金沢市|36.56,136.65|能美市・小松市|36.43,136.52
-18|福井市|36.06,136.22|鯖江市 河和田|35.97,136.27
-19|甲府市|35.66,138.57|甲府市|35.66,138.59
-20|長野市|36.65,138.19|塩尻市 木曽平沢|35.97,137.83
-21|高山市 飛騨|36.14,137.25|美濃市|35.54,136.91
-22|静岡市 由比|35.11,138.56|浜松市|34.73,137.73
-23|名古屋市|35.17,136.91|豊田市|35.07,137.16
-24|伊勢市|34.49,136.71|伊賀市|34.77,136.13
-25|長浜市 湖北|35.38,136.27|甲賀市 信楽|34.88,136.06
-26|京都市|35.02,135.77|京都市 西陣|35.032,135.746
-27|大阪市|34.69,135.50|堺市|34.58,135.48
-28|明石市|34.65,134.99|小野市|34.85,134.93
-29|五條市|34.35,135.69|生駒市 高山|34.74,135.71
-30|新宮市 熊野地方|33.73,135.98|海南市 黒江|34.16,135.21
-31|米子市 弓ヶ浜半島|35.465,133.32|鳥取市 青谷|35.51,134.00
-32|出雲市|35.37,132.75|江津市 石見|35.00,132.22
-33|岡山市|34.66,133.93|備前市 伊部|34.74,134.16
-34|広島市|34.39,132.46|熊野町|34.34,132.58
-35|下関市 川棚温泉|34.15,130.94|萩市|34.41,131.41
-36|三好市 祖谷|33.89,133.87|吉野川市 山川町|34.05,134.23
-37|高松市 讃岐平野|34.32,134.04|丸亀市|34.28,133.79
-38|宇和島市|33.22,132.56|今治市|34.06,133.02
-39|高知市|33.56,133.54|いの町|33.55,133.42
-40|福岡市 博多|33.59,130.42|福岡市 博多|33.60,130.42
-41|唐津市 呼子|33.53,129.90|有田町|33.20,129.89
-42|長崎市|32.75,129.88|波佐見町|33.14,129.89
-43|熊本市|32.81,130.71|熊本市|32.80,130.72
-44|大分市|33.24,131.61|別府市|33.28,131.49
-45|宮崎市|31.91,131.42|都城市|31.74,131.07
-46|鹿児島市|31.59,130.55|日置市 美山|31.64,130.36
-47|那覇市|26.22,127.69|那覇市 首里|26.22,127.72
-"""
-DISH_PLACES, INDUSTRY_PLACES = {}, {}
-for row in STORY_LOCATION_ROWS.strip().splitlines():
-    pid, dish_name, dish_point, industry_name, industry_point = row.split("|")
-    DISH_PLACES[pid] = {"label":dish_name, "point":project(pid,dish_point)}
-    INDUSTRY_PLACES[pid] = [{"label":industry_name, "point":project(pid,industry_point)}]
-INDUSTRY_PLACES["30"].extend([
-    {"label":"みなべ町・田辺市", "point":project("30","33.80,135.35")},
-    {"label":"湯浅町", "point":project("30","34.03,135.18")},
-])
-KAGAWA_WHEAT_PLACE = {"label":"綾川町", "point":project("37","34.25,133.92")}
-
-
-REGIONAL_ADDITIONS = """
-06|ものづくり|米沢のパソコンづくり|よねざわのパソコンづくり|薄いノートパソコンに、小さな部品がぎっしり。米沢の工場で組み立てるよ。|米沢市|37.91,140.12|https://www.nec-lavie.jp/company/|https://tk.ismcdn.jp/mwimgs/4/f/1200w/img_4f742bbde7da0900ae7f30af7654fda6535602.jpg|https://toyokeizai.net/articles/-/914597?display=b|東洋経済オンライン
-08|ものづくり|日立建機の油圧ショベル|ひたちけんきのゆあつショベル|ひたちなかの工場で作る大きなショベル。大きな腕で岩や土をすくうよ。|ひたちなか市|36.397,140.58|https://jcmanet.or.jp/jcm/wp-content/uploads/2024/09/1d8fcd7d276fd653712197401a5de635.pdf|https://hitachikenki.scene7.com/is/image/hitachikenki/EX5600-7-8|https://www.hitachicm.com/global/ja/news/topics/2024/24-10-07/|日立建機
-09|ものづくり|宇都宮のヘリコプターづくり|うつのみやのヘリコプターづくり|羽をくるくる回して飛ぶヘリコプター。宇都宮には、機体を組み立てる工場があるよ。|宇都宮市|36.526,139.865|https://www.subaru.co.jp/outline/about/aerospace/|https://cdn.autoc-one.jp/images/article/201801/19131304303_o.jpg|https://autoc-one.jp/news/5001257/|MOTA
-10|ものづくり|太田のスバル車|おおたのスバルしゃ|太田の工場で部品を組み立て、スバルの車を作るよ。|太田市|36.292,139.373|https://www.subaru.co.jp/outline/office.html|https://news.mynavi.jp/premium/article/20260618-subaru-flexibility/images/014.jpg|https://news.mynavi.jp/premium/article/20260618-subaru-flexibility/|マイナビニュース
-25|ものづくり|長浜のヤンマーエンジン|ながはまのヤンマーエンジン|長浜で作る小さなエンジン。田んぼや畑で働く機械を動かすよ。|長浜市|35.43,136.23|https://www.yanmar.com/jp/about/company/power_technology/company.html|https://i.gzn.jp/img/2016/06/10/yanmar-biwa-plant/p3750092.jpg|https://gigazine.net/gsc_news/en/20160610-yanmar-biwa-plant/|GIGAZINE
-28|ものづくり|明石のカワサキバイク|あかしのカワサキバイク|明石で作るオートバイ。タイヤやエンジンをつけて、走れる形にしていくよ。|明石市|34.680,134.920|https://www.gizmodo.jp/2018/03/kawasaki_machine-factory.html|https://media.loom-app.com/gizmodo/dist/images/2018/03/23/kawasaki_AGV.jpg?w=640|https://www.gizmodo.jp/2018/03/kawasaki_machine-factory.html|ギズモード・ジャパン
-34|ものづくり|広島のマツダ車|ひろしまのマツダしゃ|府中町の工場では、車がラインを流れながら、少しずつ組み上がるよ。|府中町|34.380,132.507|https://www.mazda.com/ja/about/facilities/|https://www.hiroshimacvb.jp/unique-experience/mazdamuseum08_zone9_assembly_s.jpg|https://www.hiroshimacvb.jp/en/unique-experience/industrial-tours/1299.html|広島観光コンベンションビューロー
-40|ものづくり|苅田の日産車|かんだのにっさんしゃ|苅田の工場では、ロボットと人が車を作るよ。|苅田町|33.77,130.985|https://www.nissankyushu.co.jp/COMPANY/gaiyou.html|https://kbc.co.jp/up/content/15/52/af0f553689619619c16a0ddaedf161a8ca5fdd4a.jpg|https://kbc.co.jp/wish/article/37272/|九州朝日放送
-45|ものづくり|延岡のベンベルグ|のべおかのベンベルグ|綿の種に残る短い毛から、さらっとした糸を作るよ。服の裏地にも使われるんだ。|延岡市|32.58,131.65|https://www.asahi-kasei.co.jp/fibers/bemberg/facility/|https://www.asahi-kasei.cn/group/AKF/fibers/bemberg/img/bemberg-world/facility/sec02_img01.jpg|https://www.asahi-kasei.cn/group/AKF/fibers/bemberg/facility/|旭化成
-01|ものづくり|苫小牧の自動車部品|とまこまいのじどうしゃぶひん|苫小牧では、エンジンやモーターの力を車輪に伝える部品を作るよ。|苫小牧市|42.666,141.614|https://www.tmh.co.jp/manufacturing/know.html|https://www.tmh.co.jp/mt-static/themes/toyota/assets/image/step6-img.jpg|https://www.tmh.co.jp/manufacturing/process02.html|トヨタ自動車北海道
-04|ものづくり|大衡のトヨタ車|おおひらのトヨタしゃ|大衡村の工場では、鉄板を車の形にし、色をぬって部品を取りつけるよ。|大衡村|38.470,140.873|https://www.toyota-ej.co.jp/yui/honsya/index.html|https://levolant.jp/wp-content/uploads/2025/08/15d25f9defa4163f3d58cbfc343ee14a.jpg|https://levolant.jp/2025/08/23/397930/|ル・ボラン ウェブ
-08|ものづくり|鹿島臨海工業地帯|かしまりんかいこうぎょうちたい|鹿島港のまわりに、鉄や石油を加工する工場が集まっているよ。|神栖市 鹿島港周辺|35.926,140.682|https://www.city.kamisu.ibaraki.jp/kanko_sports/ss_facility/1002393/1002394/1002397.html|https://www.andtrip.jp/images/017dc8158a8cfb8c9c8e50e2d4c306efba2dafbe.jpg|https://www.andtrip.jp/article/001842.html|and trip. たびびと
-11|ものづくり|寄居のホンダ車|よりいのホンダしゃ|寄居の工場では、機械で車体を組み立てるよ。車は部品がつくたびに完成に近づくよ。|寄居町|36.103,139.238|https://global.honda/jp/topics/2024/c_2024-09-30/image_download.html|https://global.honda/content/dam/site/global-en/topics-new/cq_img/2024/c_2024-09-30eng/c_2024-09-30eng_01.jpg|https://global.honda/en/topics/2024/c_2024-09-30eng.html|Honda
-12|ものづくり|京葉工業地域|けいようこうぎょうちいき|東京湾に面した市原には、石油からプラスチックなどのもとを作る工場が集まるよ。|市原市 五井海岸周辺|35.531,140.064|https://www.chemiway-csr.jp/social/office/|https://prcdn.freetls.fastly.net/release_image/127749/90/127749-90-8de4b80ec6b221f78e5633afda8b393e-3000x2000.jpg?width=640|https://prtimes.jp/main/html/rd/p/000000090.000127749.html|市原市
-14|ものづくり|京浜工業地帯・川崎|けいひんこうぎょうちたい、かわさき|川崎港の近くに工場が集まり、石油などを加工するよ。海から原料を運びこめる場所だよ。|川崎市 臨海部|35.508,139.738|https://www.city.kawasaki.jp/590/cmsfiles/contents/0000055/55849/leafletA4_20250114.pdf|https://download.pakutaso.com/shared/img/thumb/YAT191222001.jpg|https://www.pakutaso.com/20200113016post-25032.html|ぱくたそ
-16|ものづくり|黒部のファスナー|くろべのファスナー|黒部の工場で作るファスナー。小さな歯がかみ合って、服やかばんが閉じるよ。|黒部市|36.887,137.439|https://www.pref.toyama.lg.jp/documents/25021/richiguider7.pdf|https://static.wixstatic.com/media/158015_0ba1dfaa26a44ee2aa5cfefcc6ed47ec~mv2.jpg/v1/fill/w_890%2Ch_593%2Cal_c%2Cq_85%2Cusm_0.66_1.00_0.01%2Cenc_avif%2Cquality_auto/maruyane_14.jpg|https://www.apldw.co.jp/ykkm|APLdw（YKK丸屋根展示館）
-18|ものづくり|鯖江のめがねづくり|さばえのめがねづくり|鯖江では、めがねのフレームを作るよ。顔に合わせて、形も色もいろいろ。|鯖江市|35.944,136.192|https://www.city.sabae.fukui.jp/kanko/playing/museum.html|https://www.nippon.com/en/ncommon/contents/views/43215/43215.jpg|https://www.nippon.com/en/views/b00601/|nippon.com（めがね作りの道具）
-22|ものづくり|湖西のスズキ車|こさいのスズキしゃ|湖西の工場では、車体に窓や座席などをつけて、小さな車を組み立てるよ。|湖西市|34.721,137.499|https://www.suzuki.co.jp/corporate/producingbase/index.html|https://www.suzuki-careers.com/temporary/factory/images/kosai_gallery03.jpg|https://www.suzuki-careers.com/temporary/factory/index.html|スズキ
-24|ものづくり|四日市コンビナート|よっかいちコンビナート|港の近くに工場が集まり、石油を加工するよ。配管が工場どうしをつないでいるよ。|四日市市 臨海部|34.974,136.647|https://www.yokkaichi-port.or.jp/lt_vision/pdf/2-3_3b.pdf|https://i.mie-eetoko.com/DSC1440.jpg|https://mie-eetoko.com/hokusei/207|三重のええとこ巡り
-24|ものづくり|鈴鹿のホンダ車|すずかのホンダしゃ|鈴鹿では、軽自動車などを作るよ。ロボットが金属の部品を組み合わせる工程もあるよ。|鈴鹿市|34.871,136.525|https://global.honda/jp/kengaku/|https://webcg.ismcdn.jp/mwimgs/6/9/1200/img_69c8bfd410f8b6d83ea533e37e8f54ab457684.jpg|https://www.webcg.net/articles/-/40098|webCG
-33|ものづくり|水島コンビナート|みずしまコンビナート|倉敷の海沿いには、鉄を作ったり石油を加工したりする工場が集まっているよ。|倉敷市 水島地区|34.517,133.736|https://citysales.city.kurashiki.okayama.jp/koto/kk61/|https://citysales.city.kurashiki.okayama.jp/city_content/koto/kk6/kk61_2.jpg|https://citysales.city.kurashiki.okayama.jp/koto/kk61/|倉敷市
-35|ものづくり|周南コンビナート|しゅうなんコンビナート|港のそばに化学工場が集まるよ。工場のタンクや配管が、夜には光で浮かび上がるよ。|周南市 徳山港周辺|34.047,131.800|https://www.city.shunan.lg.jp/site/kanko/1446.html|https://www.city.shunan.lg.jp/uploaded/attachment/114023.JPG|https://www.city.shunan.lg.jp/site/kanko/1442.html|周南市
-41|地域の農産物|多久のびわ|たくのびわ|多久市の地域産業資源に指定されている果物。うすい皮の下に、やわらかい果肉があるよ。|多久市|33.286,130.110|https://www.pref.saga.lg.jp/kiji00327251/3_27251_158362_up_vgxcgjtv.pdf|https://thumb.wikimedia.org/wikipedia/commons/thumb/4/48/Eriobotrya_japonica_-_Loquat_07.jpg/330px-Eriobotrya_japonica_-_Loquat_07.jpg|https://commons.wikimedia.org/wiki/File:Eriobotrya_japonica_-_Loquat_07.jpg|Zeynel Cebeci
-41|特産品・ブランド|佐賀牛|さがぎゅう|佐賀の黒毛和牛のうち、基準を満たした牛肉だよ。赤身の間に細かく白い脂が入っているよ。|伊万里市|33.270,129.880|https://jaimari.saga-ja.jp/products/beef/|https://www.ja-town.com/img/goods/8101/1/8101-30051.JPG|https://www.ja-town.com/shop/g/g8101-30051/|JAタウン
-41|ものづくり|鳥栖のタイヤづくり|とすのタイヤづくり|鳥栖の工場では、スポーツカーなどのタイヤを作るよ。車が曲がったり止まったりするときにも活躍するよ。|鳥栖市|33.361,130.535|https://www.bridgestone.co.jp/blog/2019030801.html|https://www.bridgestone.co.jp/blog/images/2019030601_01.jpg|https://www.bridgestone.co.jp/blog/2019030801.html|ブリヂストン
-43|ものづくり|菊陽の半導体づくり|きくようのはんどうたいづくり|菊陽町の工場では、電子機器の計算や制御に使う半導体チップを作るよ。|菊陽町|32.886,130.806|https://www.chisou.go.jp/sousei/about/kouhukin/infuraseibi/pdf/08_inhuraseibi.pdf|https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0f/JASM_Kumamoto.JPG/330px-JASM_Kumamoto.JPG|https://commons.wikimedia.org/wiki/File:JASM_Kumamoto.JPG|hyolee2
-44|ものづくり|大分の臨海工業地帯|おおいたのりんかいこうぎょうちたい|大分市の海沿いに、鉄を作る工場と石油を加工する工場があるよ。|大分市 臨海部|33.266,131.655|https://www.pref.oita.jp/uploaded/attachment/2182704.pdf|https://www.city.oita.oita.jp/o029/photo/documents/008kojo.jpg|https://www.city.oita.oita.jp/o029/photo/landscape2.html|大分市
-"""
-for row in REGIONAL_ADDITIONS.strip().splitlines():
-    pid, category, name, reading, pitch, locality, location, source, image, photo_source, credit = row.split("|")
-    REGIONAL_INDUSTRIES[pid].append(dict(category=category, name=name, reading=reading, pitch=pitch, source=source))
-    photo = dict(caption="びわ（参考写真）" if name == "多久のびわ" else name,
-                 image=image, source=photo_source, credit=credit)
-    if photo_source.startswith("https://commons.wikimedia.org/wiki/File:"):
-        photo["license"] = "https://creativecommons.org/licenses/by-sa/4.0/"
-    REGIONAL_PHOTOS[name] = photo
-    INDUSTRY_PLACES[pid].append(dict(label=locality, point=project(pid, location)))
-
-
-# Extra foods are taught on the map without altering existing quiz answers or saved records.
-REPRESENTATIVE_FOOD_ROWS = """
-01|ジンギスカン|じんぎすかん|有名な食べ物|羊の肉と野菜をいっしょに焼いて食べるよ。真ん中がもり上がったなべを使うこともあるよ。|||https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/jingisukan_hokkaido.html
-04|仙台の牛たん焼き|せんだいのぎゅうたんやき|有名な食べ物|牛の舌を切り、焼いて食べる仙台の名物。麦ごはんや牛のしっぽのスープと出ることもあるよ。|仙台市|38.268,140.869|https://miyagi-kankou.or.jp/theme/detail.php?id=19014
-08|水戸納豆|みとなっとう|特産品・加工品|水戸の名物。大豆を発酵させて作るよ。小粒の納豆や、わらで包んだ納豆もあるよ。|水戸市|36.366,140.471|https://www.maff.go.jp/j/keikaku/syokubunka/traditional-foods/menu/natto_ibaraki.html
-09|栃木のいちご|とちぎのいちご|特産品・農産物|栃木県ではいちご作りがさかん。「とちあいか」や「とちおとめ」という品種があるよ。|||https://www.pref.tochigi.lg.jp/c05/kensei/aramashi/sangyou/nouringyou/ichigo.html
-12|落花生（ピーナッツ）|らっかせい、ぴーなっつ|特産品・農産物|千葉県では八街市などで落花生を育てるよ。花が咲いたあと、土の中でさやが育つよ。|八街市|35.666,140.318|https://www.pref.chiba.lg.jp/ryuhan/pbmgm/zukan/kome/rakkase.html
-12|房州びわ|ぼうしゅうびわ|特産品・農産物|千葉県の南房総で育つ果物。オレンジ色の実は大きく、みずみずしいよ。|南房総市 富浦地区|35.041,139.837|https://www.pref.chiba.lg.jp/ryuhan/pbmgm/zukan/kajitsu/biwa.html
-15|魚沼産コシヒカリ|うおぬまさんこしひかり|特産品・農産物|新潟県の魚沼地域で作られるお米。魚沼市には、魚野川とそこに流れ込む川があるよ。|魚沼市|37.232,138.962|https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/area_stories/niigata.html
-23|味噌煮込みうどん|みそにこみうどん|有名な食べ物|愛知で親しまれている麺料理。豆みそを使ったつゆで、うどんをぐつぐつ煮るよ。|||https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/misonikomiudon_aichi.html
-24|松阪牛|まつさかうし|特産品・畜産物|三重県の松阪市などの決められた地域で、条件に沿って育てた牛だよ。すき焼きなどで味わえるよ。|松阪市|34.577,136.527|https://www.city.matsusaka.mie.jp/site/matsusakaushi/matsusakaushitowa.html
-25|近江牛|おうみぎゅう|特産品・畜産物|滋賀県で育てられる、歴史の長い牛肉のブランドだよ。|||https://www.pref.shiga.lg.jp/gc00/6910.html
-25|近江米|おうみまい|特産品・農産物|滋賀県で育つお米。琵琶湖のまわりに広がる田んぼでも作られているよ。|||https://www.pref.shiga.lg.jp/gc00/6910.html
-38|愛媛の温州みかん|えひめのうんしゅうみかん|特産品・農産物|愛媛県ではいろいろなかんきつを育てているよ。温州みかんは、手で皮をむいて食べやすいみかんだよ。|||https://www.kankitsu.aifood.jp/about/1/
-40|辛子明太子|からしめんたいこ|特産品・加工品|福岡の名物。スケトウダラの卵を、とうがらしなどで味つけした食べ物だよ。|福岡市|33.590,130.401|https://www.crossroadfukuoka.jp/spot/12647
-42|長崎びわ|ながさきびわ|特産品・農産物|長崎市の茂木などで育つ果物。うすい皮の中にやわらかい果肉があり、真ん中に大きな種があるよ。|長崎市 茂木地区|32.695,129.919|https://www.city.nagasaki.lg.jp/page/2435.html
-45|宮崎の完熟マンゴー|みやざきのかんじゅくまんごー|特産品・農産物|実がしっかり熟して、枝から自然に落ちるところをネットで受け止めて収穫するよ。|宮崎市|31.907,131.421|https://www.city.miyazaki.miyazaki.jp/business/agriculture_and_fisheries/delicious/206994.html
-46|かごしま黒豚|かごしまくろぶた|特産品・畜産物|鹿児島県を代表する畜産物の一つ。とんかつやしゃぶしゃぶなどに使われるよ。|||https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/area_stories/kagoshima.html
-47|ゴーヤーチャンプルー|ごーやーちゃんぷるー|有名な食べ物|苦みのあるゴーヤーを、豆腐や卵などと炒める沖縄の家庭料理だよ。|||https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/47_11_okinawa.html
-"""
-REPRESENTATIVE_FOODS = {}
-for row in REPRESENTATIVE_FOOD_ROWS.strip().splitlines():
-    pid, name, reading, category, intro, locality, location, source = row.split("|")
-    place = {"label":locality, "point":project(pid, location)} if location else None
-    REPRESENTATIVE_FOODS.setdefault(pid, []).append(
-        dict(name=name, reading=reading, category=category, intro=intro, source=source, place=place))
-
-PRODUCT_DISPLAY = {
-    "07": dict(name="福島の桃（あかつき）", reading="ふくしまのもも、あかつき",
-               source="https://www.pref.fukushima.lg.jp/w4/engeijin/peach/"),
-    "30": dict(name="和歌山の有田みかん", reading="わかやまのありだみかん",
-               source="https://www.pref.wakayama.lg.jp/prefg/130400/kannkou/tokusannhin.html"),
-}
-
 DISCOVERY = {
-    pid: {**info, "capital_point": project(pid, CAPITAL_POINTS[pid]),
-          "land_point": project(pid, info["place"]), "questions": short_discovery_questions(pid),
-          "previous_questions": previous_discovery_questions(pid), "seas": SEA_LABELS.get(pid, []),
-          "local_dish": LOCAL_DISHES[pid], "dish_place": DISH_PLACES[pid], "land_overlay": LAND_OVERLAYS.get(pid),
-          "representative_foods": REPRESENTATIVE_FOODS.get(pid, []), "product_display": PRODUCT_DISPLAY.get(pid, {}),
-          "wheat_place": KAGAWA_WHEAT_PLACE if pid == "37" else None,
-          "product_intro": STORY_INTROS[pid][0], "dish_intro": STORY_INTROS[pid][1],
-          "product_story_photos": ([KAGAWA_RICE_PHOTO, PRODUCT_PHOTOS[pid]] if pid == "37"
-                                   else [PRODUCT_PHOTOS[pid], *ADDITIONAL_PRODUCT_PHOTOS.get(pid, [])]),
-          "regional_industries": [{**story, "photo":REGIONAL_PHOTOS[story["name"]], "place":place}
-                                  for story, place in zip(REGIONAL_INDUSTRIES[pid], INDUSTRY_PLACES[pid], strict=True)],
-          "product_previews": [
-              {"caption":LOCAL_DISHES[pid]["name"], **{key:LOCAL_DISHES[pid][key] for key in ("image", "source", "credit")}},
-              PRODUCT_PHOTOS[pid],
-          ],
+    pid: {**{key: info[key] for key in ("name", "reading", "capital", "capital_reading", "land", "land_reading", "kind", "climate")},
+          "capital_point": project(pid, CAPITAL_POINTS[pid]),
+          "land_point": project(pid, info["place"]), "questions": exam_industry_questions(pid),
+          "industry_stories": EXAM_STORIES[pid], "seas": SEA_LABELS.get(pid, []),
+          "land_overlay": LAND_OVERLAYS.get(pid),
           "core_rivers": [feature["name"] for feature in VERIFIED_MAP[pid]["rivers"]
                           if feature["name"] in CORE_RIVERS or feature["name"] == info["land"]],
           "core_peaks": [feature["name"] for feature in VERIFIED_MAP[pid]["peaks"]
                          if re.split("[（＜]", feature["name"])[0] in CORE_PEAKS
                          or feature["name"].startswith(info["land"])],
-          "industry_icon": INDUSTRY_MAP[pid][0], "industry_points": INDUSTRY_MAP[pid][1],
           "land_neighbors": LAND_NEIGHBORS.get(pid, []),
-          "sea_neighbors": SEA_NEIGHBORS.get(pid, []), "local_product": LOCAL_PRODUCTS[pid],
-          **VERIFIED_MAP[pid]}
+          "sea_neighbors": SEA_NEIGHBORS.get(pid, []), **VERIFIED_MAP[pid]}
     for pid, info in PREFECTURE_INFO.items()
 }
 
@@ -2890,10 +2514,10 @@ def build_records(raw, profile, assignment=None, now=None):
         return build_legacy_records(raw, profile, assignment, now)
     attempt = UUID(raw["id"])
     content_version = raw.get("content_version", PREVIOUS_VERSION)
-    if content_version not in (VERSION, PREVIOUS_VERSION):
+    if content_version not in (VERSION, ARCHIVE_VERSION, PREVIOUS_VERSION):
         raise ValueError("unknown quiz version")
-    current_quiz = content_version == VERSION
-    menu = (MENUS if current_quiz else PREVIOUS_MENUS)[raw["menu"]]
+    old_quiz = content_version == PREVIOUS_VERSION
+    menu = (PREVIOUS_MENUS if old_quiz else MENUS)[raw["menu"]]
     pid = raw["pref"]
     status = raw["status"]
     lo, hi = parse(raw["started"]), parse(raw["ended"])
@@ -2946,11 +2570,17 @@ def build_records(raw, profile, assignment=None, now=None):
                 add("learning_activity", at, {**data, "activity": "prefecture_feature_opened", "feature": feature})
         else:
             raise ValueError("invalid activity")
-    if items and (not placed or (not current_quiz and not {"capital", "land", "industry"} <= opened)):
+    if items and (not placed or (content_version != ARCHIVE_VERSION and not {"capital", "land", "industry"} <= opened)):
         raise ValueError("exploration missing")
 
     correct = answered = 0
-    sources = DISCOVERY[pid]["questions" if current_quiz else "previous_questions"]
+    if old_quiz:
+        sources = previous_discovery_questions(pid)
+    elif content_version == ARCHIVE_VERSION:
+        sources = [dict(id=ident, correct="0", skill=skill)
+                   for ident, skill in zip(ARCHIVE_QUESTIONS_V3[pid], ARCHIVE_QUESTION_SKILLS, strict=True)]
+    else:
+        sources = DISCOVERY[pid]["questions"]
     for index, item in enumerate(items):
         question = sources[index]
         at = parse(item["shown"])
@@ -3005,7 +2635,8 @@ def build_records(raw, profile, assignment=None, now=None):
             sorted(events, key=lambda e:e[0]), 1):
         event = dict(schema_version=1, source_app=SOURCE, profile_id=profile, attempt_id=str(attempt),
             event_id=str(uuid5(attempt, f"event:{sequence}")),
-            app_version="3.0.0" if current_quiz else "2.0.0", content_version=content_version,
+            app_version={PREVIOUS_VERSION:"2.0.0", ARCHIVE_VERSION:"3.0.0", VERSION:"4.0.0"}[content_version],
+            content_version=content_version,
             event_type=kind, occurred_at=iso(when), sequence=sequence, question_id=question,
             occurrence_id=occurrence, segment_id=segment, payload=payload)
         event["event_hash"] = hashlib.sha256(json.dumps(event, sort_keys=True, ensure_ascii=False,
@@ -3121,7 +2752,7 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
 .capital-point .capital-name{fill:var(--explanation-accent);font-size:19px;font-weight:850;paint-order:stroke;stroke:#fffef4;stroke-width:3.5;stroke-linejoin:round}
 .sea-name{fill:#607e85;font-size:15px;font-weight:650;paint-order:stroke;stroke:#dff4f3;stroke-width:3;pointer-events:none}
 .sea-name.bay-name{font-size:12px}
-.product-previews{display:grid;gap:5px}
+.industry-shortcuts{display:grid;gap:5px}
 #fact-land-extent{pointer-events:none;stroke-width:1.4;stroke-linejoin:round;stroke-linecap:round;
   vector-effect:non-scaling-stroke}
 #fact-land-extent.land-area{fill:#f4b65b;fill-opacity:.62;stroke:#a66629}
@@ -3132,33 +2763,19 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
 .place-reference.primary-land{font-size:17px;font-weight:850;fill:var(--explanation-accent)}
 #fact-title,#industry-name{color:var(--explanation-accent)}
 .place-reference.secondary-land{fill:#587970}
-.product-previews figure{margin:0;min-width:0;padding:3px;border-radius:7px;background:#fffef5}
-.product-previews a{display:block;color:#285547;text-decoration:none}
-.product-previews a:focus-visible{outline:2px solid #195b48;outline-offset:-2px}
-.product-previews img{display:block;width:100%;height:44px;object-fit:contain;background:#f1f1e7;border-radius:4px}
-.product-previews span,.product-previews .photo-credit{display:block;padding:1px 2px;overflow:hidden;
-  text-overflow:ellipsis;white-space:nowrap;font-size:10px;line-height:1.2}
-.product-previews span{font-weight:800}
-.product-previews .photo-credit{font-size:8px;color:#5a746b}
-#fact-map-panel.has-products{display:grid;grid-template-columns:minmax(0,1fr) clamp(176px,31%,300px);
+#fact-map-panel.has-industry-shortcuts{display:grid;grid-template-columns:minmax(0,1fr) clamp(176px,31%,300px);
   gap:3px;align-items:start}
-#fact-map-panel.has-products #fact-map{max-height:none}
-#map-product-previews{padding:5px;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start}
-#map-product-previews figure{padding:2px;background:#fffef5}
-#map-product-previews figure.active{outline:2px solid #a15a29;outline-offset:-2px;background:#fff4de}
-#map-product-previews button{display:block;width:100%;min-height:0;padding:2px;border:0;
+#fact-map-panel.has-industry-shortcuts #fact-map{max-height:none}
+#map-industry-shortcuts{padding:5px;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start}
+#map-industry-shortcuts button[aria-pressed=true]{background:#fff4de;border-color:#a15a29;color:var(--ink)}
+#map-industry-shortcuts button{display:block;width:100%;min-height:44px;padding:6px;border:1px solid var(--edge);
   background:transparent;color:var(--ink);border-radius:4px;text-align:left}
-#map-product-previews img{height:clamp(58px,8vw,90px)}
-#map-product-previews span{white-space:normal;line-height:1.12;padding:1px 2px}
-#map-product-previews .photo-credit{font-size:.68rem;text-decoration:underline}
 @media(max-width:540px){
-  #fact-map-panel.has-products{grid-template-columns:minmax(0,1fr)}
-  #map-product-previews{grid-template-columns:repeat(auto-fit,minmax(min(84px,100%),1fr))}
-  #map-product-previews img{height:clamp(60px,19vw,96px)}
+  #fact-map-panel.has-industry-shortcuts{grid-template-columns:minmax(0,1fr)}
+  #map-industry-shortcuts{grid-template-columns:repeat(auto-fit,minmax(min(84px,100%),1fr))}
 }
 .map-production-region{fill:#eab971;fill-opacity:.20;stroke:#a67747;stroke-width:1}
 .map-production-region.active{fill:#f2a346;fill-opacity:.75;stroke:#8e481b;stroke-width:1.9}
-.production-region.quiet{fill-opacity:.20;stroke-opacity:.45}
 .production-marker text{fill:#70421c;font-weight:800;pointer-events:none}
 .production-marker{cursor:pointer}
 .production-marker circle{fill:#fffef4;stroke:#9b632d;stroke-width:1.15}
@@ -3169,11 +2786,8 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
 .terrain-context .place-reference{fill:#285844}
 .terrain-context .place-reference.river-name{fill:#174f79}
 .terrain-context .place-reference.peak-name{fill:#34584a}
-.terrain-context .production-region{fill-opacity:.34;stroke-dasharray:4 3}
-.terrain-context .production-region.quiet{fill-opacity:.13}
 .production-marker.active circle{fill:#f9d08d;stroke:#8d461c;stroke-width:2}
 .map-peak[role=button],.river-hit{cursor:pointer}
-.production-region{fill:#e6ad65;fill-opacity:.72;stroke:#9a6738;stroke-width:1.7;vector-effect:non-scaling-stroke}
 .map-river{fill:none;stroke:#2d77ab;stroke-width:2.15;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
 .map-river.selected{stroke:#024774;stroke-width:3.65}
 .river-hit{fill:none;stroke:transparent;stroke-width:16;pointer-events:stroke;vector-effect:non-scaling-stroke}
@@ -3214,10 +2828,6 @@ body:has(#medal-dialog[open]){min-height:365px}
   font:inherit;text-align:left;text-decoration:underline;text-underline-offset:3px}
 .local-story .story-pick:hover{color:var(--explanation-accent)}
 .local-story p{margin:4px 0}
-.story-photos{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(160px,100%),1fr));gap:8px;margin:8px 0}
-.story-photos img{display:block;width:100%;height:auto;aspect-ratio:4/3;max-height:260px;
-  object-fit:contain;background:#f8f7ec;border-radius:6px}
-.story-photos:not(:has(img:not([hidden]))){display:none}
 .local-story .story-category,#pref-capital.supplement,
   #map-caption,#nearby-prefectures,.map-key{color:#526f66;font-size:.82rem}
 #map-caption:empty{display:none}
@@ -3296,7 +2906,6 @@ body:has(#medal-dialog[open]){min-height:365px}
           <g id="fact-neighbor-names" aria-hidden="true"></g>
           <g id="fact-water" aria-hidden="true"></g>
 
-          <g id="fact-industry-area" clip-path="url(#fact-clip)" aria-hidden="true"></g>
           <g id="fact-product-regions" clip-path="url(#fact-clip)" aria-hidden="true"></g>
           <g id="fact-rivers" clip-path="url(#fact-clip)"></g>
           <g id="fact-peaks"></g>
@@ -3304,7 +2913,7 @@ body:has(#medal-dialog[open]){min-height:365px}
           <g id="fact-terrain-labels" aria-hidden="true"></g>
           <g id="fact-pins"></g>
         </svg>
-        <div id="map-product-previews" class="product-previews" role="group" aria-label="写真から産地を選ぶ" hidden></div>
+        <div id="map-industry-shortcuts" class="industry-shortcuts" role="group" aria-label="地図で見る産業・特産品を選ぶ" hidden></div>
       </div>
       <div class="map-key">
         <span id="capital-key-group" hidden>★ 県庁所在地</span>
@@ -3366,6 +2975,14 @@ body:has(#medal-dialog[open]){min-height:365px}
   <a href="https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-W05.html" target="_blank" rel="noopener">国土数値情報「河川」</a>・
   <a href="https://www.gsi.go.jp/kihonjohochousa/kihonjohochousa41139.html" target="_blank" rel="noopener">国土地理院「日本の主な山岳標高」</a>・
   <a href="https://geo.maderaojen.me/en/" target="_blank" rel="noopener">国土数値情報「行政区域」加工データ</a>。
+  <details><summary>産業・特産品の参考資料</summary>
+    <a href="https://www.yaruki-assist.com/tips/regular-exam/post-2/" target="_blank" rel="noopener noreferrer">やる気アシスト</a>・
+    <a href="https://manchiri.com/chuugaku/hokkaido/" target="_blank" rel="noopener noreferrer">マンガでわかる中学地理</a>・
+    <a href="https://note.com/eikouroom/n/ne2f853700528" target="_blank" rel="noopener noreferrer">永高の中学受験部屋</a>・
+    <a href="https://testea.net/chugaku-juken/tirihoxtukaidou/" target="_blank" rel="noopener noreferrer">TESTEA</a>・
+    <a href="https://www.maff.go.jp/j/kanbo/tiho/todouhuken_gaiyou2022.html" target="_blank" rel="noopener noreferrer">農林水産省の都道府県資料</a>・
+    <a href="https://www.meti.go.jp/statistics/tyo/kkj/seizo_result.html" target="_blank" rel="noopener noreferrer">経済産業省の製造業統計</a>。
+  </details>
   地形の着色は学習用の目安です。<a href="https://www.gsi.go.jp/bousaichiri/lc_index.html" target="_blank" rel="noopener noreferrer">国土地理院の土地条件図</a>。産地の資料は、<a href="https://www.maff.go.jp/j/kanbo/tiho/todouhuken_gaiyou2022.html" target="_blank" rel="noopener">農林水産省の都道府県資料</a>などを参照しています。
 </footer>
 <script>
@@ -3442,7 +3059,7 @@ function selectOwner(next) {
   cache = load(owner) || {queue:[], history:[], active:null};
   attempt = cache.active;
   zoomed = false;
-  if (attempt && (!menus.get(attempt.menu)?.prefectures.includes(attempt.pref)
+  if (attempt && (attempt.content_version !== args.version || !menus.get(attempt.menu)?.prefectures.includes(attempt.pref)
       || !["map","explore","quiz"].includes(attempt.phase))) {
     cache.previous_active = attempt;
     attempt = null;
@@ -3493,7 +3110,7 @@ function shuffled(values) {
 }
 function init() {
   prefectures = new Map(args.map.map(p => [p.id, p]));
-  menus = new Map([...args.previous_menus,...args.menus].map(menu => [menu.menu_id, menu]));
+  menus = new Map(args.menus.map(menu => [menu.menu_id, menu]));
   for (const pref of prefectures.values()) {
     const path = document.createElementNS(SVG, "path");
     path.setAttribute("d", pref.path);
@@ -3608,9 +3225,8 @@ function courseButton(label, sublabel, run) {
 function assignedCourse() {
   const assignment = args.assignment;
   if (!assignment?.plan_item_id) return null;
-  const courses = assignment.content_version === args.version ? args.menus
-    : assignment.content_version === args.previous_version ? args.previous_menus : [];
-  const menu = courses.find(item => item.menu_id === assignment.menu_id);
+  if (assignment.content_version !== args.version) return null;
+  const menu = menus.get(assignment.menu_id);
   return menu?.prefectures.length && canOpenCourse(menu) ? {assignment, menu} : null;
 }
 function startAssignedCourse() {
@@ -3688,8 +3304,7 @@ function current() { return attempt; }
 function placed() { return attempt.actions.some(a => a.type === "placement" && a.target === attempt.pref); }
 function containsHint() { return attempt.actions.some(a => a.type === "hint"); }
 function info() { return args.discovery[attempt.pref]; }
-function currentQuiz() { return attempt.content_version === args.version; }
-function quizQuestions() { return currentQuiz() ? info().questions : info().previous_questions; }
+function quizQuestions() { return info().questions; }
 function canStartQuiz() { return attempt?.phase === "explore" && didOpen("land") && didOpen("industry"); }
 function didOpen(key) { return attempt.actions.some(a => a.type === "explore" && a.feature === key); }
 function showQuestion() {
@@ -3922,85 +3537,40 @@ function mapWater(pref, item, toMap, scale, tx, ty) {
 }
 
 function mapStories(item) {
-  const product = item.local_product, dish = item.local_dish;
-  const stories = [
-    {key:"product", name:product.name, reading:product.reading, intro:item.product_intro,
-      category:"特産品・ブランド · "+item.industry, source:product.source, ...item.product_display,
-      photos:item.product_story_photos.filter(p=>!item.wheat_place || p.caption!=="さぬきの夢の小麦畑")},
-    ...item.representative_foods.map((story,index)=>({...story,key:"food-"+index,photos:[]})),
-    ...item.regional_industries.map((story,index)=>({key:"regional-"+index, name:story.name,
-      reading:story.reading, intro:story.pitch, photos:[story.photo],
-      category:story.category, source:story.source, place:story.place})),
-  ];
-  if (item.wheat_place) {
-    const photo = item.product_previews[1];
-    stories.push({key:"wheat", name:"さぬきの夢", place:item.wheat_place, category:"特産品・ブランド",
-      intro:"香川で生まれた小麦。粉にして、コシのある讃岐うどんを作るよ。", photos:[photo], source:photo.source});
-  }
-  stories.push({key:"dish", name:dish.name, reading:dish.reading, intro:item.dish_intro,
-    category:"有名な食べ物", source:dish.source,
-    photos:item.product_previews.slice(0,1), place:item.dish_place});
-  return stories.map((story,index)=>({...story, number:index+1}));
+  return item.industry_stories.map((story,index)=>({...story, number:index+1}));
 }
 function selectedMapStory(stories) {
   return stories.find(story=>story.key===attempt.mapStory) || stories[0];
 }
-function selectMapStory(key, focusPhoto = true) {
+function selectMapStory(key, focusChoice = true) {
   if (attempt?.phase !== "explore" || attempt.view !== "industry") return;
   const item = info();
   if (!mapStories(item).some(story=>story.key===key)) return;
   wake();
   attempt.mapStory = key;
   renderFactMap(prefectures.get(attempt.pref),item,"industry");
-  if (focusPhoto) $("map-product-previews").querySelector(`button[data-story="${key}"]`)?.focus({preventScroll:true});
+  if (focusChoice) $("map-industry-shortcuts").querySelector(`button[data-story="${key}"]`)?.focus({preventScroll:true});
   readCurrent();
   persist();
 }
-function storyImage(media, alt, loading = "eager") {
-  const image = document.createElement("img");
-  image.referrerPolicy = "no-referrer";
-  image.alt = alt;
-  image.loading = loading;
-  image.decoding = "async";
-  image.onerror = () => {image.hidden = true;};
-  image.src = media.image;
-  return image;
-}
-function renderProductPreviews(pref, stories, active) {
-  const gallery = $("map-product-previews");
-  const visible = Boolean(active);
-  $("fact-map-panel").classList.toggle("has-products",visible);
-  gallery.hidden = !visible;
-  if (!visible) return;
-  if (gallery.dataset.prefecture !== pref.id) {
-    gallery.dataset.prefecture = pref.id;
-    gallery.replaceChildren(...stories.flatMap(story=>story.photos.map(media=>{
-      const card = document.createElement("figure");
-      card.dataset.story = story.key;
+function renderIndustryShortcuts(pref, stories, active) {
+  const shortcuts = $("map-industry-shortcuts");
+  $("fact-map-panel").classList.toggle("has-industry-shortcuts",Boolean(active));
+  shortcuts.hidden = !active;
+  if (!active) return;
+  if (shortcuts.dataset.prefecture !== pref.id) {
+    shortcuts.dataset.prefecture = pref.id;
+    shortcuts.replaceChildren(...stories.map(story=>{
       const pick = document.createElement("button");
       pick.type = "button";
+      pick.className = "secondary";
       pick.dataset.story = story.key;
+      pick.textContent = `${story.number}. ${story.name}`;
       pick.onclick = () => selectMapStory(story.key);
-      const image = storyImage(media,"");
-      const label = document.createElement("span");
-      label.textContent = story.number+". "+media.caption;
-      const source = document.createElement("a");
-      source.href = media.image;
-      source.className = "photo-credit";
-      source.target = "_blank";
-      source.rel = "noopener noreferrer";
-      source.title = "写真："+media.credit;
-      source.textContent = "画像を開く";
-      pick.append(image,label);
-      card.append(pick,source);
-      return card;
-    })));
+      return pick;
+    }));
   }
-  for (const card of gallery.children) {
-    const on = active.key === card.dataset.story;
-    card.classList.toggle("active",on);
-    card.querySelector("button").setAttribute("aria-pressed",String(on));
-  }
+  for (const pick of shortcuts.children) pick.setAttribute("aria-pressed",String(pick.dataset.story===active.key));
 }
 
 function factMapProjection(pref) {
@@ -4059,21 +3629,13 @@ function renderTerrainLabels(features, occupied) {
 }
 
 function renderIndustryMap(pref,item,projection,occupied) {
-  const {transform,toMap} = projection;
+  const {toMap} = projection;
   const stories = mapStories(item);
   const active = selectedMapStory(stories);
-  renderProductPreviews(pref,stories,active);
+  renderIndustryShortcuts(pref,stories,active);
   renderIndustryStories(pref,stories,active);
-  $("fact-industry-area").replaceChildren(svgNode("path",{
-    d:item.production_area,transform,class:"production-region"+(active.key==="product"?"":" quiet"),
-    "fill-rule":"evenodd",
-  }));
   const regions = $("fact-product-regions"), pins = $("fact-pins");
-  // Keep markers in the same positions when the learner changes the selection.
-  const sites = [
-    ...item.industry_points.map(site=>({story:stories[0],label:site.name,point:site.point})),
-    ...stories.filter(story=>story.place).map(story=>({story,label:story.place.label,point:story.place.point})),
-  ];
+  const sites = stories.map(story=>({story,label:story.place.label,point:story.place.point}));
   for (const {story,label,point} of sites) {
     const selected = story===active;
     const origin = toMap(point);
@@ -4090,11 +3652,9 @@ function renderIndustryMap(pref,item,projection,occupied) {
     }),{textContent:String(story.number)}));
     pins.append(featureControl(marker,story.name+"："+label,()=>selectMapStory(story.key)));
   }
-  $("industry-key-symbol").innerHTML = active.key === "product" ? INDUSTRY_ICONS[item.industry_icon] : "";
+  $("industry-key-symbol").innerHTML = INDUSTRY_ICONS[active.icon] || '<circle cx="12" cy="12" r="7" fill="#83c6a2"/>';
   $("industry-name").textContent = active.name;
-  const locality = active.place ? active.place.label+"（代表地の周辺）" : active.key === "product"
-    ? item.production_cities.join("・")+"（産地を含む市町村）" : "";
-  $("map-caption").textContent = active.number+". "+active.name+(locality?"："+locality:"");
+  $("map-caption").textContent = `${active.number}. ${active.name}：${active.place.label}（代表地）`;
 }
 
 function renderFactMap(pref, item, selected) {
@@ -4106,11 +3666,10 @@ function renderFactMap(pref, item, selected) {
   $("fact-shape").setAttribute("transform",transform);
   renderFactNeighbors(pref,item,transform,toMap,scale,tx,ty);
   mapWater(pref,item,toMap,scale,tx,ty);
-  if (selected !== "industry") renderProductPreviews(pref);
+  if (selected !== "industry") renderIndustryShortcuts(pref);
   const extent = $("fact-land-extent");
   extent.setAttribute("hidden","");
-  for (const id of ["fact-rivers","fact-peaks","fact-industry-area","fact-product-regions","fact-leaders","fact-terrain-labels","fact-pins","relief-controls"]) $(id).replaceChildren();
-  $("fact-industry-area").hidden = selected !== "industry";
+  for (const id of ["fact-rivers","fact-peaks","fact-product-regions","fact-leaders","fact-terrain-labels","fact-pins","relief-controls"]) $(id).replaceChildren();
   $("relief-controls").hidden = $("relief-list-title").hidden = selected !== "land";
   $("terrain-key-group").hidden = selected === "capital";
   $("industry-key-group").hidden = selected !== "industry";
@@ -4280,7 +3839,7 @@ function speakText(text, item = null) {
   }
   // Keep normal Japanese spelling and punctuation for the speech engine's phrasing.
   if (item) for (const [label,reading] of [[item.name,item.reading],[item.capital,item.capital_reading],
-      [item.land,item.land_reading],[item.industry,item.industry_reading]]) {
+      [item.land,item.land_reading]]) {
     text = text.replaceAll(label+"（"+reading+"）",label);
   }
   const speech = new SpeechSynthesisUtterance(text);
@@ -4435,30 +3994,8 @@ function renderIndustryStories(pref, stories, active) {
       source.href = story.source;
       source.target = "_blank";
       source.rel = "noopener noreferrer";
-      source.textContent = "出典を見る";
-      card.append(category,heading,pitch);
-      if (story.photos.length) {
-        const photos = document.createElement("div");
-        photos.className = "story-photos";
-        photos.append(...story.photos.map(media=>storyImage(media,media.caption,"lazy")));
-        card.append(photos);
-      }
-      card.append(source);
-      for (const photo of story.photos.filter(photo=>photo.license)) {
-        const credit = document.createElement("p");
-        credit.className = "story-category";
-        const author = document.createElement("a"), license = document.createElement("a");
-        author.href = photo.source;
-        author.textContent = photo.credit;
-        license.href = photo.license;
-        license.textContent = "CC BY-SA " + photo.license.split("/").filter(Boolean).at(-1);
-        for (const link of [author,license]) {
-          link.target = "_blank";
-          link.rel = "noopener noreferrer";
-        }
-        credit.append("写真：",author,"（",license,"）");
-        card.append(credit);
-      }
+      source.textContent = story.source_label;
+      card.append(category,heading,pitch,source);
       return card;
     }));
   }
@@ -4501,36 +4038,21 @@ function normalizeQuizSpeech(text) {
     .replace(/[ァ-ヶ]/g, letter=>String.fromCharCode(letter.charCodeAt(0)-0x60))
     .replace(/[\s\p{P}\p{S}]/gu,"");
 }
-const CHOICE_SPEECH_ALIASES = {
-  "低く平らな土地が広がる":["ひくくたいらなとちがひろがる"],
-  "低い丘がいくつも続く":["ひくいおかがいくつもつづく"],
-  "まわりより一段高い平地が広がる":["まわりよりいちだんたかいへいちがひろがる","周りより一段高い平地が広がる"],
-  "山にかこまれた平らな土地":["やまにかこまれたたいらなとち","山に囲まれた平らな土地"],
-  "海に向かって広がる平らな土地":["うみにむかってひろがるたいらなとち"],
-  "まわりより高く平らな土地":["まわりよりたかくたいらなとち","周りより高く平らな土地"],
-  "風で運ばれた砂が積もった丘":["かぜではこばれたすながつもったおか"],
-  "海の波でけずられたがけ":["うみのなみでけずられたがけ","海の波で削られた崖"],
-  "川が運んだ土でできた平地":["かわがはこんだつちでできたへいち"],
-  "海が陸に入りこんでいる":["うみがりくにはいりこんでいる","海が陸に入り込んでいる"],
-  "陸が海につき出している":["りくがうみにつきだしている","陸が海に突き出している"],
-  "海が二つの陸の間を通っている":["うみがふたつのりくのあいだをとおっている"],
-  "陸のまわりがすべて海":["りくのまわりがすべてうみ","陸の周りがすべて海"],
-  "陸の一方だけが海につき出す":["りくのいっぽうだけがうみにつきだす","陸の一方だけが海に突き出す"],
-  "かき":["牡蠣"], "れんこん":["蓮根"], "しらす":["白子"], "ふぐ":["河豚"],
-  "ふなずし":["鮒ずし","鮒寿司"], "みかん":["蜜柑"], "ねぎ":["葱"], "わかめ":["若布"],
-  "たまねぎ":["玉ねぎ","玉葱"], "らっきょう":["辣韮"], "なす":["茄子"],
-};
 function choiceVoiceForms(label) {
   const base = label.replace(/[（(][^）)]+[）)]/g,"");
   const notes = [...label.matchAll(/[（(]([^）)]+)[）)]/g)].flatMap(match=>match[1].split(/[、／/]/u));
-  return [base, ...notes, label, ...(CHOICE_SPEECH_ALIASES[base] || [])];
+  return [base, ...notes, label];
 }
 function prefectureVoiceForms(pref) {
   return [pref.name, pref.reading].filter(Boolean).map(normalizeQuizSpeech);
 }
 function parseQuizSpeech(text, question, recorded, pref) {
   const phrase = normalizeQuizSpeech(text);
-  const choices = recorded.options.map(key=>[key,choiceVoiceForms(question.options[Number(key)]).map(normalizeQuizSpeech)]);
+  const choices = recorded.options.map(key=>{
+    const index = Number(key);
+    return [key,[...choiceVoiceForms(question.options[index]), question.readings?.[index]]
+      .filter(Boolean).flatMap(form=>[form, ...form.split("、")]).map(normalizeQuizSpeech)];
+  });
   const nameQuestion = question.id.endsWith(".name");
   const prefectureNames = nameQuestion ? choices.flatMap(([,forms])=>forms) : prefectureVoiceForms(pref);
   const prefixes = prefectureNames.flatMap(name=>[name+"は",name+"わ"]).sort((a,b)=>b.length-a.length);
@@ -4684,7 +4206,7 @@ function finish(status) {
     const right = attempt.questions.filter(q=>q.choice === "0").length;
     const item = info();
     $("summary").textContent = `${right === total ? "金" : "銀"}メダル　${item.name}　${right} / ${total}問 正解`;
-    $("result-reason").textContent = item.link;
+    $("result-reason").textContent = item.questions.map(q=>q.explanation).join(" ");
     medalResult = {id:attempt.id,grade:right===total?"gold":"silver",mode:profile?"saving":"local",info:item};
     $("medal-score").textContent = `${item.name}　${right} / ${total}問 正解`;
     diagnostic("round_finished",{state:"completed"});
@@ -5046,8 +4568,8 @@ def main():
             state.update(ticket=ticket, launch=mark)
     base = setting("SUPABASE_URL")
     configured = https(base) and bool(setting("SUPABASE_SERVICE_ROLE_KEY") or setting("SUPABASE_SECRET_KEY"))
-    if configured and not state.get("catalog_checked"):
-        state["catalog_checked"] = True
+    if configured and state.get("catalog_checked") != VERSION:
+        state["catalog_checked"] = VERSION
         start = perf_counter()
         outcome, fields = "saved", {}
         try:
@@ -5069,7 +4591,6 @@ def main():
         cm_poll_graduation(st, state, profile, 'geography', lambda: cm_geography_graduation_rows(profile))
     check_graduation()
     message = component(graduated_units=state.get('_cm_graduation_units', []), map=MAP, discovery=DISCOVERY, menus=list(MENUS.values()),
-        previous_menus=list(PREVIOUS_MENUS.values()), previous_version=PREVIOUS_VERSION,
         version=VERSION, build=build, age=state.get("age"),
         configured=configured, profile=state.get("profile"),
         plan_launch=bool(state.get("launch")), assignment=state.get("assignment"), ack=state.get("ack"), catalog_status=state.get("catalog_status"),
