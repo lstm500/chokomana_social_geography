@@ -3209,7 +3209,7 @@ body:has(#medal-dialog[open]){min-height:365px}
     <div id="assigned-course" hidden></div>
     <div id="courses"></div>
     <div class="menu-extra">
-      <button id="national-course" class="secondary">全国から 出題</button>
+      <button id="national-course" class="secondary" hidden>全国から 出題</button>
       <button id="export" class="secondary">UI・通信ログを保存</button>
     </div>
   </section>
@@ -3495,11 +3495,32 @@ function courseAreas(menu) {
   ];
   return menu.region === "all" ? [] : [{key:menu.region, ids:menu.prefectures}];
 }
+function availableCourses() {
+  const age = ageValue();
+  return args.menus.filter(menu => menu.age_min <= age && age <= menu.age_max);
+}
+function completedPrefectures(regionalOnly) {
+  return new Set(cache.history.filter(item => {
+    if (item.status !== "completed") return false;
+    if (!regionalOnly) return true;
+    const menu = menus.get(item.menu);
+    return menu && menu.region !== "all" && menu.prefectures.includes(item.pref);
+  }).map(item => item.pref));
+}
+function nationalCourseUnlocked() {
+  const regional = availableCourses().filter(menu => menu.region !== "all");
+  const completed = completedPrefectures(true);
+  return regional.length > 0 && regional.every(menu =>
+    cmCourseIsGraduated(menu) || menu.prefectures.every(id => completed.has(id)));
+}
+function canOpenCourse(menu) {
+  return Boolean(menu && (menu.region !== "all" || nationalCourseUnlocked()));
+}
 function beginCourse(menu, area, assignment = null, contentVersion = args.version) {
-  if (!menu || cmCourseIsGraduated(menu)) return;
+  if (!canOpenCourse(menu) || cmCourseIsGraduated(menu)) return;
   if (attempt) finish("abandoned");
   const ids = area?.ids || menu.prefectures;
-  const learned = new Set(cache.history.filter(a => a.status === "completed").map(a => a.pref));
+  const learned = completedPrefectures(menu.region !== "all");
   const fresh = ids.filter(id => !learned.has(id));
   attempt = {id:uuid(), menu:menu.menu_id, pref:shuffled(fresh.length ? fresh : ids)[0], started:time(),
     content_version:contentVersion,
@@ -3542,7 +3563,7 @@ function assignedCourse() {
   const courses = assignment.content_version === args.version ? args.menus
     : assignment.content_version === args.previous_version ? args.previous_menus : [];
   const menu = courses.find(item => item.menu_id === assignment.menu_id);
-  return menu?.prefectures.length ? {assignment, menu} : null;
+  return menu?.prefectures.length && canOpenCourse(menu) ? {assignment, menu} : null;
 }
 function startAssignedCourse() {
   if (!args.plan_launch || !profile || planLaunchHandled || stage !== "menu") return false;
@@ -3564,7 +3585,7 @@ function showMenu() {
   const age = ageValue();
   $("age").value = String(Math.min(age,11));
   $("age").disabled = Boolean(args.age);
-  $("resume").hidden = !attempt;
+  $("resume").hidden = !attempt || !canOpenCourse(menus.get(attempt.menu));
   const course = assignedCourse();
   $("assigned-course").hidden = !course;
   if (course) {
@@ -3573,12 +3594,14 @@ function showMenu() {
       `1つの都道府県・${menu.planned_question_count}問`,
       () => beginCourse(menu, null, assignment.plan_item_id, assignment.content_version)));
   }
-  const list = args.menus.filter(menu => menu.age_min <= age && age <= menu.age_max);
+  const list = availableCourses();
   const national = list.find(menu => menu.region === "all");
-  $("national-course").onclick = () => beginCourse(national, null);
-  $("national-course").disabled = !national || cmCourseIsGraduated(national);
-  $("national-course").querySelector('.cm-graduation-badge')?.remove();
-  if(cmCourseIsGraduated(national))$("national-course").append(cmGraduationBadge());
+  const nationalButton = $("national-course");
+  nationalButton.hidden = !canOpenCourse(national);
+  nationalButton.disabled = nationalButton.hidden || cmCourseIsGraduated(national);
+  nationalButton.onclick = () => beginCourse(national, null);
+  nationalButton.querySelector('.cm-graduation-badge')?.remove();
+  if (!nationalButton.hidden && cmCourseIsGraduated(national)) nationalButton.append(cmGraduationBadge());
   $("courses").replaceChildren(...list.flatMap(menu => courseAreas(menu).map(area =>
     cmCourseButton(menu, AREA_LABELS[area.key], `1つの都道府県・${menu.planned_question_count}問`,
       () => beginCourse(menu, area)))));
@@ -4570,7 +4593,11 @@ $("quit").onclick = () => {
   showMenu();
   $("region-heading").focus({preventScroll:true});
 };
-$("resume").onclick = () => { showQuestion(); readCurrent(); };
+$("resume").onclick = () => {
+  if (!attempt || !canOpenCourse(menus.get(attempt.menu))) return;
+  showQuestion();
+  readCurrent();
+};
 $("voice-toggle").onchange = () => {
   autoVoice = $("voice-toggle").checked;
   if (autoVoice) readCurrent(); else cancelSpeech();
