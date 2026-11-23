@@ -998,7 +998,8 @@ CAPITAL_DATA = """
 PREVIOUS_VERSION = "geography-prefecture-discovery-2"
 ARCHIVE_VERSION = "geography-prefecture-discovery-3"
 DESCRIPTIVE_VERSION = "geography-prefecture-discovery-4"
-VERSION = "geography-prefecture-discovery-5"
+TWO_QUESTION_VERSION = "geography-prefecture-discovery-5"
+VERSION = "geography-prefecture-discovery-6"
 # 年齢の帯は、ホームの年齢設定と単独利用の年齢選択で共通。
 AGE_BANDS = [(1, 6, 2), (7, 7, 4), (8, 9, 6), (10, 10, 8), (11, 100, 10)]
 SKILLS = {
@@ -1051,8 +1052,25 @@ MENUS = {
 
 
 PREVIOUS_MENUS = MENUS
-MENUS = {key: {**menu, "age_min": 1, "age_max": 100}
-         for key, menu in PREVIOUS_MENUS.items() if menu["planned_question_count"] == 2}
+TWO_QUESTION_MENUS = {key: {**menu, "age_min": 1, "age_max": 100}
+                      for key, menu in PREVIOUS_MENUS.items() if menu["planned_question_count"] == 2}
+QUIZ_SKILLS = ("capital", "map", "industry")
+QUIZ_QUESTION_COUNT = len(QUIZ_SKILLS)
+MENUS = {}
+# Keep course identifiers stable so the planner can replace the published version.
+for menu_id, previous in TWO_QUESTION_MENUS.items():
+    count = QUIZ_QUESTION_COUNT
+    MENUS[menu_id] = {
+        **previous,
+        "difficulty_id": f"discovery_{count}", "question_count_default": count,
+        "planned_question_count": count, "estimated_duration_ms": 100_000 + count * 30_000,
+        "skill_ids": [f"geography.discovery.{skill}" for skill in QUIZ_SKILLS],
+        "selection_instructions": [
+            "都道府県のピースを地図にはめる",
+            "拡大地図で県庁所在地・地形・産業を発見する",
+            "県庁所在地、地形、産業・特産品から各1問に答える",
+        ],
+    }
 
 
 def previous_discovery_questions(pid):
@@ -2507,10 +2525,64 @@ for row in EXAM_NAME_ROWS.strip().splitlines():
     ))
 
 
+# These prefectures' previous quiz answers named places. Ask about the product or work described in the study card.
+INDUSTRY_QUIZ_QUESTIONS = {
+    "01": (1, "根釧台地で、乳牛を育てて牛乳を作る仕事は？",
+           ("酪農", "らくのう"), ("稲作", "いなさく"), ("造船業", "ぞうせんぎょう")),
+    "04": (1, "宮城県の松島湾で、海につるして育てる貝は？",
+           ("カキ", "かき"), ("シジミ", "しじみ"), ("アワビ", "あわび")),
+    "16": (1, "富山市の売薬の伝統とつながりが深い工業は？",
+           ("医薬品工業", "いやくひんこうぎょう"), ("造船業", "ぞうせんぎょう"), ("製鉄業", "せいてつぎょう")),
+    "22": (0, "静岡県の牧之原台地で、葉を摘み取って加工する作物は？",
+           ("茶", "ちゃ"), ("みかん", "みかん"), ("メロン", "めろん")),
+    "24": (0, "三重県の英虞湾で、アコヤガイを育てて作るものは？",
+           ("真珠", "しんじゅ"), ("干しのり", "ほしのり"), ("かつお節", "かつおぶし")),
+    "32": (0, "島根県の宍道湖でとれる、川の水と海水が混ざる場所にすむ貝は？",
+           ("ヤマトシジミ", "やまとしじみ"), ("アコヤガイ", "あこやがい"), ("ホタテガイ", "ほたてがい")),
+}
+
+
+def prefecture_quiz(pid):
+    info = PREFECTURE_INFO[pid]
+    region = region_of(pid)[0]
+    others = sorted((other for other in PREFECTURE_INFO if other != pid),
+                    key=lambda other: (region_of(other)[0] != region, abs(int(other) - int(pid))))
+
+    def fact_question(field, skill, prompt, explanation):
+        answer = info[field]
+        choices = {answer: info[f"{field}_reading"]}
+        for other in others:
+            entry = PREFECTURE_INFO[other]
+            choices.setdefault(entry[field], entry[f"{field}_reading"])
+            if len(choices) == 3:
+                break
+        return dict(id=f"geography.discovery.{pid}.quiz3.{field}", prompt=prompt,
+                    options=[f"{name}（{reading}）" for name, reading in choices.items()],
+                    readings=list(choices.values()), correct="0", skill=skill, explanation=explanation)
+
+    capital = fact_question("capital", "capital", "都道府県庁所在地はどこ？",
+                            f"{info['name']}の都道府県庁所在地は{info['capital']}です。")
+    terrain = fact_question("land", "map", "地図でたしかめた主な地形の名前は？",
+                            f"{info['land']}は、この地図で学んだ{info['kind']}です。")
+    if pid in INDUSTRY_QUIZ_QUESTIONS:
+        story_index, prompt, *options = INDUSTRY_QUIZ_QUESTIONS[pid]
+        industry = dict(prompt=prompt, options=[name if name == kana else f"{name}（{kana}）" for name, kana in options],
+                        readings=[kana for _, kana in options], correct="0", skill="industry",
+                        explanation=EXAM_STORIES[pid][story_index]["intro"])
+    else:
+        industry = next(q for q in EXAM_QUESTIONS[pid]
+                        if q["skill"] == "industry"
+                        and not q["options"][0].split("（", 1)[0].endswith(("市", "町", "村", "港"))
+                        and q["options"][0].split("（", 1)[0] != "阿蘇")
+    industry = {**industry, "id": f"geography.discovery.{pid}.quiz3.industry"}
+    return [capital, terrain, industry]
+
+
 DISCOVERY = {
     pid: {**{key: info[key] for key in ("name", "reading", "capital", "capital_reading", "land", "land_reading", "kind", "climate")},
           "capital_point": project(pid, CAPITAL_POINTS[pid]),
-          "land_point": project(pid, info["place"]), "questions": EXAM_QUESTIONS[pid],
+          "land_point": project(pid, info["place"]), "questions": prefecture_quiz(pid),
+          "previous_questions": EXAM_QUESTIONS[pid],
           "industry_stories": EXAM_STORIES[pid], "seas": SEA_LABELS.get(pid, []),
           "land_overlay": LAND_OVERLAYS.get(pid),
           "core_rivers": [feature["name"] for feature in VERIFIED_MAP[pid]["rivers"]
@@ -2534,11 +2606,11 @@ def catalog():
     for ident, menu in MENUS.items():
         yield entry("menu", ident, menu)
     for pid, info in DISCOVERY.items():
-        for index, q in enumerate(info["questions"]):
+        for q in info["questions"]:
             yield entry("question", q["id"], dict(
                 question_id=q["id"], prompt=q["prompt"], label=q["prompt"], skill_ids=[f"geography.discovery.{q['skill']}"],
                 question_family_id=f"geography.discovery.{q['skill']}", prefecture_id=pid,
-                menu_ids=[key for key, menu in MENUS.items() if pid in menu["prefectures"] and index < menu["planned_question_count"]],
+                menu_ids=[key for key, menu in MENUS.items() if pid in menu["prefectures"]],
                 assessment_method="automatic", correct_option_id=q["correct"]))
 
 
@@ -2547,10 +2619,14 @@ def build_records(raw, profile, assignment=None, now=None):
         return build_legacy_records(raw, profile, assignment, now)
     attempt = UUID(raw["id"])
     content_version = raw.get("content_version", PREVIOUS_VERSION)
-    if content_version not in (VERSION, DESCRIPTIVE_VERSION, ARCHIVE_VERSION, PREVIOUS_VERSION):
+    if content_version == VERSION:
+        menu = MENUS[raw["menu"]]
+    elif content_version == PREVIOUS_VERSION:
+        menu = PREVIOUS_MENUS[raw["menu"]]
+    elif content_version in (TWO_QUESTION_VERSION, DESCRIPTIVE_VERSION, ARCHIVE_VERSION):
+        menu = TWO_QUESTION_MENUS[raw["menu"]]
+    else:
         raise ValueError("unknown quiz version")
-    old_quiz = content_version == PREVIOUS_VERSION
-    menu = (PREVIOUS_MENUS if old_quiz else MENUS)[raw["menu"]]
     pid = raw["pref"]
     status = raw["status"]
     lo, hi = parse(raw["started"]), parse(raw["ended"])
@@ -2607,7 +2683,7 @@ def build_records(raw, profile, assignment=None, now=None):
         raise ValueError("exploration missing")
 
     correct = answered = 0
-    if old_quiz:
+    if content_version == PREVIOUS_VERSION:
         sources = previous_discovery_questions(pid)
     elif content_version == ARCHIVE_VERSION:
         sources = [dict(id=ident, correct="0", skill=skill)
@@ -2615,6 +2691,8 @@ def build_records(raw, profile, assignment=None, now=None):
     elif content_version == DESCRIPTIVE_VERSION:
         sources = [dict(id=f"geography.discovery.{pid}.exam.{index}", correct="0", skill=skill)
                    for index, skill in enumerate(("industry", "reasoning"), 1)]
+    elif content_version == TWO_QUESTION_VERSION:
+        sources = EXAM_QUESTIONS[pid]
     else:
         sources = DISCOVERY[pid]["questions"]
     for index, item in enumerate(items):
@@ -2672,7 +2750,8 @@ def build_records(raw, profile, assignment=None, now=None):
         event = dict(schema_version=1, source_app=SOURCE, profile_id=profile, attempt_id=str(attempt),
             event_id=str(uuid5(attempt, f"event:{sequence}")),
             app_version={PREVIOUS_VERSION:"2.0.0", ARCHIVE_VERSION:"3.0.0",
-                         DESCRIPTIVE_VERSION:"4.0.0", VERSION:"5.0.0"}[content_version],
+                         DESCRIPTIVE_VERSION:"4.0.0", TWO_QUESTION_VERSION:"5.0.0",
+                         VERSION:"6.0.0"}[content_version],
             content_version=content_version,
             event_type=kind, occurred_at=iso(when), sequence=sequence, question_id=question,
             occurrence_id=occurrence, segment_id=segment, payload=payload)
@@ -2991,7 +3070,6 @@ body:has(#medal-dialog[open]){min-height:365px}
   </section>
   <section id="result" hidden>
     <h2>都道府県 たんけん クリア！</h2>
-    <p id="result-reason"></p>
     <p id="summary"></p><p id="result-sync" role="status"></p>
     <button id="again">トップへ戻る</button>
   </section>
@@ -3094,7 +3172,7 @@ function selectOwner(next) {
   cache = load(owner) || {queue:[], history:[], active:null};
   attempt = cache.active;
   zoomed = false;
-  if (attempt && (attempt.content_version !== args.version || !menus.get(attempt.menu)?.prefectures.includes(attempt.pref)
+  if (attempt && (!menuForVersion(attempt.menu, attempt.content_version)?.prefectures.includes(attempt.pref)
       || !["map","explore","quiz"].includes(attempt.phase))) {
     cache.previous_active = attempt;
     attempt = null;
@@ -3257,11 +3335,15 @@ function courseButton(label, sublabel, run) {
   button.onclick = run;
   return button;
 }
+function menuForVersion(id, version) {
+  if (version === args.version) return menus.get(id);
+  if (version === args.previous_version) return args.previous_menus.find(menu => menu.menu_id === id);
+  return null;
+}
 function assignedCourse() {
   const assignment = args.assignment;
   if (!assignment?.plan_item_id) return null;
-  if (assignment.content_version !== args.version) return null;
-  const menu = menus.get(assignment.menu_id);
+  const menu = menuForVersion(assignment.menu_id, assignment.content_version);
   return menu?.prefectures.length && canOpenCourse(menu) ? {assignment, menu} : null;
 }
 function startAssignedCourse() {
@@ -3339,7 +3421,9 @@ function current() { return attempt; }
 function placed() { return attempt.actions.some(a => a.type === "placement" && a.target === attempt.pref); }
 function containsHint() { return attempt.actions.some(a => a.type === "hint"); }
 function info() { return args.discovery[attempt.pref]; }
-function quizQuestions() { return info().questions; }
+function quizQuestions() {
+  return attempt.content_version === args.previous_version ? info().previous_questions : info().questions;
+}
 function canStartQuiz() { return attempt?.phase === "explore" && didOpen("land") && didOpen("industry"); }
 function didOpen(key) { return attempt.actions.some(a => a.type === "explore" && a.feature === key); }
 function showQuestion() {
@@ -3348,7 +3432,7 @@ function showQuestion() {
   $("course").textContent = ({
     map:"1　ピースを はめる", explore:"2　地図を たんけん", quiz:"3　とくちょうに ちょうせん",
   })[attempt.phase];
-  const total = menus.get(attempt.menu).planned_question_count;
+  const total = menuForVersion(attempt.menu, attempt.content_version).planned_question_count;
   $("count").textContent = attempt.phase === "quiz" ? `${attempt.questions.length} / ${total}` : "";
   display("game");
   if (attempt.phase === "map") {
@@ -3927,7 +4011,7 @@ function readCurrent({announcePrefecture = false} = {}) {
        "選んだ名前を言ってね"].filter(Boolean).join("。");
     speakText(text,info());
   } else if (stage === "result" && medalResult) {
-    speakText($("medal-score").textContent+"。"+$("result-reason").textContent,medalResult.info);
+    speakText($("medal-score").textContent,medalResult.info);
   }
 }
 function updateMedal() {
@@ -4060,7 +4144,7 @@ function startQuiz() {
 function nextQuestion() {
   if (!attempt || attempt.phase !== "quiz") return;
   stopQuizListening();
-  const total = menus.get(attempt.menu).planned_question_count;
+  const total = menuForVersion(attempt.menu, attempt.content_version).planned_question_count;
   if (attempt.questions.length >= total) { finish("completed"); return; }
   const q = quizQuestions()[attempt.questions.length];
   attempt.questions.push({id:q.id, shown:time(), options:shuffled(["0","1","2"])});
@@ -4100,7 +4184,8 @@ function parseQuizSpeech(text, question, recorded, pref) {
 function drawQuiz() {
   const question = quizQuestions()[attempt.questions.length-1], recorded = attempt.questions.at(-1);
   const answered = recorded.choice !== undefined;
-  $("quiz-name").textContent = info().name;
+  const topic = {capital:"県庁所在地", map:"地形", industry:"産業・特産品"}[question.skill];
+  $("quiz-name").textContent = topic ? `${info().name} ・ ${topic}` : info().name;
   $("quiz-prompt").textContent = question.prompt;
   $("choices").replaceChildren(...recorded.options.map(key => {
     const item = document.createElement("li");
@@ -4119,7 +4204,7 @@ function drawQuiz() {
     $("quiz-feedback").textContent = result + " " + question.explanation;
   }
   $("next").hidden = !answered;
-  $("next").textContent = attempt.questions.length === menus.get(attempt.menu).planned_question_count ? "けっかを 見る" : "つぎの問題";
+  $("next").textContent = attempt.questions.length === menuForVersion(attempt.menu, attempt.content_version).planned_question_count ? "けっかを 見る" : "つぎの問題";
 }
 function updateQuizMic(message) {
   $("quiz-voice-status").textContent = message;
@@ -4230,11 +4315,10 @@ function finish(status) {
   attempt.ended = time();
   attempt.status = status;
   if (status === "completed") {
-    const total = menus.get(attempt.menu).planned_question_count;
+    const total = menuForVersion(attempt.menu, attempt.content_version).planned_question_count;
     const right = attempt.questions.filter(q=>q.choice === "0").length;
     const item = info();
     $("summary").textContent = `${right === total ? "金" : "銀"}メダル　${item.name}　${right} / ${total}問 正解`;
-    $("result-reason").textContent = item.questions.map(q=>q.explanation).join(" ");
     medalResult = {id:attempt.id,grade:right===total?"gold":"silver",mode:profile?"saving":"local",info:item};
     $("medal-score").textContent = `${item.name}　${right} / ${total}問 正解`;
     diagnostic("round_finished",{state:"completed"});
@@ -4619,7 +4703,8 @@ def main():
         cm_poll_graduation(st, state, profile, 'geography', lambda: cm_geography_graduation_rows(profile))
     check_graduation()
     message = component(graduated_units=state.get('_cm_graduation_units', []), map=MAP, discovery=DISCOVERY, menus=list(MENUS.values()),
-        version=VERSION, build=build, age=state.get("age"),
+        version=VERSION, previous_version=TWO_QUESTION_VERSION, previous_menus=list(TWO_QUESTION_MENUS.values()),
+        build=build, age=state.get("age"),
         configured=configured, profile=state.get("profile"),
         plan_launch=bool(state.get("launch")), assignment=state.get("assignment"), ack=state.get("ack"), catalog_status=state.get("catalog_status"),
         key="geography_" + state.get("launch", "standalone")[:16], default=None)
