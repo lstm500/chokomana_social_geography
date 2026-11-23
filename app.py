@@ -2971,12 +2971,15 @@ def build_records(raw, profile, assignment=None, now=None):
         when = parse(item["answered"])
         if choice not in options or not at <= when <= hi:
             raise ValueError("invalid answer")
+        method = item.get("input_method", "choice")
+        if method not in ("choice", "speech"):
+            raise ValueError("invalid answer input method")
         previous = when
         right = choice == question["correct"]
         correct += int(right)
         answered += 1
         add("response_submitted", when, dict(response_index=1, response_status="answered",
-            assessment_method="automatic", is_correct=right, input_method="choice",
+            assessment_method="automatic", is_correct=right, input_method=method,
             response_value={"choice_id": choice, "prefecture_id": pid, "skill": question["skill"]},
             support_before_response={"hint_count": 0, "explanation_seen": False, "answer_seen": False,
                 "worked_example_seen": False, "parent_help": False},
@@ -3078,11 +3081,14 @@ button:disabled{cursor:default}
 #inset rect{stroke:#73969a;stroke-dasharray:4 3;fill:#cce5e5}
 #inset text{fill:#315459;font-weight:700;font-size:12px}
 #feedback{color:#264f45;margin:8px 0}
-#choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:8px 0}
-#choices button{background:var(--panel);color:var(--ink);border-color:var(--edge)}
-#choices small{display:block;font-size:.72rem}
+#choices{display:grid;grid-template-columns:1fr;gap:6px;margin:8px 0;padding:0;list-style:none}
+#choices li{background:var(--panel);color:var(--ink);border:1px solid var(--edge);
+  border-radius:8px;padding:6px 10px;overflow-wrap:anywhere}
 #choices .answer{border-color:var(--dark);background:#dcf0e0}
 #choices .incorrect{border-color:#a9442e;background:#fce8dd}
+#quiz-voice{margin:10px 0}
+#quiz-format,#quiz-voice-status{margin:4px 0;color:var(--muted);font-size:.9rem}
+#quiz-voice-status:empty{display:none}
 footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-size:.72rem;color:var(--muted)}
 @media(max-width:540px){
  .play{grid-template-columns:1fr;gap:5px}
@@ -3218,8 +3224,6 @@ body:has(#medal-dialog[open]){min-height:365px}
 .local-story a{display:inline-block;padding:3px 0;color:#47685e;font-size:.82rem}
 .fact h3,.fact p{margin:0 0 6px}
 #think{margin:5px 0 9px;color:var(--muted)}
-#choices{grid-template-columns:1fr}
-#choices button{text-align:left}
 #start-quiz:disabled{opacity:.5}
 .actions{margin-top:14px}
 </style>
@@ -3328,7 +3332,12 @@ body:has(#medal-dialog[open]){min-height:365px}
       <p id="quiz-name"></p>
       <h2 id="quiz-prompt" tabindex="-1"></h2>
       <p id="think" hidden>どんな土地や気候だったかな？ まず、じぶんの言葉で話してみよう。</p>
-      <div id="choices"></div>
+      <ul id="choices" aria-label="選択肢" role="list"></ul>
+      <div id="quiz-voice">
+        <p id="quiz-format"></p>
+        <button id="quiz-mic" type="button" aria-describedby="quiz-format quiz-voice-status">🎙 声で答える</button>
+        <p id="quiz-voice-status" role="status"></p>
+      </div>
       <p id="quiz-feedback" role="status" hidden></p>
       <button id="next" hidden>つぎの問題</button>
     </div>
@@ -3376,6 +3385,8 @@ let pending, hello = "waiting", attempt, stage = "menu", armed, drag, options;
 let zoomed = false, keyboard = -1, activeSince, lastActivity, idleTimer, paths = new Map(), prefectures, menus;
 let cache, medalResult, planLaunchHandled = false;
 let autoVoice = true;
+let quizListener;
+const QuizRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 function load(key) {
   try { return JSON.parse(localStorage.getItem(PREFIX + key)); }
@@ -3509,6 +3520,7 @@ function init() {
 }
 function display(next) {
   if (stage !== next) {
+    if (next !== "game") stopQuizListening();
     if (next === "menu") cancelSpeech();
     diagnostic("screen",{view:next});
   }
@@ -4257,7 +4269,7 @@ function cancelSpeech() {
   if (speechAvailable()) speechSynthesis.cancel();
 }
 function speakText(text, item = null) {
-  if (stage === "menu" || !autoVoice || !speechAvailable() || !text || document.hidden) return;
+  if (stage === "menu" || quizListener || !autoVoice || !speechAvailable() || !text || document.hidden) return;
   const voices = speechSynthesis.getVoices();
   if (!voices.length) { waitingSpeech={text,item}; return; }
   const voice = japaneseVoice(voices);
@@ -4317,7 +4329,8 @@ function readCurrent({announcePrefecture = false} = {}) {
     const entry = attempt.questions.at(-1), q = quizQuestions()[attempt.questions.length-1];
     const text = entry.choice !== undefined ? $("quiz-feedback").textContent :
       [$("quiz-prompt").textContent,!$("think").hidden ? $("think").textContent : "",
-       ...entry.options.map((key,i)=>`${i+1}ばん、${q.options[Number(key)]}`)].filter(Boolean).join("。");
+       ...entry.options.map(key=>choiceVoiceForms(q.options[Number(key)])[0]),
+       "都道府県の名前と、選んだ答えを続けて言ってね"].filter(Boolean).join("。");
     speakText(text,info());
   } else if (stage === "result" && medalResult) {
     speakText($("medal-score").textContent+"。"+$("result-reason").textContent,medalResult.info);
@@ -4474,6 +4487,7 @@ function startQuiz() {
 }
 function nextQuestion() {
   if (!attempt || attempt.phase !== "quiz") return;
+  stopQuizListening();
   const total = menus.get(attempt.menu).planned_question_count;
   if (attempt.questions.length >= total) { finish("completed"); return; }
   const q = quizQuestions()[attempt.questions.length];
@@ -4482,33 +4496,163 @@ function nextQuestion() {
   $("quiz-prompt").focus({preventScroll:true});
   readCurrent();
 }
+function normalizeQuizSpeech(text) {
+  return String(text).normalize("NFKC").toLowerCase()
+    .replace(/[ァ-ヶ]/g, letter=>String.fromCharCode(letter.charCodeAt(0)-0x60))
+    .replace(/[\s\p{P}\p{S}]/gu,"");
+}
+const CHOICE_SPEECH_ALIASES = {
+  "低く平らな土地が広がる":["ひくくたいらなとちがひろがる"],
+  "低い丘がいくつも続く":["ひくいおかがいくつもつづく"],
+  "まわりより一段高い平地が広がる":["まわりよりいちだんたかいへいちがひろがる","周りより一段高い平地が広がる"],
+  "山にかこまれた平らな土地":["やまにかこまれたたいらなとち","山に囲まれた平らな土地"],
+  "海に向かって広がる平らな土地":["うみにむかってひろがるたいらなとち"],
+  "まわりより高く平らな土地":["まわりよりたかくたいらなとち","周りより高く平らな土地"],
+  "風で運ばれた砂が積もった丘":["かぜではこばれたすながつもったおか"],
+  "海の波でけずられたがけ":["うみのなみでけずられたがけ","海の波で削られた崖"],
+  "川が運んだ土でできた平地":["かわがはこんだつちでできたへいち"],
+  "海が陸に入りこんでいる":["うみがりくにはいりこんでいる","海が陸に入り込んでいる"],
+  "陸が海につき出している":["りくがうみにつきだしている","陸が海に突き出している"],
+  "海が二つの陸の間を通っている":["うみがふたつのりくのあいだをとおっている"],
+  "陸のまわりがすべて海":["りくのまわりがすべてうみ","陸の周りがすべて海"],
+  "陸の一方だけが海につき出す":["りくのいっぽうだけがうみにつきだす","陸の一方だけが海に突き出す"],
+  "かき":["牡蠣"], "れんこん":["蓮根"], "しらす":["白子"], "ふぐ":["河豚"],
+  "ふなずし":["鮒ずし","鮒寿司"], "みかん":["蜜柑"], "ねぎ":["葱"], "わかめ":["若布"],
+  "たまねぎ":["玉ねぎ","玉葱"], "らっきょう":["辣韮"], "なす":["茄子"],
+};
+function choiceVoiceForms(label) {
+  const base = label.replace(/[（(][^）)]+[）)]/g,"");
+  const notes = [...label.matchAll(/[（(]([^）)]+)[）)]/g)].flatMap(match=>match[1].split(/[、／/]/u));
+  return [base, ...notes, label, ...(CHOICE_SPEECH_ALIASES[base] || [])];
+}
+function prefectureVoiceForms(pref) {
+  return [pref.name, pref.reading].filter(Boolean).map(normalizeQuizSpeech);
+}
+function parseQuizSpeech(text, question, recorded, pref) {
+  const phrase = normalizeQuizSpeech(text);
+  const choices = recorded.options.map(key=>[key,choiceVoiceForms(question.options[Number(key)]).map(normalizeQuizSpeech)]);
+  const nameQuestion = question.id.endsWith(".name");
+  const prefectureNames = nameQuestion ? choices.flatMap(([,forms])=>forms) : prefectureVoiceForms(pref);
+  const prefixes = prefectureNames.flatMap(name=>[name+"は",name+"わ"]).sort((a,b)=>b.length-a.length);
+  const prefix = prefixes.find(name=>phrase.startsWith(name));
+  if (!prefix) return {reason:"prefecture"};
+  const spoken = phrase.slice(prefix.length);
+  const ending = spoken.endsWith("です");
+  const matches = choices.filter(([,forms])=>forms.some(form=>
+    spoken === form+"です" || (spoken === form && /(?:です|ます)$/.test(form))));
+  if (matches.length!==1) return {reason:ending?"choice":"sentence"};
+  const [key, forms] = matches[0];
+  if (nameQuestion && !forms.includes(prefix.slice(0,-1))) return {reason:"prefecture"};
+  return {key};
+}
 function drawQuiz() {
   const question = quizQuestions()[attempt.questions.length-1], recorded = attempt.questions.at(-1);
   const answered = recorded.choice !== undefined;
-  $("quiz-name").textContent = info().name;
-  $("quiz-name").hidden = question.id.endsWith(".name");
+  const pref = info(), nameQuestion = question.id.endsWith(".name");
+  $("quiz-name").textContent = pref.name;
+  $("quiz-name").hidden = nameQuestion;
   $("quiz-prompt").textContent = question.prompt;
   $("think").hidden = !question.reasoning || answered;
   $("choices").replaceChildren(...recorded.options.map(key => {
-    const button = document.createElement("button");
-    button.textContent = question.options[Number(key)];
-    button.disabled = answered;
-    if (answered && key === question.correct) button.className = "answer";
-    if (answered && recorded.choice === key && key !== question.correct) button.className = "incorrect";
-    button.onclick = () => answer(key);
-    return button;
+    const item = document.createElement("li");
+    item.textContent = question.options[Number(key)];
+    if (answered && key === question.correct) item.className = "answer";
+    if (answered && recorded.choice === key && key !== question.correct) item.className = "incorrect";
+    return item;
   }));
+  $("quiz-voice").hidden = answered;
+  $("quiz-format").textContent = nameQuestion ? "「〇〇県は〇〇県です」のように答えてね。" :
+    `「${pref.name}は〇〇です」。〇〇に選んだ答えを入れてね。`;
+  updateQuizMic(QuizRecognition ? "" : "このブラウザーでは音声認識を使えません。音声認識に対応したブラウザーで開いてね。");
   $("quiz-feedback").hidden = !answered;
   if (answered) $("quiz-feedback").textContent = (recorded.choice === question.correct ? "せいかい！ " : "なるほど！ ")+question.explanation;
   $("next").hidden = !answered;
   $("next").textContent = attempt.questions.length === menus.get(attempt.menu).planned_question_count ? "けっかを 見る" : "つぎの問題";
 }
-function answer(id) {
+function updateQuizMic(message) {
+  $("quiz-voice-status").textContent = message;
+  $("quiz-mic").disabled = !QuizRecognition || !!quizListener && !quizListener.started;
+  $("quiz-mic").textContent = quizListener?.started ? "聞き取りを終える" :
+    quizListener ? "マイクを準備中…" : "🎙 声で答える";
+}
+function stopQuizListening(message = "") {
+  if (!quizListener) return;
+  const {recognition,timer} = quizListener;
+  quizListener = null;
+  clearTimeout(timer);
+  try { recognition.abort(); } catch {}
+  updateQuizMic(message);
+}
+function listenForQuizAnswer() {
+  if (stage!=="game" || attempt?.phase!=="quiz" || document.hidden || !QuizRecognition) return;
   const recorded = attempt.questions.at(-1);
-  if (recorded.choice !== undefined) return;
+  if (!recorded || recorded.choice!==undefined) return;
+  if (quizListener) {
+    if (quizListener.started) {
+      try { quizListener.recognition.stop(); } catch {}
+    }
+    return;
+  }
+  const question = quizQuestions()[attempt.questions.length-1], pref = info();
+  cancelSpeech();
+  wake();
+  let recognition;
+  try { recognition = new QuizRecognition(); }
+  catch { updateQuizMic("マイクを開けませんでした。もう一度試してね。"); return; }
+  recognition.lang = "ja-JP";
+  recognition.interimResults = false;
+  recognition.continuous = false;
+  recognition.maxAlternatives = 1;
+  const listener = {recognition, started:false};
+  quizListener = listener;
+  const current = () => quizListener===listener && stage==="game" && attempt?.questions.at(-1)===recorded;
+  const retry = (message, code) => {
+    if (!current()) return;
+    diagnostic("speech_answer",{outcome:"retry",code});
+    stopQuizListening(message);
+  };
+  const tryAgain = "聞き取れなかったよ。もう一度「声で答える」を押してね。";
+  recognition.onstart = () => {
+    if (!current()) return;
+    listener.started = true;
+    clearTimeout(listener.timer);
+    listener.timer = setTimeout(()=>retry(tryAgain,"timeout"),30000);
+    updateQuizMic("聞いています。都道府県名と答えを続けて言ってね。");
+  };
+  recognition.onresult = event => {
+    if (!current()) return;
+    const result = event.results[event.resultIndex ?? 0];
+    if (!result?.isFinal || !result[0]?.transcript) return;
+    const {key,reason} = parseQuizSpeech(result[0].transcript,question,recorded,pref);
+    if (key===undefined) {
+      const message = reason==="prefecture" ? "最初に、問題の都道府県名を言ってね。" :
+        reason==="sentence" ? "「〇〇県は〇〇です」の形で言ってね。" : "選択肢にある名前を、最後まで言ってね。";
+      retry(message+" もう一度答えてね。",reason);
+      return;
+    }
+    stopQuizListening();
+    diagnostic("speech_answer",{outcome:"accepted"});
+    answer(key,recorded);
+  };
+  recognition.onerror = event => {
+    const denied = ["not-allowed","service-not-allowed"].includes(event.error);
+    retry(denied ? "マイクの使用を許可してから、もう一度試してね。" :
+      event.error==="audio-capture" ? "マイクが使えるか確かめてから、もう一度試してね。" :
+      event.error==="network" ? "音声認識の通信に失敗したよ。もう一度試してね。" : tryAgain,event.error);
+  };
+  recognition.onend = () => retry(tryAgain,"no-result");
+  listener.timer = setTimeout(()=>retry("マイクを準備できなかったよ。もう一度試してね。","start-timeout"),15000);
+  updateQuizMic("マイクを準備しています。");
+  try { recognition.start(); }
+  catch { retry("マイクを開けませんでした。もう一度試してね。","start-error"); }
+}
+function answer(id, recorded) {
+  if (attempt?.phase!=="quiz" || attempt.questions.at(-1)!==recorded ||
+      recorded.choice!==undefined || !recorded.options.includes(id)) return;
   wake();
   recorded.choice = id;
   recorded.answered = time();
+  recorded.input_method = "speech";
   drawQuiz();
   $("next").focus();
   readCurrent();
@@ -4628,6 +4772,7 @@ $("age").onchange = () => { cache.age = Number($("age").value); persist(); showM
 for (const key of ["capital","land","industry"]) $("discover-"+key).onclick = () => openFeature(key);
 $("reveal-prefecture").onclick = revealPrefecture;
 $("start-quiz").onclick = startQuiz;
+$("quiz-mic").onclick = listenForQuizAnswer;
 $("next").onclick = nextQuestion;
 $("quit").onclick = () => {
   stopTime();
@@ -4642,7 +4787,7 @@ $("resume").onclick = () => {
 };
 $("voice-toggle").onchange = () => {
   autoVoice = $("voice-toggle").checked;
-  if (autoVoice) readCurrent(); else cancelSpeech();
+  if (autoVoice) { stopQuizListening(); readCurrent(); } else cancelSpeech();
 };
 $("medal-retry").onclick = () => { setMedalMode("saving"); sync(); };
 $("again").onclick = showMenu;
@@ -4657,6 +4802,7 @@ $("export").onclick = () => {
   setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
 function pausePage() {
+  stopQuizListening();
   stopTime();
   persist();
   cancelSpeech();
