@@ -1000,6 +1000,7 @@ ARCHIVE_VERSION = "geography-prefecture-discovery-3"
 DESCRIPTIVE_VERSION = "geography-prefecture-discovery-4"
 TWO_QUESTION_VERSION = "geography-prefecture-discovery-5"
 VERSION = "geography-prefecture-discovery-6"
+CATALOG_REVISION = f"{VERSION}:prefecture-prompts"
 # 年齢の帯は、ホームの年齢設定と単独利用の年齢選択で共通。
 AGE_BANDS = [(1, 6, 2), (7, 7, 4), (8, 9, 6), (10, 10, 8), (11, 100, 10)]
 SKILLS = {
@@ -2542,8 +2543,15 @@ INDUSTRY_QUIZ_QUESTIONS = {
 }
 
 
+def prefecture_prompt(name, prompt):
+    if name == "東京都":
+        prompt = prompt.replace("東京都心", "東京都の都心")
+    return prompt if name in prompt else f"{name}について、{prompt}"
+
+
 def prefecture_quiz(pid):
     info = PREFECTURE_INFO[pid]
+    name = info["name"]
     region = region_of(pid)[0]
     others = sorted((other for other in PREFECTURE_INFO if other != pid),
                     key=lambda other: (region_of(other)[0] != region, abs(int(other) - int(pid))))
@@ -2560,9 +2568,10 @@ def prefecture_quiz(pid):
                     options=[f"{name}（{reading}）" for name, reading in choices.items()],
                     readings=list(choices.values()), correct="0", skill=skill, explanation=explanation)
 
-    capital = fact_question("capital", "capital", "都道府県庁所在地はどこ？",
-                            f"{info['name']}の都道府県庁所在地は{info['capital']}です。")
-    terrain = fact_question("land", "map", "地図でたしかめた主な地形の名前は？",
+    office = f"{name[-1]}庁所在地"
+    capital = fact_question("capital", "capital", f"{name}の{office}はどこ？",
+                            f"{name}の{office}は{info['capital']}です。")
+    terrain = fact_question("land", "map", f"地図でたしかめた{name}の主な地形の名前は？",
                             f"{info['land']}は、この地図で学んだ{info['kind']}です。")
     if pid in INDUSTRY_QUIZ_QUESTIONS:
         story_index, prompt, *options = INDUSTRY_QUIZ_QUESTIONS[pid]
@@ -2574,7 +2583,8 @@ def prefecture_quiz(pid):
                         if q["skill"] == "industry"
                         and not q["options"][0].split("（", 1)[0].endswith(("市", "町", "村", "港"))
                         and q["options"][0].split("（", 1)[0] != "阿蘇")
-    industry = {**industry, "id": f"geography.discovery.{pid}.quiz3.industry"}
+    industry = {**industry, "id": f"geography.discovery.{pid}.quiz3.industry",
+                "prompt": prefecture_prompt(name, industry["prompt"])}
     return [capital, terrain, industry]
 
 
@@ -2582,7 +2592,9 @@ DISCOVERY = {
     pid: {**{key: info[key] for key in ("name", "reading", "capital", "capital_reading", "land", "land_reading", "kind", "climate")},
           "capital_point": project(pid, CAPITAL_POINTS[pid]),
           "land_point": project(pid, info["place"]), "questions": prefecture_quiz(pid),
-          "previous_questions": EXAM_QUESTIONS[pid],
+          "previous_questions": [
+              {**q, "prompt": prefecture_prompt(info["name"], q["prompt"])} for q in EXAM_QUESTIONS[pid]
+          ],
           "industry_stories": EXAM_STORIES[pid], "seas": SEA_LABELS.get(pid, []),
           "land_overlay": LAND_OVERLAYS.get(pid),
           "core_rivers": [feature["name"] for feature in VERIFIED_MAP[pid]["rivers"]
@@ -4004,12 +4016,12 @@ function readCurrent({announcePrefecture = false} = {}) {
       speakText([$("fact-title").textContent,$("fact-text").textContent].filter(Boolean).join("。"),item);
     }
   } else if (stage === "game" && attempt?.phase === "quiz") {
-    const entry = attempt.questions.at(-1), q = quizQuestions()[attempt.questions.length-1];
+    const entry = attempt.questions.at(-1), q = quizQuestions()[attempt.questions.length-1], prefecture = info();
+    const prompt = q.prompt.replaceAll(prefecture.name, prefecture.reading || prefecture.name);
     const text = entry.choice !== undefined ? $("quiz-feedback").textContent :
-      [$("quiz-prompt").textContent,
-       ...entry.options.map(key=>choiceVoiceForms(q.options[Number(key)])[0]),
-       "選んだ名前を言ってね"].filter(Boolean).join("。");
-    speakText(text,info());
+      prompt + " " + [...entry.options.map(key=>choiceVoiceForms(q.options[Number(key)])[0]),
+        "選んだ名前を言ってね"].join("。");
+    speakText(text,prefecture);
   } else if (stage === "result" && medalResult) {
     speakText($("medal-score").textContent,medalResult.info);
   }
@@ -4479,7 +4491,7 @@ def request(path, body):
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
-def publish_catalog(base, version):
+def publish_catalog(base, catalog_revision):
     rows = list(catalog())
     for start in range(0, len(rows), 200):
         batch = rows[start:start+200]
@@ -4680,12 +4692,12 @@ def main():
             state.update(ticket=ticket, launch=mark)
     base = setting("SUPABASE_URL")
     configured = https(base) and bool(setting("SUPABASE_SERVICE_ROLE_KEY") or setting("SUPABASE_SECRET_KEY"))
-    if configured and state.get("catalog_checked") != VERSION:
-        state["catalog_checked"] = VERSION
+    if configured and state.get("catalog_checked") != CATALOG_REVISION:
+        state["catalog_checked"] = CATALOG_REVISION
         start = perf_counter()
         outcome, fields = "saved", {}
         try:
-            publish_catalog(base, VERSION)
+            publish_catalog(base, CATALOG_REVISION)
         except HTTPError as error:
             fields, _ = database_error(error)
             outcome = "retry"
