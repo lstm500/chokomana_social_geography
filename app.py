@@ -2519,7 +2519,7 @@ REGIONAL_PHOTO_ROWS = """
 津軽塗|https://aomori-tourism.com/lsc/upfile/spot/0000/9355/9355_105_l.jpg|https://aomori-tourism.com/tw/gourmet/detail_9355.html|青森県観光情報サイト
 南部鉄器|https://www.tohoku.meti.go.jp/s_densan/assets/img/item02.jpg|https://www.tohoku.meti.go.jp/s_densan/iwate_01.html|東北経済産業局
 宮城伝統こけし|https://www.tohoku.meti.go.jp/s_densan/assets/img/item10.jpg|https://www.tohoku.meti.go.jp/s_densan/miyagi_01.html|東北経済産業局
-大館曲げわっぱ|https://kougeihin.jp/system-manager/wp-content/uploads/20180626_b01-600x400.jpg|https://kougeihin.jp/info/20180626_oodate/|伝統工芸 青山スクエア
+大館曲げわっぱ|https://thumb.wikimedia.org/wikipedia/commons/thumb/9/98/%E5%88%9D%E3%80%81%E7%A7%8B%E7%94%B0%E6%9D%89%E6%9B%B2%E3%81%92%E3%82%8F%E3%81%A3%E3%81%B1_%282914609193%29.jpg/960px-%E5%88%9D%E3%80%81%E7%A7%8B%E7%94%B0%E6%9D%89%E6%9B%B2%E3%81%92%E3%82%8F%E3%81%A3%E3%81%B1_%282914609193%29.jpg|https://commons.wikimedia.org/wiki/File:%E5%88%9D%E3%80%81%E7%A7%8B%E7%94%B0%E6%9D%89%E6%9B%B2%E3%81%92%E3%82%8F%E3%81%A3%E3%81%B1_%282914609193%29.jpg|sota
 山形鋳物|https://cdn.shopify.com/s/files/1/0058/4817/0560/files/YG-CK-2_4_6_0432_8b13accb-3659-47a0-bd58-11b96c0ef2fa_600x600.jpg?v=1653471521|https://japanesecrafts.com/collections/yamagata-imono?srsltid=AfmBOorrGXljX6H4kcivuF72Whx7iR6vQ3CPnohKS_ZJTykaCCXCiUhr|日本工芸堂
 会津塗|https://www.aizukanko.com/image/rendering/attraction_image/978/trim.1180/3/2?v=3e2a9e3771cee1ea9570286774b524c940d7e504|https://www.aizukanko.com/souvenir/401|会津若松観光ナビ
 笠間焼|https://exports.pref.ibaraki.jp/tw/resource/img/20210105173701075874145.jpg|https://exports.pref.ibaraki.jp/tw/product/detail?id=714906|茨城県
@@ -2569,6 +2569,9 @@ REGIONAL_PHOTOS = {}
 for row in REGIONAL_PHOTO_ROWS.strip().splitlines():
     name, image, source, credit = row.split("|")
     REGIONAL_PHOTOS[name] = dict(caption=name, image=image, source=source, credit=credit)
+REGIONAL_PHOTOS["大館曲げわっぱ"].update(
+    caption="大館曲げわっぱ（参考写真）", license="https://creativecommons.org/licenses/by-sa/2.0/"
+)
 
 ADDITIONAL_PRODUCT_PHOTO_ROWS = """
 45|きゅうりのキムチ和え|https://www.pref.miyazaki.lg.jp/parts/000049632.jpg|https://www.pref.miyazaki.lg.jp/contents/org/honbu/hisho/komiya/local_0602.htm|宮崎県
@@ -3096,7 +3099,7 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
   text-overflow:ellipsis;white-space:nowrap;font-size:10px;line-height:1.2}
 .product-previews span{font-weight:800}
 .product-previews .photo-credit{font-size:8px;color:#5a746b}
-#fact-map-panel.has-products{display:grid;grid-template-columns:minmax(0,1fr) clamp(108px,29%,280px);
+#fact-map-panel.has-products{display:grid;grid-template-columns:minmax(0,1fr) clamp(176px,31%,300px);
   gap:3px;align-items:start}
 #fact-map-panel.has-products #fact-map{max-height:none}
 #map-product-previews{padding:5px;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start}
@@ -3104,9 +3107,14 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
 #map-product-previews figure.active{outline:2px solid #a15a29;outline-offset:-2px;background:#fff4de}
 #map-product-previews button{display:block;width:100%;min-height:0;padding:2px;border:0;
   background:transparent;color:var(--ink);border-radius:4px;text-align:left}
-#map-product-previews img{height:clamp(31px,7vw,76px);object-fit:contain}
+#map-product-previews img{height:clamp(58px,8vw,90px)}
 #map-product-previews span{white-space:normal;line-height:1.12;padding:1px 2px}
-#map-product-previews .photo-credit{font-size:9px;text-decoration:underline}
+#map-product-previews .photo-credit{font-size:.68rem;text-decoration:underline}
+@media(max-width:540px){
+  #fact-map-panel.has-products{grid-template-columns:minmax(0,1fr)}
+  #map-product-previews{grid-template-columns:repeat(auto-fit,minmax(min(84px,100%),1fr))}
+  #map-product-previews img{height:clamp(60px,19vw,96px)}
+}
 .map-production-region{fill:#eab971;fill-opacity:.20;stroke:#a67747;stroke-width:1}
 .map-production-region.active{fill:#f2a346;fill-opacity:.75;stroke:#8e481b;stroke-width:1.9}
 .production-region.quiet{fill-opacity:.20;stroke-opacity:.45}
@@ -3165,6 +3173,10 @@ body:has(#medal-dialog[open]){min-height:365px}
   font:inherit;text-align:left;text-decoration:underline;text-underline-offset:3px}
 .local-story .story-pick:hover{color:var(--explanation-accent)}
 .local-story p{margin:4px 0}
+.story-photos{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(160px,100%),1fr));gap:8px;margin:8px 0}
+.story-photos img{display:block;width:100%;height:auto;aspect-ratio:4/3;max-height:260px;
+  object-fit:contain;background:#f8f7ec;border-radius:6px}
+.story-photos:not(:has(img:not([hidden]))){display:none}
 .local-story .story-category,#pref-capital.supplement,
   #map-caption,#nearby-prefectures,.map-key{color:#526f66;font-size:.82rem}
 #map-caption:empty{display:none}
@@ -3326,7 +3338,7 @@ const device = load("device") || [...crypto.getRandomValues(new Uint8Array(32))]
 let storageWorks = save("device", device), args, profile, owner = "local";
 let pending, hello = "waiting", attempt, stage = "menu", armed, drag, options;
 let zoomed = false, keyboard = -1, activeSince, lastActivity, idleTimer, paths = new Map(), prefectures, menus;
-let cache, medalResult;
+let cache, medalResult, planLaunchHandled = false;
 let autoVoice = true;
 
 function load(key) {
@@ -3409,7 +3421,9 @@ function receive(event) {
     if (action === "hello") {
       profile = args.profile || null;
       selectOwner(profile || "local");
-      if (stage === "menu") showMenu();
+      if (ack.status !== "linked" || !startAssignedCourse()) {
+        if (stage === "menu") showMenu();
+      }
       if (profile) sync();
     } else if (ack.status === "saved") {
       cache.queue = cache.queue.filter(item => item.id !== ack.attempt_id);
@@ -3522,19 +3536,42 @@ function courseButton(label, sublabel, run) {
   button.onclick = run;
   return button;
 }
+function assignedCourse() {
+  const assignment = args.assignment;
+  if (!assignment?.plan_item_id) return null;
+  const courses = assignment.content_version === args.version ? args.menus
+    : assignment.content_version === args.previous_version ? args.previous_menus : [];
+  const menu = courses.find(item => item.menu_id === assignment.menu_id);
+  return menu?.prefectures.length ? {assignment, menu} : null;
+}
+function startAssignedCourse() {
+  if (!args.plan_launch || !profile || planLaunchHandled || stage !== "menu") return false;
+  const course = assignedCourse();
+  if (!course || cmCourseIsGraduated(course.menu)) return false;
+  const {assignment, menu} = course;
+  planLaunchHandled = true;
+  if (attempt?.assignment === assignment.plan_item_id && attempt.menu === menu.menu_id
+      && attempt.content_version === assignment.content_version) {
+    showQuestion();
+    readCurrent();
+  } else {
+    beginCourse(menu, null, assignment.plan_item_id, assignment.content_version);
+  }
+  return true;
+}
 function showMenu() {
   display("menu");
   const age = ageValue();
   $("age").value = String(Math.min(age,11));
   $("age").disabled = Boolean(args.age);
   $("resume").hidden = !attempt;
-  const assigned = [args.version,args.previous_version].includes(args.assignment?.content_version) ? args.assignment : null;
-  const assignmentMenu = menus.get(assigned?.menu_id);
-  $("assigned-course").hidden = !assignmentMenu;
-  if (assignmentMenu) {
-    $("assigned-course").replaceChildren(cmCourseButton(assignmentMenu, "きょうの課題　"+assignmentMenu.region_label,
-      `1つの都道府県・${assignmentMenu.planned_question_count}問`,
-      () => beginCourse(assignmentMenu, null, assigned.plan_item_id, assigned.content_version)));
+  const course = assignedCourse();
+  $("assigned-course").hidden = !course;
+  if (course) {
+    const {assignment, menu} = course;
+    $("assigned-course").replaceChildren(cmCourseButton(menu, "きょうの課題　"+menu.region_label,
+      `1つの都道府県・${menu.planned_question_count}問`,
+      () => beginCourse(menu, null, assignment.plan_item_id, assignment.content_version)));
   }
   const list = args.menus.filter(menu => menu.age_min <= age && age <= menu.age_max);
   const national = list.find(menu => menu.region === "all");
@@ -3847,6 +3884,16 @@ function selectMapStory(key, focusPhoto = true) {
   readCurrent();
   persist();
 }
+function storyImage(media, alt, loading = "eager") {
+  const image = document.createElement("img");
+  image.referrerPolicy = "no-referrer";
+  image.alt = alt;
+  image.loading = loading;
+  image.decoding = "async";
+  image.onerror = () => {image.hidden = true;};
+  image.src = media.image;
+  return image;
+}
 function renderProductPreviews(pref, stories, active) {
   const gallery = $("map-product-previews");
   const visible = Boolean(active);
@@ -3862,11 +3909,7 @@ function renderProductPreviews(pref, stories, active) {
       pick.type = "button";
       pick.dataset.story = story.key;
       pick.onclick = () => selectMapStory(story.key);
-      const image = document.createElement("img");
-      image.referrerPolicy = "no-referrer";
-      image.alt = "";
-      image.src = media.image;
-      image.onerror = () => {image.hidden = true;};
+      const image = storyImage(media,"");
       const label = document.createElement("span");
       label.textContent = story.number+". "+media.caption;
       const source = document.createElement("a");
@@ -4315,7 +4358,14 @@ function renderIndustryStories(pref, stories, active) {
       source.target = "_blank";
       source.rel = "noopener noreferrer";
       source.textContent = "出典を見る";
-      card.append(category,heading,pitch,source);
+      card.append(category,heading,pitch);
+      if (story.photos.length) {
+        const photos = document.createElement("div");
+        photos.className = "story-photos";
+        photos.append(...story.photos.map(media=>storyImage(media,media.caption,"lazy")));
+        card.append(photos);
+      }
+      card.append(source);
       for (const photo of story.photos.filter(photo=>photo.license)) {
         const credit = document.createElement("p");
         credit.className = "story-category";
@@ -4323,7 +4373,7 @@ function renderIndustryStories(pref, stories, active) {
         author.href = photo.source;
         author.textContent = photo.credit;
         license.href = photo.license;
-        license.textContent = "CC BY-SA 4.0";
+        license.textContent = "CC BY-SA " + photo.license.split("/").filter(Boolean).at(-1);
         for (const link of [author,license]) {
           link.target = "_blank";
           link.rel = "noopener noreferrer";
@@ -4807,7 +4857,7 @@ def main():
         previous_menus=list(PREVIOUS_MENUS.values()), previous_version=PREVIOUS_VERSION,
         version=VERSION, build=build, age=state.get("age"),
         configured=configured, profile=state.get("profile"),
-        assignment=state.get("assignment"), ack=state.get("ack"), catalog_status=state.get("catalog_status"),
+        plan_launch=bool(state.get("launch")), assignment=state.get("assignment"), ack=state.get("ack"), catalog_status=state.get("catalog_status"),
         key="geography_" + state.get("launch", "standalone")[:16], default=None)
     if isinstance(message, dict):
         try:
