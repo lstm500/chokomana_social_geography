@@ -2587,6 +2587,15 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
   学習用に形状を簡略化しています。産地の資料は、<a href="https://www.maff.go.jp/j/kanbo/tiho/todouhuken_gaiyou2022.html" target="_blank" rel="noopener">農林水産省の都道府県資料</a>などを参照しています。
 </footer>
 </div>
+
+<script>
+let cmHubSpeechSpeed = null;
+window.addEventListener('message', event => {
+  if (event.source !== parent || event.data?.type !== 'streamlit:render') return;
+  const speed = event.data.args?.hub_speech_speed;
+  cmHubSpeechSpeed = ['0', '1', '2', '3', '4'].includes(speed) ? Number(speed) : null;
+});
+</script>
 <script>
 "use strict";
 
@@ -3113,7 +3122,7 @@ function speakText(text, item = null) {
   }
   const speech = new SpeechSynthesisUtterance(text);
   speech.voice = speaker;
-  speech.lang = speaker.lang.replace("_","-"); speech.rate = .96; speech.volume = speechVolume / 100;
+  speech.lang = speaker.lang.replace("_","-"); speech.rate = [1.24, 1.12, 1, .88, .76][cmHubSpeechSpeed] ?? .96; speech.volume = speechVolume / 100;
   speech.onerror = event => {
     if (!["canceled","interrupted"].includes(event.error)) diagnostic("speech",{outcome:"error",code:event.error});
   };
@@ -3899,7 +3908,7 @@ def main():
     def check_graduation():
         cm_poll_graduation(st, state, profile, 'geography', lambda: cm_geography_graduation_rows(profile))
     check_graduation()
-    message = component(graduated_units=state.get('_cm_graduation_units', []), map=MAP, discovery=DISCOVERY, menus=list(MENUS.values()), version=VERSION, build=build, age=state.get("age"),
+    message = component(hub_speech_speed=st.query_params.get('cm_speech_speed'),graduated_units=state.get('_cm_graduation_units', []), map=MAP, discovery=DISCOVERY, menus=list(MENUS.values()), version=VERSION, build=build, age=state.get("age"),
         configured=configured, profile=state.get("profile"),
         assignment=state.get("assignment"), ack=state.get("ack"), catalog_status=state.get("catalog_status"),
         key="geography_" + state.get("launch", "standalone")[:16], default=None)
