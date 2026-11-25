@@ -1028,7 +1028,6 @@ def region_of(pid):
                 if code != "all" and lo <= int(pid) <= hi)
 
 
-REGION_READINGS = {code: name for code, name, _, _ in REGIONS if code != "all"}
 MENUS = {
     f"geography.discovery.{code}.{count}": {
         "menu_id": f"geography.discovery.{code}.{count}", "category_id": f"{code}_{count}",
@@ -1046,74 +1045,6 @@ MENUS = {
     for code, name, lo, hi in REGIONS
     for min_age, max_age, count in AGE_BANDS
 }
-
-
-def discovery_questions(pid):
-    info = PREFECTURE_INFO[pid]
-    region, region_label = region_of(pid)
-    same_region = [p for p in PREFECTURE_INFO if p != pid and region_of(p)[0] == region]
-    others = same_region + [p for p in PREFECTURE_INFO if p != pid and p not in same_region]
-
-    def alternative(field):
-        correct = info[field]
-        return list(dict.fromkeys(PREFECTURE_INFO[p][field] for p in others
-                                  if PREFECTURE_INFO[p][field] != correct))[:2]
-
-    def q(code, prompt, answer, distractors, explanation, skill, *, reasoning=False):
-        return dict(id=f"geography.discovery.{pid}.{code}", prompt=prompt, explanation=explanation,
-                    options=[answer, *distractors], correct="0", skill=skill, reasoning=reasoning)
-
-    def choices(field):
-        return [x for x in alternative(field) if x != info[field]]
-
-    kinds = [kind for kind in ("山", "川", "平野", "湖", "台地", "湾") if kind != info["kind"]][:2]
-    if pid == "01":
-        why = q("why", "なぜ北海道の東では酪農がさかんなの？",
-                "夏もすずしく、広い牧草地で牛のえさを育てられるから",
-                ["夏の暑さをいかして、暖かい温室で牛を育てるから",
-                 "海に囲まれていて、海の水を牧草にまけるから"],
-                info["link"], "reasoning", reasoning=True)
-    else:
-        why = q("why", f"{info['land']}の近くで見つけた「{info['industry']}」。土地とのつながりは？",
-                info["link"],
-                ["土地や水のようすに関係なく、どの場所でも同じ方法で行う。",
-                 "土地の使い方より、県庁がある場所だけで決まる。"],
-                info["link"], "reasoning", reasoning=True)
-    if info["kind"] in {"湾", "海", "海峡", "湖", "海岸"}:
-        wrong_site, wrong_use = "雪の多い山の上", "山の林で木を切り出す"
-    else:
-        wrong_site, wrong_use = "陸地から遠く離れた深い海", "船で沖へ出て魚をとる"
-    return [
-        q("land", "地図で発見した地形の名前は？", f"{info['land']}（{info['land_reading']}）",
-          [f"{name}（{next(x['land_reading'] for x in PREFECTURE_INFO.values() if x['land']==name)}）" for name in choices("land")],
-          f"地図で見つけたのは{info['land']}です。", "map"),
-        why,
-        q("capital", "都道府県庁があるのはどこ？", f"{info['capital']}（{info['capital_reading']}）",
-          [f"{name}（{next(x['capital_reading'] for x in PREFECTURE_INFO.values() if x['capital']==name)}）" for name in choices("capital")],
-          f"{info['name']}の都道府県庁は{info['capital']}にあります。", "capital"),
-        q("industry", "地図で発見した産業や特産品は？", f"{info['industry']}（{info['industry_reading']}）",
-          [f"{name}（{next(x['industry_reading'] for x in PREFECTURE_INFO.values() if x['industry']==name)}）" for name in choices("industry")],
-          info["link"], "industry"),
-        q("kind", f"{info['land']}は、どんな地形？", info["kind"], kinds,
-          f"{info['land']}は{info['kind']}です。", "map"),
-        q("chain", f"「{info['industry']}」につながる順番は？ 気候・土地のようすから考えよう。",
-          f"{info['climate']} → {info['use']} → {info['industry']}",
-          [f"{info['climate']} → {wrong_use} → {info['industry']}",
-           f"{wrong_site} → {info['use']} → {info['industry']}"],
-          info["link"], "reasoning", reasoning=True),
-        q("region", "このピースをはめたのは日本のどの地方？", region_label,
-          [label for code, label in REGION_READINGS.items() if code != region][:2],
-          f"{info['name']}は「{region_label}」のコースで出会えます。", "map"),
-        q("use", "この地域では、土地や水をどう使っている？", info["use"], choices("use"),
-          info["link"], "reasoning"),
-        q("name", "探検した都道府県の名前は？", f"{info['name']}（{info['reading']}）",
-          [f"{name}（{next(x['reading'] for x in PREFECTURE_INFO.values() if x['name']==name)}）" for name in choices("name")],
-          f"探検したのは{info['name']}です。", "capital"),
-        q("evidence", "別の場所でも、この産業が広がる理由を調べるなら？",
-          "場所を地図で見て、気候や土地・水の使い方を比べる",
-          ["地名の字数だけを数える", "県庁までの道の本数だけを調べる"],
-          "産業と地形・気候・土地の使い方を比べると、場所によって成り立つ理由を考えられます。", "reasoning", reasoning=True),
-    ]
 
 
 INDUSTRY_MAP_DATA = """
@@ -2055,8 +1986,173 @@ VERIFIED_MAP_DATA = (
     "as9XaEVxWJzDnMfFf/mX/wPAMMp/"
 )
 VERIFIED_MAP = json.loads(decompress(b64decode(VERIFIED_MAP_DATA)))
+# Readings follow the first highlighted municipality and the two rivers in VERIFIED_MAP.
+# Landforms, prefectures, capitals and mountain readings are already in the map data.
+DISCOVERY_NAME_READINGS = """
+01 べつかいちょう いしかりがわ てしおがわ
+02 ひろさきし いわきがわ おいらせがわ
+03 はなまきし しずくいしがわ きたかみがわ
+04 せんだいし なとりがわ えあいがわ
+05 よこてし おものがわ よねしろがわ
+06 ひがしねし もがみがわ あかがわ
+07 ふくしまし あぶくまがわ あががわ
+08 つちうらし なかがわ こかいがわ
+09 なすまち きぬがわ なかがわ
+10 つまごいむら とねがわ あがつまがわ
+11 ふかやし あらかわ もとあらかわ
+12 くじゅうくりまち ようろうがわ おびつがわ
+13 みずほまち たまがわ あさかわ
+14 ひらつかし さがみがわ さかいがわ
+15 にいがたし しなのがわ あがのがわ
+16 となみし しょうがわ くろべがわ
+17 かなざわし てどりがわ さいがわ
+18 えちぜんちょう くずりゅうがわ あすわがわ
+19 こうしゅうし ふえふきがわ ふじかわ
+20 かわかみむら さいがわ しなのがわ
+21 ぎふし きそがわ ひだがわ
+22 まきのはらし おおいがわ てんりゅうがわ
+23 たはらし やはぎがわ とよがわ
+24 しまし みやがわ くしだがわ
+25 たかしまし やすがわ あどがわ
+26 うじたわらちょう かつらがわ ゆらがわ
+27 やおし よどがわ いしかわ
+28 みなみあわじし かこがわ いちかわ
+29 ごじょうし やまとがわ くまのがわ
+30 ありだし きのかわ ひだかがわ
+31 とっとりし せんだいがわ ひのがわ
+32 まつえし ひいかわ かんどがわ
+33 おかやまし あさひがわ よしいがわ
+34 はつかいちし おおたがわ ごうのかわ
+35 しものせきし にしきがわ あぶがわ
+36 なるとし あくいがわ なかがわ
+37 まるがめし どきがわ あやがわ
+38 うわじまし ひじかわ ひろみがわ
+39 なんこくし わたりがわ よしのがわ
+40 やめし ちくごがわ やべがわ
+41 さがし かせがわ ろっかくがわ
+42 させぼし ほんみょうがわ さざがわ
+43 あそし しらかわ くまがわ
+44 くにさきし おおのがわ くすがわ
+45 みやざきし おおよどがわ みみかわ
+46 みなみきゅうしゅうし せんだいがわ ひしだがわ
+47 いとまんし ひじゃがわ のはがわ
+"""
+DISCOVERY_NAME_READINGS = {pid: (municipality, river1, river2)
+                           for pid, municipality, river1, river2 in map(str.split, DISCOVERY_NAME_READINGS.strip().splitlines())}
+# Earlier attempts are validated against their original IDs and skill assignments.
+PREVIOUS_DISCOVERY_SLOTS = (
+    ("land", "map"), ("why", "reasoning"), ("capital", "capital"), ("industry", "industry"),
+    ("kind", "map"), ("chain", "reasoning"), ("region", "map"), ("use", "reasoning"),
+    ("name", "capital"), ("evidence", "reasoning"),
+)
+FUKAYA_NEGI = ("深谷ねぎ", "ふかやねぎ")
+DISCOVERY_REGIONS = {
+    "hokkaido": ("北海道", "ほっかいどう"), "tohoku": ("東北地方", "とうほくちほう"),
+    "kanto": ("関東地方", "かんとうちほう"), "chubu": ("中部地方", "ちゅうぶちほう"),
+    "kinki": ("近畿地方", "きんきちほう"), "chugoku": ("中国地方", "ちゅうごくちほう"),
+    "shikoku": ("四国地方", "しこくちほう"), "kyushu": ("九州地方", "きゅうしゅうちほう"),
+}
+
+# Kagoshima has two different mountains called 御岳. Show the island on both the map and quiz.
+VERIFIED_MAP["46"]["peaks"][0].update(name="桜島・北岳", reading="さくらじま・きただけ")
+VERIFIED_MAP["46"]["peaks"][2].update(name="諏訪之瀬島・御岳", reading="すわのせじま・おたけ")
+
+
+def summit_name(value):
+    base = re.split(r"[（＜]", value, maxsplit=1)[0]
+    summit = re.search(r"＜([^＞]+)＞", value)
+    if summit:
+        return base + "・" + summit[1]
+    return base
+
+
+def discovery_questions(pid):
+    info = PREFECTURE_INFO[pid]
+    features = VERIFIED_MAP[pid]
+    region, _ = region_of(pid)
+    region = ("hokkaido" if pid == "01" else "tohoku") if region == "north" else region
+    peers = [p for p in PREFECTURE_INFO if p != pid]
+    peers.sort(key=lambda p: region_of(p)[0] != region_of(pid)[0])
+    nearby = peers.copy()
+    nearby.sort(key=lambda p: (region_of(p)[0] != region_of(pid)[0], abs(int(p)-int(pid)), p))
+
+    def label(name):
+        return f"{name[0]}（{name[1]}）"
+
+    def question(code, prompt, answer, alternatives, explanation, skill):
+        names = {answer[0]}
+        distractors = []
+        for option in alternatives:
+            if option[0] not in names:
+                names.add(option[0])
+                distractors.append(option)
+                if len(distractors) == 2:
+                    break
+        assert len(distractors) == 2, (pid, code)
+        return dict(id=f"geography.discovery.{pid}.{code}", prompt=prompt,
+                    explanation=explanation, options=list(map(label, [answer, *distractors])),
+                    correct="0", skill=skill, reasoning=False)
+
+    def pairs(field, reading):
+        return ((PREFECTURE_INFO[p][field], PREFECTURE_INFO[p][reading]) for p in peers)
+
+    def municipality(p):
+        return VERIFIED_MAP[p]["production_cities"][0], DISCOVERY_NAME_READINGS[p][0]
+
+    def river_pairs(p):
+        return [(river["name"], reading)
+                for river, reading in zip(VERIFIED_MAP[p]["rivers"], DISCOVERY_NAME_READINGS[p][1:], strict=True)]
+
+    def river(index):
+        answer = river_pairs(pid)[index]
+        companion = river_pairs(pid)[1-index][0]
+        names_on_map = {name for name, _ in river_pairs(pid)}
+        distractors = (pair for p in nearby for pair in river_pairs(p) if pair[0] not in names_on_map)
+        return question(f"river_{index+1}", f"地図には「{companion}」と、もう一つの川が出ていたよ。その名前は？",
+                        answer, distractors, f"地図で見つけた川は、{companion}と{answer[0]}です。", "map")
+
+    def peak(index):
+        def name(mountain):
+            return summit_name(mountain["name"]), summit_name(mountain["reading"])
+
+        mountain = features["peaks"][index]
+        answer, height = name(mountain), mountain["height"]
+        options = (name(other) for other in features["peaks"] if other["height"] != height)
+        return question(f"peak_{index+1}", f"地図で見つけた、標高{height:,}メートルの山は？",
+                        answer, options, f"{answer[0]}の標高は{height:,}メートルです。", "map")
+
+    land = info["land"], info["land_reading"]
+    industry = municipality(pid)
+    land_question = question("land", "地図で発見した地形の名前は？", land, pairs("land", "land_reading"),
+                             f"地図で見つけたのは{land[0]}です。", "map")
+    specialty_question = question(
+        "named_product", "埼玉県で見つけた、白い部分が長いねぎの名前は？", FUKAYA_NEGI,
+        (("下仁田ねぎ", "しもにたねぎ"), ("九条ねぎ", "くじょうねぎ")),
+        "深谷ねぎは深谷市の特産品です。寒い時期には甘みが増します。", "industry",
+    ) if pid == "11" else None
+    return [
+        specialty_question or land_question,
+        question("production_place", f"「{info['industry']}」を地図で見つけたのは、どの市や町、村？",
+                 industry, (municipality(p) for p in nearby if municipality(p)[0] not in features["production_cities"]),
+                 f"地図で見つけた産地の一つは{industry[0]}です。{info['link']}", "industry"),
+        question("capital", "都道府県庁があるのはどこ？", (info["capital"], info["capital_reading"]),
+                 pairs("capital", "capital_reading"), f"{info['name']}の都道府県庁は{info['capital']}にあります。", "capital"),
+        river(0),
+        peak(0),
+        land_question if specialty_question else peak(1),
+        question("named_region", "探検した場所は、日本のどの地方にある？", DISCOVERY_REGIONS[region],
+                 (name for key, name in DISCOVERY_REGIONS.items() if key != region),
+                 "北海道は日本の北にあります。" if region == "hokkaido" else
+                 f"{info['name']}は{DISCOVERY_REGIONS[region][0]}にあります。", "map"),
+        river(1),
+        question("name", "探検した都道府県の名前は？", (info["name"], info["reading"]),
+                 pairs("name", "reading"), f"探検したのは{info['name']}です。", "capital"),
+        peak(2),
+    ]
+
+
 DISCOVERY = {
-    pid: {**info, "capital_point": project(pid, CAPITAL_POINTS[pid]),
+    pid: {**info, "specialty": FUKAYA_NEGI if pid == "11" else None, "capital_point": project(pid, CAPITAL_POINTS[pid]),
           "land_point": project(pid, info["place"]), "questions": discovery_questions(pid),
           "industry_icon": INDUSTRY_MAP[pid][0], "industry_points": INDUSTRY_MAP[pid][1],
           **VERIFIED_MAP[pid]}
@@ -2146,10 +2242,15 @@ def build_records(raw, profile, assignment=None, now=None):
     sources = DISCOVERY[pid]["questions"]
     for index, item in enumerate(items):
         question = sources[index]
+        if item["id"] != question["id"]:
+            previous_code, previous_skill = PREVIOUS_DISCOVERY_SLOTS[index]
+            previous_id = f"geography.discovery.{pid}.{previous_code}"
+            if item["id"] != previous_id:
+                raise ValueError("invalid question")
+            question = dict(id=previous_id, skill=previous_skill, correct="0")
         at = parse(item["shown"])
         options = item["options"]
-        if (not previous <= at <= hi or item["id"] != question["id"]
-                or not isinstance(options, list) or len(options) != 3 or set(options) != {"0", "1", "2"}):
+        if (not previous <= at <= hi or not isinstance(options, list) or len(options) != 3 or set(options) != {"0", "1", "2"}):
             raise ValueError("invalid question")
         occur = str(uuid5(attempt, question["id"]))
         add("item_presented", at, dict(presentation_kind="first", parent_occurrence_id=None, order=index+1,
@@ -2432,7 +2533,7 @@ body:has(#medal-dialog[open]){min-height:365px}
       <div id="voice-answer" hidden>
         <div id="voice-answer-form">
           <button type="button" id="voice-answer-listen" class="secondary" aria-pressed="false">マイクで こたえる</button>
-          <label>ことば・番号を入力（キーボードのマイクも使えます）
+          <label>名前を入力（キーボードのマイクも使えます）
             <input id="voice-answer-text" type="text" autocomplete="off" enterkeyhint="done" maxlength="160">
           </label>
         </div>
@@ -3031,7 +3132,7 @@ function readCurrent() {
     const entry = attempt.questions.at(-1), q = info().questions[attempt.questions.length-1];
     const text = entry.choice !== undefined ? $("quiz-feedback").textContent :
       [$("quiz-prompt").textContent,!$("think").hidden ? $("think").textContent : "",
-       ...entry.options.map((key,i)=>`${i+1}ばん、${q.options[Number(key)]}`)].filter(Boolean).join("。");
+       ...entry.options.map(key=>q.options[Number(key)])].filter(Boolean).join("。");
     speakText(text,info());
   } else if (stage === "result" && medalResult) {
     speakText($("summary").textContent+"。"+$("result-reason").textContent,medalResult.info);
@@ -3078,7 +3179,7 @@ function drawExplore(pref) {
   const facts = {
     capital: [item.capital+"（"+item.capital_reading+"）", "ここに都道府県庁があります。"],
     land: [item.land+"（"+item.land_reading+"）", `${item.kind}を地図で見つけよう。 ${item.climate}。`],
-    industry: [item.industry+"（"+item.industry_reading+"）", item.link],
+    industry: [item.specialty ? item.specialty[0]+"（"+item.specialty[1]+"）" : item.industry+"（"+item.industry_reading+"）", item.link],
   };
   const relief = attempt.relief;
   if (selected === "land" && relief?.kind === "river" && item.rivers[relief.index]) {
@@ -3115,15 +3216,6 @@ function openFeature(key) {
 }
 const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 const voice = {entry:null, recognition:null, raw:"", match:null, message:""};
-const placeReadings = {
-  "北海道":"ほっかいどう", "東北":"とうほく", "関東":"かんとう", "中部":"ちゅうぶ",
-  "近畿":"きんき", "中国":"ちゅうごく", "四国":"しこく", "九州":"きゅうしゅう", "沖縄":"おきなわ",
-  "山":"やま", "川":"かわ", "平野":"へいや", "湖":"みずうみ", "台地":"だいち",
-  "湾":"わん", "海":"うみ", "海峡":"かいきょう", "海岸":"かいがん", "島":"しま",
-  "半島":"はんとう", "高原":"こうげん", "山地":"さんち", "盆地":"ぼんち",
-  "山脈":"さんみゃく", "湿原":"しつげん", "砂丘":"さきゅう",
-};
-
 function speechKey(value) {
   return value.normalize("NFKC").toLowerCase()
     .replace(/[ァ-ヶ]/g, ch => String.fromCharCode(ch.charCodeAt(0)-96))
@@ -3133,22 +3225,21 @@ function speechKey(value) {
 }
 
 function spokenForms(label, type) {
-  const [base, reading] = label.split("（");
-  const forms = [speechKey(base), reading && speechKey(reading), placeReadings[base]];
-  if (type === "region") {
-    for (const part of base.split("・")) forms.push(speechKey(part), speechKey(part+"地方"), part+"ちほう");
-    for (const [name, kana] of Object.entries(placeReadings)) {
-      if (base.split("・").includes(kana)) forms.push(name, name+"地方");
-    }
+  const [name, reading = ""] = label.split("（");
+  const forms = [name, reading];
+  if (["capital", "name", "production_place"].includes(type)) {
+    forms.push(name.replace(/[市県府区町村]$/, ""), reading.replace(/(?:けん|く|ちょう|まち|むら|そん|し|ふ)）$/, ""));
+    if (name === "東京都") forms.push("東京", "とうきょう");
   }
-  if (type === "capital" || type === "name") {
-    if (/[市県府]$/.test(base)) {
-      forms.push(speechKey(base.slice(0,-1)), reading && speechKey(reading).replace(/(?:し|けん|ふ)$/,""));
-    } else if (base === "東京都") {
-      forms.push("東京","とうきょう");
-    }
+  if (type === "named_region") forms.push(name.replace(/地方$/, ""), reading.replace(/ちほう）$/, ""));
+  if (type.startsWith("peak_") && name.includes("・")) {
+    forms.push(...name.split("・"), ...reading.split("・"));
   }
-  return forms.filter(Boolean);
+  return [...new Set(forms.map(speechKey).filter(Boolean))];
+}
+
+function isChoiceNumber(heard) {
+  return /^第?(?:[0-9]+|[〇零一二三四五六七八九十百]+|ぜろ|れい|いち|に|さん|よん|し|ご|ろく|なな|しち|はち|きゅう|く|じゅう|ひとつ|ふたつ|みっつ)(?:番目|ばんめ|番|ばん)?$/.test(heard);
 }
 
 function editDistance(a,b) {
@@ -3174,17 +3265,13 @@ function compareSpeech(heard, form) {
 }
 
 function matchSpeech(transcripts, choices, type) {
-  const ranks = choices.map((choice,index) => {
-    const number = index+1;
-    const ordinal = ["いち","に","さん"][index];
-    const kanji = ["一","二","三"][index];
-    const numbers = [String(number), kanji, ...[String(number),ordinal,kanji].flatMap(n=>[n+"番",n+"ばん",n+"番目",n+"ばんめ"])];
+  const heard = transcripts.slice(0,5).map(raw=>speechKey(raw).slice(0,120));
+  if (isChoiceNumber(heard[0] || "")) return null;
+  const ranks = choices.map(choice => {
     const forms = spokenForms(choice.label,type);
-    const score = Math.max(0,...transcripts.slice(0,5).map((raw,i)=>{
-      const heard = speechKey(raw).slice(0,120);
-      if (!heard) return 0;
-      const similarity = numbers.includes(heard) ? 1 : Math.max(0,...forms.map(form=>compareSpeech(heard,form)));
-      return similarity - i*.08;
+    const score = Math.max(0,...heard.map((text,i)=>{
+      if (!text || isChoiceNumber(text)) return 0;
+      return Math.max(0,...forms.map(form=>compareSpeech(text,form))) - i*.08;
     }));
     return {...choice,score};
   }).sort((a,b)=>b.score-a.score);
@@ -3225,7 +3312,9 @@ function applyTranscripts(transcripts) {
   voice.raw = transcripts[0] || "";
   if ($("voice-answer-text").value !== voice.raw) $("voice-answer-text").value = voice.raw;
   voice.match = matchSpeech(transcripts,entry.options.map(id=>({id,label:question.options[Number(id)]})),question.id.split(".").at(-1));
-  voice.message = voice.match || !voice.raw ? "" : "近い答えを ひとつに しぼれなかったよ。もう一度 話すか、答えの番号を言ってみよう。";
+  voice.message = voice.match || !voice.raw ? "" : isChoiceNumber(speechKey(voice.raw))
+    ? "答えの名前を言ってね。"
+    : "近い答えを ひとつに しぼれなかったよ。もう一度、名前を話してみよう。";
   drawVoice();
 }
 
@@ -3243,7 +3332,7 @@ function listenForAnswer() {
   cancelSpeech();
   const recognition = new Recognition();
   voice.recognition = recognition;
-  voice.message = "聞いているよ。答えのことばか、番号を言ってね。";
+  voice.message = "聞いているよ。答えの名前を言ってね。";
   const isCurrent = () => voice.recognition === recognition && voice.entry === entry &&
     stage === "game" && attempt?.phase === "quiz" && attempt.questions.at(-1) === entry && entry.choice === undefined;
   recognition.lang = "ja-JP";
@@ -3315,9 +3404,9 @@ function drawQuiz() {
   $("quiz-name").textContent = info().name;
   $("quiz-prompt").textContent = question.prompt;
   $("think").hidden = !question.reasoning || answered;
-  $("choices").replaceChildren(...recorded.options.map((key,index) => {
+  $("choices").replaceChildren(...recorded.options.map(key => {
     const button = document.createElement("button");
-    button.textContent = `${index+1}．${question.options[Number(key)]}`;
+    button.textContent = question.options[Number(key)];
     button.disabled = answered;
     if (answered && key === question.correct) button.className = "answer";
     if (answered && recorded.choice === key && key !== question.correct) button.className = "incorrect";
@@ -3459,7 +3548,20 @@ $("quit").onclick = () => {
   showMenu();
   $("region-heading").focus({preventScroll:true});
 };
-$("resume").onclick = () => { showQuestion(); readCurrent(); };
+$("resume").onclick = () => {
+  if (attempt?.phase === "quiz" && attempt.questions.length) {
+    const entry = attempt.questions.at(-1);
+    const question = info().questions[attempt.questions.length-1];
+    if (entry.id !== question.id) {
+      if (entry.choice !== undefined) { nextQuestion(); return; }
+      entry.id = question.id;
+      entry.shown = time();
+      persist();
+    }
+  }
+  showQuestion();
+  readCurrent();
+};
 $("voice-toggle").onchange = () => {
   autoVoice = $("voice-toggle").checked;
   if (autoVoice) readCurrent(); else cancelSpeech();
@@ -3526,7 +3628,7 @@ def request(path, body, prefer=None):
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
-def publish_catalog(base):
+def publish_catalog(base, question_set):
     rows = list(catalog())
     for start in range(0, len(rows), 200):
         request("chokomana_learning_catalog?on_conflict=source_app,entry_type,entry_id,content_version",
@@ -3686,12 +3788,13 @@ def main():
             state.update(ticket=ticket, launch=mark)
     base = setting("SUPABASE_URL")
     configured = https(base) and bool(setting("SUPABASE_SERVICE_ROLE_KEY") or setting("SUPABASE_SECRET_KEY"))
-    if configured and not state.get("catalog_checked"):
-        state["catalog_checked"] = True
+    question_set = "proper-names-1"
+    if configured and state.get("catalog_checked") != question_set:
+        state["catalog_checked"] = question_set
         start = perf_counter()
         outcome, code = "saved", None
         try:
-            publish_catalog(base)
+            publish_catalog(base, question_set)
         except HTTPError as error:
             outcome, code = "retry", error.code
         except (ValueError, OSError):
