@@ -2319,7 +2319,9 @@ FRONTEND_HTML = r'''<!doctype html>
 :root{color-scheme:light;--ink:#153d3a;--muted:#49645e;--paper:#f8f8ea;--panel:#fffef5;--edge:#bfd3c6;--dark:#12624b;--sea:#d9efef;--piece:#ffc870;--win:#83c6a2;font:16px/1.55 "Hiragino Sans","Noto Sans CJK JP",system-ui,sans-serif;color:var(--ink)}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-body{margin:0;background:var(--paper);padding:clamp(12px,3vw,32px);border-radius:22px}
+html,body{height:100%;overflow:hidden}
+body{margin:0;background:var(--paper);display:grid;grid-template-rows:auto minmax(0,1fr)}
+#geo-content{min-height:0;overflow:auto;padding:12px clamp(12px,3vw,32px) 20px;scroll-padding:10px}
 header{display:grid;justify-items:start;gap:12px;padding-bottom:12px;border-bottom:1px solid var(--edge)}
 header{grid-template-columns:1fr auto}
 @media(max-width:540px){header{grid-template-columns:1fr}}
@@ -2385,9 +2387,13 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
 #phase-explore,#phase-quiz{margin-top:12px}
 #pref-name,#quiz-prompt{margin:0 0 5px;font-size:clamp(1.2rem,3vw,1.7rem)}
 #pref-capital,#quiz-name{margin:0 0 6px;color:var(--muted);font-weight:700}
-.voice-tools{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
-.voice-tools label{display:inline-flex;align-items:center;gap:7px;min-height:44px;color:var(--muted);font-size:.85rem;cursor:pointer}
-.voice-tools input{width:18px;height:18px;accent-color:var(--dark)}
+#voice-tools{z-index:2;background:var(--panel);padding:6px clamp(10px,3vw,24px);border-bottom:1px solid var(--edge);display:flex;align-items:center;flex-wrap:wrap;gap:4px 12px}
+#voice-toggle{flex:none;min-height:44px;font-size:.9rem;touch-action:manipulation;white-space:nowrap}
+#voice-toggle[aria-pressed=false]{background:#ebece5;color:var(--ink);border-color:var(--edge)}
+#voice-volume-group{display:flex;flex:1 1 144px;max-width:390px;min-width:0;align-items:center;gap:6px;font-size:.85rem;color:var(--ink)}
+#voice-volume{width:0;min-width:0;flex:1;min-height:38px;margin:0;accent-color:var(--dark)}
+#voice-volume-value{min-width:3ch;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+#voice-label{flex-basis:100%;margin:0;font-size:.76rem;color:var(--muted)}
 .discovery-map{background:linear-gradient(#d0ecea,#e4f4f0);border:1px solid #94bcbb;border-radius:13px;overflow:hidden}
 #fact-map{display:block;width:100%;height:auto;max-height:428px}
 #fact-shape{fill:#e8eed8;stroke:#427266;stroke-width:1.3;vector-effect:non-scaling-stroke}
@@ -2416,7 +2422,7 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
  .place-reference{font-size:12px;font-weight:750;fill:#386252;paint-order:stroke;stroke:#fbfff4;stroke-width:3;pointer-events:none}
 #medal-dialog{width:min(360px,calc(100% - 30px));padding:18px;border:1px solid var(--edge);border-radius:19px;background:#fffef6;color:var(--ink);text-align:center;box-shadow:0 12px 40px #18362e45}
 #medal-dialog::backdrop{background:#18362e78}
-body:has(#medal-dialog[open]){min-height:365px}
+#medal-dialog{max-height:calc(100% - 20px);overflow:auto}
 .medal-stamp{box-sizing:border-box;display:grid;place-content:center;gap:0;width:106px;height:106px;margin:8px auto;border:5px double;border-radius:50%;line-height:1.12;box-shadow:inset 0 6px 13px #ffffffa1,0 6px 14px #10283022}
 .medal-stamp.gold{background:radial-gradient(circle at 28% 18%,#fff9cf,#f5d361 49%,#c38d1d);border-color:#bd8c26;color:#69470a}
 .medal-stamp.silver{background:radial-gradient(circle at 28% 18%,#fff,#d8e0e8 53%,#9aa8b8);border-color:#9aa9b8;color:#3d5266}
@@ -2444,11 +2450,18 @@ body:has(#medal-dialog[open]){min-height:365px}
 .cm-graduation-complete:disabled{color:#5b3c4b!important;opacity:.9!important;cursor:default}
 </style></head>
 <body>
+<div id="voice-tools" role="group" aria-label="自動読み上げ">
+  <button id="voice-toggle" type="button" aria-label="音声" aria-pressed="true">音声 ON</button>
+  <div id="voice-volume-group">
+    <label for="voice-volume">音量</label>
+    <input id="voice-volume" type="range" min="0" max="100" step="1" value="100">
+    <output id="voice-volume-value" for="voice-volume">100%</output>
+  </div>
+  <p id="voice-label" role="status" hidden></p>
+</div>
+<div id="geo-content" role="region" aria-label="地理の学習" tabindex="0">
 <header>
   <div><div class="subject">ちょこまな　しゃかい・ちり</div><h1>日本地図パズル</h1></div>
-  <div class="voice-tools">
-    <label><input type="checkbox" id="voice-toggle" checked><span id="voice-label">自動読み上げ</span></label>
-  </div>
 </header>
 <div class="sync"><output id="connection">学習記録を準備中…</output><button id="retry" hidden>再接続・同期</button></div>
 <main>
@@ -2573,6 +2586,7 @@ body:has(#medal-dialog[open]){min-height:365px}
   <a href="https://geo.maderaojen.me/en/" target="_blank" rel="noopener">国土数値情報「行政区域」加工データ</a>。
   学習用に形状を簡略化しています。産地の資料は、<a href="https://www.maff.go.jp/j/kanbo/tiho/todouhuken_gaiyou2022.html" target="_blank" rel="noopener">農林水産省の都道府県資料</a>などを参照しています。
 </footer>
+</div>
 <script>
 "use strict";
 
@@ -2589,7 +2603,10 @@ let storageWorks = save("device", device), args, profile, owner = "local";
 let pending, hello = "waiting", attempt, stage = "menu", armed, drag, options;
 let zoomed = false, keyboard = -1, activeSince, lastActivity, idleTimer, paths = new Map(), prefectures, menus;
 let cache, medalResult;
-let autoVoice = true;
+const savedAudio = load("audio-controls");
+let autoVoice = savedAudio?.enabled !== false;
+let speechVolume = typeof savedAudio?.volume === "number" && Number.isFinite(savedAudio.volume)
+  ? Math.max(0,Math.min(100,Math.round(savedAudio.volume))) : 100;
 
 function load(key) {
   try { return JSON.parse(localStorage.getItem(PREFIX + key)); }
@@ -2723,7 +2740,10 @@ function display(next) {
     resetVoice();
     drawVoice();
   }
-  if (stage !== next) diagnostic("screen",{view:next});
+  if (stage !== next) {
+    $("geo-content").scrollTop = 0;
+    diagnostic("screen",{view:next});
+  }
   stage = next;
   for (const name of ["menu", "game", "result"]) $(name).hidden = name !== next;
 }
@@ -2844,6 +2864,7 @@ function containsHint() { return attempt.actions.some(a => a.type === "hint"); }
 function info() { return args.discovery[attempt.pref]; }
 function didOpen(key) { return attempt.actions.some(a => a.type === "explore" && a.feature === key); }
 function showQuestion() {
+  $("geo-content").scrollTop = 0;
   const pref = prefectures.get(attempt.pref);
   for (const phase of ["map","explore","quiz"]) $("phase-"+phase).hidden = attempt.phase !== phase;
   $("course").textContent = ({
@@ -3076,12 +3097,12 @@ function cancelSpeech() {
   if (speechAvailable()) speechSynthesis.cancel();
 }
 function speakText(text, item = null) {
-  if (!autoVoice || !speechAvailable() || !text || document.hidden || voice.recognition) return;
+  if (!autoVoice || speechVolume === 0 || !speechAvailable() || !text || document.hidden || voice.recognition) return;
   const voices = speechSynthesis.getVoices();
   if (!voices.length) { waitingSpeech={text,item}; return; }
-  const voice = japaneseVoice(voices);
-  if (!voice) {
-    $("voice-label").textContent = "日本語音声なし";
+  const speaker = japaneseVoice(voices);
+  if (!speaker) {
+    updateVoiceControl();
     diagnostic("speech",{outcome:"error",code:"japanese-voice-unavailable"});
     return;
   }
@@ -3091,8 +3112,8 @@ function speakText(text, item = null) {
     text = text.replaceAll(label+"（"+reading+"）",label);
   }
   const speech = new SpeechSynthesisUtterance(text);
-  speech.voice = voice;
-  speech.lang = voice.lang.replace("_","-"); speech.rate = .96;
+  speech.voice = speaker;
+  speech.lang = speaker.lang.replace("_","-"); speech.rate = .96; speech.volume = speechVolume / 100;
   speech.onerror = event => {
     if (!["canceled","interrupted"].includes(event.error)) diagnostic("speech",{outcome:"error",code:event.error});
   };
@@ -3110,10 +3131,14 @@ if (speechAvailable()) {
 }
 function updateVoiceControl() {
   const available = speechAvailable(), voices = available ? speechSynthesis.getVoices() : [];
-  $("voice-toggle").disabled = !available;
-  $("voice-toggle").checked = available && autoVoice;
-  $("voice-label").textContent = !available ? "読み上げ未対応" :
-    voices.length && !japaneseVoice(voices) ? "日本語音声なし" : "自動読み上げ";
+  const toggle = $("voice-toggle"), label = $("voice-label");
+  toggle.disabled = !available;
+  toggle.textContent = autoVoice && available ? "音声 ON" : "音声 OFF";
+  toggle.setAttribute("aria-pressed",String(autoVoice && available));
+  label.textContent = !available ? "このブラウザーでは読み上げを使えません。" :
+    voices.length && !japaneseVoice(voices) ? "端末の日本語音声を確認してください。" : "";
+  label.hidden = !label.textContent;
+  updateVolumeDisplay();
 }
 function readCurrent() {
   if (stage === "menu") {
@@ -3562,10 +3587,32 @@ $("resume").onclick = () => {
   showQuestion();
   readCurrent();
 };
-$("voice-toggle").onchange = () => {
-  autoVoice = $("voice-toggle").checked;
-  if (autoVoice) readCurrent(); else cancelSpeech();
+function saveAudioControls() {
+  save("audio-controls", {enabled:autoVoice, volume:speechVolume});
+}
+function updateVolumeDisplay() {
+  $("voice-volume").value = String(speechVolume);
+  $("voice-volume").setAttribute("aria-valuetext",speechVolume + "%");
+  $("voice-volume-value").textContent = speechVolume + "%";
+}
+$("voice-toggle").onclick = () => {
+  if (!speechAvailable()) return;
+  autoVoice = !autoVoice;
+  updateVoiceControl();
+  saveAudioControls();
+  if (autoVoice && args && cache) readCurrent();
+  else cancelSpeech();
 };
+$("voice-volume").oninput = () => {
+  speechVolume = Number($("voice-volume").value);
+  updateVolumeDisplay();
+  if (speechVolume === 0) cancelSpeech();
+};
+$("voice-volume").onchange = () => {
+  saveAudioControls();
+  if (autoVoice && speechVolume > 0 && args && cache) readCurrent();
+};
+updateVoiceControl();
 $("medal-retry").onclick = () => { setMedalMode("saving"); sync(); };
 $("again").onclick = showMenu;
 $("retry").onclick = () => {
@@ -3591,8 +3638,38 @@ function pausePage() {
 document.addEventListener("visibilitychange", () => { if (document.hidden) pausePage(); else wake(); });
 window.addEventListener("pagehide", pausePage);
 window.addEventListener("message", receive);
-new ResizeObserver(() => post("setFrameHeight",{height:Math.ceil(document.body.getBoundingClientRect().height)+1})).observe(document.body);
+function fitLearningFrame() {
+  // The audio toolbar is outside the learning scroller. Size the frame to the
+  // visible space below Streamlit's native link, including after rotation.
+  let lastHeight = 0, scheduled = false;
+  function measure() {
+    scheduled = false;
+    let height = 560;
+    try {
+      const viewport = parent.visualViewport;
+      const frame = window.frameElement;
+      if (!frame) return;
+      const bottom = viewport ? viewport.offsetTop + viewport.height : parent.innerHeight;
+      height = Math.max(112,Math.floor(bottom - frame.getBoundingClientRect().top - 8));
+    } catch { /* A separately hosted component can still scroll inside the frame. */ }
+    if (height === lastHeight) return;
+    lastHeight = height;
+    post("setFrameHeight",{height});
+  }
+  function resize() {
+    if (scheduled) return;
+    scheduled = true;
+    requestAnimationFrame(measure);
+  }
+  try {
+    parent.addEventListener("resize",resize);
+    parent.visualViewport?.addEventListener("resize",resize);
+    parent.visualViewport?.addEventListener("scroll",resize);
+  } catch { window.addEventListener("resize",resize); }
+  resize();
+}
 post("componentReady",{apiVersion:1});
+fitLearningFrame();
 </script>
 </body>
 </html>
@@ -3777,8 +3854,22 @@ def cm_geography_graduation_rows(profile):
 def main():
     st.set_page_config(page_title="ちょこまな｜しゃかい・ちり", page_icon="🗾", layout="wide",
                        initial_sidebar_state="collapsed")
-    st.markdown("<style>.block-container{max-width:1050px;padding:1.4rem .8rem}"
-                "header[data-testid='stHeader']{background:transparent}</style>", unsafe_allow_html=True)
+    hub = setting("CHOKOMANA_HOME_URL", HUB_URL)
+    parts = urlsplit(hub if https(hub) else HUB_URL)
+    query = dict(parse_qsl(parts.query))
+    query["cm_plan_return"] = "1"
+    href = escape(urlunsplit(parts._replace(query=urlencode(query))), quote=True)
+    st.markdown(
+        '<style>.block-container{max-width:1050px;padding:3.7rem .8rem .2rem}'
+        "header[data-testid='stHeader']{background:transparent}"
+        '.cm-native-home{display:inline-flex;align-items:center;padding:.45rem .95rem;'
+        'min-height:48px;min-width:148px;border:1px solid #bfd3c6;border-radius:11px;color:#12624b!important;'
+        'background:#fffef5;font-weight:700;text-decoration:none!important;touch-action:manipulation}'
+        '.cm-native-home:active{background:#d9ebe3}'
+        '.cm-native-home:focus-visible{outline:3px solid #a76400;outline-offset:2px}</style>'
+        f'<a class="cm-native-home" href="{href}" target="_self">← ちょこまなへ</a>',
+        unsafe_allow_html=True,
+    )
     state = st.session_state.setdefault("geography", {})
     ticket = st.query_params.get("cm_launch")
     if ticket and re.fullmatch(r"[A-Za-z0-9_-]{20,128}", ticket):
@@ -3801,19 +3892,6 @@ def main():
             outcome = "retry"
         state["catalog_status"] = dict(operation="catalog",stage="catalog",outcome=outcome,
                                        code=code,ms=round((perf_counter()-start)*1000))
-    hub = setting("CHOKOMANA_HOME_URL", HUB_URL)
-    parts = urlsplit(hub if https(hub) else HUB_URL)
-    query = dict(parse_qsl(parts.query))
-    query["cm_plan_return"] = "1"
-    href = escape(urlunsplit(parts._replace(query=urlencode(query))), quote=True)
-    st.markdown(
-        '<style>.cm-native-home{display:inline-flex;align-items:center;padding:.5rem .8rem;'
-        'min-height:42px;border:1px solid #bfd3c6;border-radius:11px;color:#12624b!important;'
-        'background:#fffef5;font-weight:700;text-decoration:none!important}'
-        '.cm-native-home:focus-visible{outline:3px solid #a76400}</style>'
-        f'<a class="cm-native-home" href="{href}" target="_self">← ちょこまなへ</a>',
-        unsafe_allow_html=True,
-    )
     build = hashlib.sha256(FRONTEND_HTML.encode("utf-8")).hexdigest()[:16]
     component = declare_component(f"chokomana_geography_{build}", path=frontend_folder(FRONTEND_HTML).name)
     profile = state.get('profile') if configured else None
