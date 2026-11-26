@@ -3889,18 +3889,38 @@ def main():
                        initial_sidebar_state="collapsed")
     hub = setting("CHOKOMANA_HOME_URL", HUB_URL)
     parts = urlsplit(hub if https(hub) else HUB_URL)
-    query = dict(parse_qsl(parts.query))
-    query["cm_plan_return"] = "1"
+    query = [(key, value) for key, value in parse_qsl(parts.query, keep_blank_values=True)
+             if key != "cm_plan_return"]
+    query.append(("cm_plan_return", "1"))
     href = escape(urlunsplit(parts._replace(query=urlencode(query))), quote=True)
     st.markdown(
-        '<style>.block-container{max-width:1050px;padding:3.7rem .8rem .2rem}'
-        "header[data-testid='stHeader']{background:transparent}"
-        '.cm-native-home{display:inline-flex;align-items:center;padding:.45rem .95rem;'
-        'min-height:48px;min-width:148px;border:1px solid #bfd3c6;border-radius:11px;color:#12624b!important;'
-        'background:#fffef5;font-weight:700;text-decoration:none!important;touch-action:manipulation}'
-        '.cm-native-home:active{background:#d9ebe3}'
-        '.cm-native-home:focus-visible{outline:3px solid #a76400;outline-offset:2px}</style>'
-        f'<a class="cm-native-home" href="{href}" target="_self">← ちょこまなへ</a>',
+        f"""
+        <style>
+        .block-container {{ max-width: 1050px; padding: 4.75rem .8rem .2rem; }}
+        header[data-testid="stHeader"] {{ background: transparent; }}
+        .cm-home-nav {{ padding-bottom: 1rem; }}
+        .cm-home-link {{
+            display: inline-flex;
+            box-sizing: border-box;
+            align-items: center;
+            justify-content: center;
+            min-height: 48px;
+            padding: .5rem 1rem;
+            border: 1px solid #bfd3c6;
+            border-radius: 11px;
+            color: #12624b !important;
+            background: #fffef5;
+            font-weight: 700;
+            text-decoration: none !important;
+            touch-action: manipulation;
+        }}
+        .cm-home-link:hover, .cm-home-link:active {{ background: #d9ebe3; }}
+        .cm-home-link:focus-visible {{ outline: 3px solid #a76400; outline-offset: 2px; }}
+        </style>
+        <nav class="cm-home-nav" aria-label="ちょこまな">
+            <a class="cm-home-link" href="{href}" target="_self">← ちょこまな本体へ</a>
+        </nav>
+        """,
         unsafe_allow_html=True,
     )
     state = st.session_state.setdefault("geography", {})
