@@ -2456,6 +2456,11 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
     <input id="voice-volume" type="range" min="0" max="100" step="1" value="100">
     <output id="voice-volume-value" for="voice-volume">100%</output>
   </div>
+  <label for="voice-speed">読み上げ速度</label>
+  <select id="voice-speed">
+    <option value="0">速い</option><option value="1">やや速い</option>
+    <option value="2" selected>普通</option><option value="3">やや遅い</option><option value="4">遅い</option>
+  </select>
   <p id="voice-label" role="status" hidden></p>
 </div>
 <div id="geo-content" role="region" aria-label="地理の学習" tabindex="0">
@@ -2587,14 +2592,7 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
 </footer>
 </div>
 
-<script>
-let cmHubSpeechSpeed = null;
-window.addEventListener('message', event => {
-  if (event.source !== parent || event.data?.type !== 'streamlit:render') return;
-  const speed = event.data.args?.hub_speech_speed;
-  cmHubSpeechSpeed = ['0', '1', '2', '3', '4'].includes(speed) ? Number(speed) : null;
-});
-</script>
+
 <script>
 "use strict";
 
@@ -2612,6 +2610,17 @@ let pending, hello = "waiting", attempt, stage = "menu", armed, drag, options;
 let zoomed = false, keyboard = -1, activeSince, lastActivity, idleTimer, paths = new Map(), prefectures, menus;
 let cache, medalResult;
 const savedAudio = load("audio-controls");
+const speedRates = [1.24, 1.12, 1, .88, .76];
+let speedIndex = Number.isInteger(savedAudio?.speed) && speedRates[savedAudio.speed] ? savedAudio.speed : 2;
+let lastHubSpeed = savedAudio?.hubSpeed ?? null;
+function applyHubSpeed(value) {
+  if (value == null || !/^[0-4]$/.test(String(value))) return;
+  const index = Number(value);
+  if (lastHubSpeed === index) return;
+  lastHubSpeed = speedIndex = index;
+  $("voice-speed").value = String(index);
+  saveAudioControls();
+}
 let autoVoice = savedAudio?.enabled !== false;
 let speechVolume = typeof savedAudio?.volume === "number" && Number.isFinite(savedAudio.volume)
   ? Math.max(0,Math.min(100,Math.round(savedAudio.volume))) : 100;
@@ -2682,6 +2691,7 @@ function receive(event) {
   if (event.source !== parent || event.data?.type !== "streamlit:render") return;
   const oldGraduation = JSON.stringify(args?.graduated_units || []);
   args = event.data.args;
+  applyHubSpeed(args.hub_speech_speed);
   if (!prefectures) init();
   else if (stage === "menu" && oldGraduation !== JSON.stringify(args.graduated_units || [])) showMenu();
   const ack = args.ack;
@@ -3132,7 +3142,7 @@ function speakText(text, item = null) {
   }
   const speech = new SpeechSynthesisUtterance(text);
   speech.voice = speaker;
-  speech.lang = speaker.lang.replace("_","-"); speech.rate = [1.24, 1.12, 1, .88, .76][cmHubSpeechSpeed] ?? .96; speech.volume = speechVolume / 100;
+  speech.lang = speaker.lang.replace("_","-"); speech.rate = speedRates[speedIndex]; speech.volume = speechVolume / 100;
   speech.onerror = event => {
     if (!["canceled","interrupted"].includes(event.error)) diagnostic("speech",{outcome:"error",code:event.error});
   };
@@ -3632,7 +3642,7 @@ $("resume").onclick = () => {
   readCurrent();
 };
 function saveAudioControls() {
-  save("audio-controls", {enabled:autoVoice, volume:speechVolume});
+  save("audio-controls", {enabled:autoVoice, volume:speechVolume, speed:speedIndex, hubSpeed:lastHubSpeed});
 }
 function updateVolumeDisplay() {
   $("voice-volume").value = String(speechVolume);
@@ -3646,6 +3656,12 @@ $("voice-toggle").onclick = () => {
   saveAudioControls();
   if (autoVoice && args && cache) readCurrent();
   else cancelSpeech();
+};
+$("voice-speed").value = String(speedIndex);
+$("voice-speed").onchange = () => {
+  speedIndex = Number($("voice-speed").value);
+  saveAudioControls();
+  if (autoVoice && speechVolume > 0 && args && cache && !voice.recognition && voice.retryTimer === null) readCurrent();
 };
 $("voice-volume").oninput = () => {
   speechVolume = Number($("voice-volume").value);
