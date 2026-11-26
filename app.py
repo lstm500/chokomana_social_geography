@@ -2447,7 +2447,7 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
 </style>
 <style>.cm-graduation-badge{display:inline-block;color:#a12e61;font-weight:800;margin:.2rem .4rem}
 .cm-graduation-complete:disabled{color:#5b3c4b!important;opacity:.9!important;cursor:default}
-</style></head>
+</style><style>.cm-save-panel,.cm-grad-sync-status{position:fixed!important;right:8px;bottom:8px;top:auto;left:auto;z-index:1200;max-width:min(26rem,calc(100% - 16px));max-height:25vh;overflow:auto;box-sizing:border-box;background:#fffdf8;padding:5px 9px;border-radius:8px;margin:0!important}.cm-save-panel[hidden],.cm-grad-sync-status[hidden]{display:none!important}</style></head>
 <body>
 <div id="voice-tools" role="group" aria-label="自動読み上げ">
   <button id="voice-toggle" type="button" aria-label="音声" aria-pressed="true">音声 ON</button>
@@ -2467,7 +2467,7 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
 <header>
   <div><div class="subject">ちょこまな　しゃかい・ちり</div><h1>日本地図パズル</h1></div>
 </header>
-<div class="sync"><output id="connection">学習記録を準備中…</output><button id="retry" hidden>再接続・同期</button></div>
+<div class="sync cm-save-panel" hidden><output id="connection">学習記録を準備中…</output><button id="retry" hidden>再接続・同期</button></div>
 <main>
   <section id="menu" hidden>
     <div class="region-heading">
@@ -2665,6 +2665,8 @@ function updateConnection() {
   $("connection").textContent = label + (cache?.rejected && hello !== "invalid" ? " 未同期の記録あり。" : "") + (storageWorks ? "" : " ブラウザを閉じると未同期の記録は消えます。");
   $("retry").hidden = !["retry", "invalid_ticket"].includes(hello) && !waiting;
   $("retry").disabled = !!pending;
+  $("connection").parentElement.hidden = storageWorks && !cache?.rejected &&
+    !["retry","invalid_ticket","relink","invalid"].includes(hello);
 }
 function sync() {
   if (profile && cache.queue.length && !pending) {
