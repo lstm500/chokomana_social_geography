@@ -2369,8 +2369,8 @@ button:disabled{cursor:default}
 #inset text{fill:#315459;font-weight:700;font-size:12px}
 #feedback{color:#264f45;margin:8px 0}
 #choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:8px 0}
-#choices button{background:var(--panel);color:var(--ink);border-color:var(--edge)}
-#choices small{display:block;font-size:.72rem}
+#choices{list-style:none;padding:0}
+#choices li{padding:7px 10px;border:1px solid var(--edge);border-radius:8px;background:var(--panel);color:var(--ink);overflow-wrap:anywhere}
 #choices .answer{border-color:var(--dark);background:#dcf0e0}
 #choices .incorrect{border-color:#a9442e;background:#fce8dd}
 footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-size:.72rem;color:var(--muted)}
@@ -2434,7 +2434,6 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
 .fact h3,.fact p{margin:0 0 6px}
 #think{margin:5px 0 9px;color:var(--muted)}
 #choices{grid-template-columns:1fr}
-#choices button{text-align:left}
 #voice-answer{display:grid;gap:8px;background:#eef6ef;border:1px solid var(--edge);border-radius:11px;padding:10px;margin:12px 0}
 #voice-answer-form{display:flex;flex-wrap:wrap;align-items:end;gap:8px}
 #voice-answer-form label{flex:1 1 210px;min-width:0;color:var(--muted);font-size:.85rem}
@@ -2542,11 +2541,11 @@ footer{margin-top:13px;padding-top:8px;border-top:1px solid var(--edge);font-siz
       <p id="quiz-name"></p>
       <h2 id="quiz-prompt" tabindex="-1"></h2>
       <p id="think" hidden>どんな土地や気候だったかな？ まず、じぶんの言葉で話してみよう。</p>
-      <div id="choices"></div>
+      <ul id="choices" role="list" aria-label="答えの候補"></ul>
       <div id="voice-answer" hidden>
         <div id="voice-answer-form">
           <button type="button" id="voice-answer-listen" class="secondary" aria-pressed="false">マイクで こたえる</button>
-          <label>名前を入力（キーボードのマイクも使えます）
+          <label>キーボードのマイクで答える（文字入力もできます）
             <input id="voice-answer-text" type="text" autocomplete="off" enterkeyhint="done" maxlength="160">
           </label>
         </div>
@@ -3249,7 +3248,7 @@ function openFeature(key) {
   persist();
 }
 const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-const voice = {entry:null, recognition:null, raw:"", match:null, message:""};
+const voice = {entry:null, recognition:null, retryTimer:null, raw:"", match:null, message:""};
 function speechKey(value) {
   return value.normalize("NFKC").toLowerCase()
     .replace(/[ァ-ヶ]/g, ch => String.fromCharCode(ch.charCodeAt(0)-96))
@@ -3314,6 +3313,8 @@ function matchSpeech(transcripts, choices, type) {
 }
 
 function stopRecognition() {
+  clearTimeout(voice.retryTimer);
+  voice.retryTimer = null;
   const recording = voice.recognition;
   voice.recognition = null;
   recording?.abort();
@@ -3329,14 +3330,15 @@ function drawVoice() {
   const entry = voice.entry;
   const canAnswer = entry && entry.choice === undefined;
   const listen = $("voice-answer-listen");
+  const listening = Boolean(voice.recognition) || voice.retryTimer !== null;
   listen.hidden = !Recognition || !canAnswer;
-  listen.textContent = voice.recognition ? "ききとりを やめる" : "マイクで こたえる";
-  listen.setAttribute("aria-pressed",String(Boolean(voice.recognition)));
+  listen.textContent = listening ? "ききとりを やめる" : voice.match ? "もう一度 はなす" : "マイクで こたえる";
+  listen.setAttribute("aria-pressed",String(listening));
   $("voice-answer-form").hidden = !canAnswer;
   $("voice-answer-status").textContent = voice.message;
   $("voice-answer-match").textContent = voice.match?.label ?? "";
   $("voice-answer-result").hidden = !voice.match;
-  $("voice-answer-confirm").hidden = !canAnswer || !voice.match || Boolean(voice.recognition);
+  $("voice-answer-confirm").hidden = !canAnswer || !voice.match || listening;
   $("voice-answer").hidden = !canAnswer && !voice.match;
 }
 
@@ -3352,67 +3354,103 @@ function applyTranscripts(transcripts) {
   drawVoice();
 }
 
+function currentVoiceEntry(entry) {
+  return entry && !document.hidden && stage === "game" && attempt?.phase === "quiz" &&
+    voice.entry === entry && attempt.questions.at(-1) === entry && entry.choice === undefined;
+}
+
+function beginRecognition(entry, retryAllowed) {
+  if (!currentVoiceEntry(entry)) return;
+  resetVoice(entry);
+  cancelSpeech();
+  const fallback = "もう一度 話すか、キーボードのマイクを使ってね。";
+  const unavailable = "マイクを使えません。キーボードのマイクで答えられます。";
+  const handleMiss = () => {
+    const message = voice.raw ? voice.message : "声が聞き取れなかったよ。";
+    if (retryAllowed && currentVoiceEntry(entry)) {
+      voice.message = message + " もう一度 聞くね。";
+      voice.retryTimer = setTimeout(() => {
+        voice.retryTimer = null;
+        if (currentVoiceEntry(entry)) beginRecognition(entry, false);
+      }, 500);
+    } else {
+      voice.message = voice.raw ? message : message + fallback;
+    }
+    drawVoice();
+  };
+  try {
+    const recognition = new Recognition();
+    voice.recognition = recognition;
+    const isCurrent = () => voice.recognition === recognition && currentVoiceEntry(entry);
+    recognition.lang = "ja-JP";
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 5;
+    recognition.onresult = event => {
+      if (!isCurrent()) return;
+      const result = event.results[event.resultIndex];
+      const transcripts = Array.from(result, item=>item.transcript.trim()).filter(Boolean);
+      if (transcripts.length) applyTranscripts(transcripts);
+    };
+    recognition.onend = () => {
+      if (!isCurrent()) return;
+      voice.recognition = null;
+      if (voice.match) drawVoice();
+      else handleMiss();
+    };
+    recognition.onerror = event => {
+      if (!isCurrent()) return;
+      stopRecognition();
+      if (event.error === "no-speech") {
+        handleMiss();
+        return;
+      }
+      voice.message = ["not-allowed","service-not-allowed","audio-capture"].includes(event.error)
+        ? unavailable : "音声認識を続けられなかったよ。" + fallback;
+      drawVoice();
+    };
+    voice.message = "聞いているよ。答えの名前を言ってね。";
+    recognition.start();
+  } catch {
+    stopRecognition();
+    voice.message = unavailable;
+  }
+  drawVoice();
+}
+
 function listenForAnswer() {
   const entry = voice.entry;
-  if (!Recognition || stage !== "game" || entry?.choice !== undefined || !entry) return;
-  if (voice.recognition) {
+  if (!Recognition || !currentVoiceEntry(entry)) return;
+  if (voice.recognition || voice.retryTimer !== null) {
     stopRecognition();
     voice.message = "";
     drawVoice();
     return;
   }
   wake();
-  resetVoice(entry);
-  cancelSpeech();
-  const recognition = new Recognition();
-  voice.recognition = recognition;
-  voice.message = "聞いているよ。答えの名前を言ってね。";
-  const isCurrent = () => voice.recognition === recognition && voice.entry === entry &&
-    stage === "game" && attempt?.phase === "quiz" && attempt.questions.at(-1) === entry && entry.choice === undefined;
-  recognition.lang = "ja-JP";
-  recognition.continuous = false;
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 5;
-  recognition.onresult = event => {
-    if (!isCurrent()) return;
-    const result = event.results[event.resultIndex];
-    const transcripts = Array.from(result, item=>item.transcript.trim()).filter(Boolean);
-    if (transcripts.length) applyTranscripts(transcripts);
-  };
-  recognition.onend = () => {
-    if (!isCurrent()) return;
-    voice.recognition = null;
-    if (!voice.raw) voice.message = "声が聞き取れなかったよ。もう一度 話すか、下の欄に入力してね。";
-    drawVoice();
-  };
-  recognition.onerror = event => {
-    if (!isCurrent()) return;
-    stopRecognition();
-    voice.message = ["not-allowed","service-not-allowed","audio-capture"].includes(event.error)
-      ? "マイクを使えません。下の欄で、キーボードのマイクも使えます。"
-      : "声が聞き取れなかったよ。もう一度 話すか、下の欄に入力してね。";
-    drawVoice();
-  };
-  try {
-    recognition.start();
-  } catch {
-    stopRecognition();
-    voice.message = "マイクを使えません。下の欄で、キーボードのマイクも使えます。";
-  }
-  drawVoice();
+  beginRecognition(entry, true);
 }
 
 $("voice-answer-listen").onclick = listenForAnswer;
 function matchTypedAnswer(event) {
-  if (event.isComposing || !voice.entry || voice.entry.choice !== undefined) return;
+  if (event.isComposing || !currentVoiceEntry(voice.entry)) return;
   stopRecognition();
   applyTranscripts([event.target.value]);
 }
 $("voice-answer-text").oninput = matchTypedAnswer;
 $("voice-answer-text").oncompositionend = matchTypedAnswer;
 $("voice-answer-confirm").onclick = () => {
-  if (voice.match && stage === "game" && attempt?.phase === "quiz" &&
-      voice.entry === attempt.questions.at(-1) && voice.entry.choice === undefined) answer(voice.match.id, true);
+  const entry = voice.entry;
+  if (!currentVoiceEntry(entry) || voice.recognition || voice.retryTimer !== null ||
+      !voice.match || !entry.options.includes(voice.match.id)) return;
+  stopRecognition();
+  wake();
+  entry.choice = voice.match.id;
+  entry.answered = time();
+  drawQuiz();
+  $("next").focus();
+  readCurrent();
+  persist();
 };
 
 function startQuiz() {
@@ -3439,30 +3477,16 @@ function drawQuiz() {
   $("quiz-prompt").textContent = question.prompt;
   $("think").hidden = !question.reasoning || answered;
   $("choices").replaceChildren(...recorded.options.map(key => {
-    const button = document.createElement("button");
-    button.textContent = question.options[Number(key)];
-    button.disabled = answered;
-    if (answered && key === question.correct) button.className = "answer";
-    if (answered && recorded.choice === key && key !== question.correct) button.className = "incorrect";
-    button.onclick = () => answer(key);
-    return button;
+    const option = document.createElement("li");
+    option.textContent = question.options[Number(key)];
+    if (answered && key === question.correct) option.className = "answer";
+    if (answered && recorded.choice === key && key !== question.correct) option.className = "incorrect";
+    return option;
   }));
   $("quiz-feedback").hidden = !answered;
   if (answered) $("quiz-feedback").textContent = (recorded.choice === question.correct ? "せいかい！ " : "なるほど！ ")+question.explanation;
   $("next").hidden = !answered;
   $("next").textContent = attempt.questions.length === menus.get(attempt.menu).planned_question_count ? "けっかを 見る" : "つぎの問題";
-}
-function answer(id, viaVoice=false) {
-  const recorded = attempt.questions.at(-1);
-  if (recorded.choice !== undefined) return;
-  if (viaVoice) stopRecognition(); else resetVoice(recorded);
-  wake();
-  recorded.choice = id;
-  recorded.answered = time();
-  drawQuiz();
-  $("next").focus();
-  readCurrent();
-  persist();
 }
 function mapPoint(event) {
   const svg = $("map"), matrix = svg.getScreenCTM();
@@ -3635,7 +3659,7 @@ $("export").onclick = () => {
   setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
 function pausePage() {
-  if (voice.recognition) {
+  if (voice.recognition || voice.retryTimer !== null) {
     stopRecognition();
     voice.message = "";
     drawVoice();
