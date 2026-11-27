@@ -2653,6 +2653,7 @@ function send(action, extra = {}) {
   const id = uuid();
   pending = {id, action, started:performance.now(), timer: setTimeout(() => {
     pending = null;
+    if(action==="appeal" && medalResult){medalResult.appealFailed=true;updateMedal();return}
     hello = "retry";
     diagnostic("request",{operation:action,outcome:"timeout",ms:26000});
     if (action === "sync" && medalResult?.mode==="saving") setMedalMode("retry");
@@ -2709,6 +2710,10 @@ function receive(event) {
       ms:Math.round(performance.now()-pending.started)});
     clearTimeout(pending.timer);
     pending = null;
+    if(action==="appeal"){
+      if(medalResult?.id===ack.attempt_id){medalResult.appealSent=ack.status==="appealed";medalResult.appealFailed=!medalResult.appealSent;updateMedal()}
+      return;
+    }
     hello = ack.status;
     if (action === "hello") {
       profile = args.profile || null;
@@ -3215,6 +3220,12 @@ function updateMedal() {
     invalid:"記録形式を確認できません。記録は端末に残っています。",
     local:"この端末の記録です。" })[mode];
   $("medal-status").textContent = status;
+  let appeal=$("geo-appeal");
+  if(!appeal){appeal=document.createElement("button");appeal.id="geo-appeal";appeal.type="button";$("medal-status").after(appeal)}
+  appeal.hidden=grade!=="gold";
+  appeal.disabled=mode!=="saved"||!!medalResult.appealSent||pending?.action==="appeal";
+  appeal.textContent=medalResult.appealSent?"アピールしたよ":medalResult.appealFailed?"もう一度アピールする":"アピールする";
+  appeal.onclick=()=>{if(!pending){send("appeal",{attempt_id:medalResult.id});updateMedal()}};
   $("result-sync").textContent = status;
   $("medal-retry").hidden = mode !== "retry";
   $("medal-stamp").setAttribute("aria-label",label+"メダル");
@@ -3842,7 +3853,19 @@ def process(message, state, configured):
             })
             if not saved or saved.get("attempt_id") != raw["id"]:
                 raise RuntimeError("missing save confirmation")
+            if medal and medal.get("grade") == "gold":
+                state["appealable_gold"] = (profile, raw["id"], medal["category_label"])
             result.update(status="saved", attempt_id=saved["attempt_id"], medal_saved=medal is not None)
+        elif message["action"] == "appeal":
+            attempt_id = str(UUID(message["attempt_id"]))
+            result["attempt_id"] = attempt_id
+            gold = state.get("appealable_gold")
+            if not gold or gold[:2] != (state.get("profile"), attempt_id):
+                raise PermissionError("unverified medal")
+            request("cm_watch_show_requests?on_conflict=profile_id,source_app,attempt_id",
+                    dict(profile_id=gold[0], source_app="geography", attempt_id=attempt_id,
+                         label="金メダルのアピール："+gold[2]), "resolution=ignore-duplicates,return=minimal")
+            result["status"] = "appealed"
         else:
             raise ValueError("invalid action")
     except (ValueError, TypeError, KeyError, PermissionError, IndexError):
