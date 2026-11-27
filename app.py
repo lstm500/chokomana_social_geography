@@ -2290,7 +2290,13 @@ def build_records(raw, profile, assignment=None, now=None):
         previous = b
         add("time_interval_closed", b, dict(start_at=iso(a), end_at=iso(b), active_ms=duration,
             timing_quality="complete", phase="other"), segment=str(uuid5(attempt, f"interval:{index}")))
-    add("session_ended", hi, dict(status=status, answered_count=answered, first_correct_count=correct, prefecture_id=pid))
+    end_payload = dict(status=status, answered_count=answered, first_correct_count=correct, prefecture_id=pid)
+    if status == "completed" and raw.get("first_question_at") and items:
+        first, last = parse(raw["first_question_at"]), parse(items[-1]["answered"])
+        if lo <= first < last <= hi:
+            end_payload.update(first_question_at=iso(first), last_question_finished_at=iso(last),
+                               unit_elapsed_ms=round((last-first).total_seconds()*1000))
+    add("session_ended", hi, end_payload)
     records = []
     for sequence, (when, kind, payload, question, occurrence, segment) in enumerate(
             sorted(events, key=lambda e:e[0]), 1):
@@ -2797,6 +2803,7 @@ function beginCourse(menu, area, assignment = null) {
     area:area?.key || null, mapZoomed:menu.region !== "all", phase:"map",
     actions:[], intervals:[], questions:[], assignment};
   medalResult = null;
+  attempt.first_question_at = time();
   showQuestion();
   readCurrent();
 }
@@ -3540,7 +3547,9 @@ function finish(status) {
     $("result-reason").textContent = item.link;
     medalResult = {id:attempt.id,grade:right===total?"gold":"silver",mode:profile?"saving":"local",info:item};
     $("medal-score").textContent = `${item.name}　${right} / ${total}問 正解`;
-    diagnostic("round_finished",{state:"completed"});
+    const first = attempt.first_question_at, last = attempt.questions.at(-1)?.answered;
+    diagnostic("round_finished",{state:"completed", menu_id:attempt.menu, attempt_id:attempt.id,
+      first_question_at:first,last_question_finished_at:last,unit_elapsed_ms:first&&last?Date.parse(last)-Date.parse(first):null});
   }
   cache.history.push(attempt);
   if (profile) cache.queue.push(attempt);
